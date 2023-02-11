@@ -1,0 +1,208 @@
+var swalInit = swal.mixin({
+    buttonsStyling: false,
+    confirmButtonClass: "btn btn-sm btn-outline bg-success-800 text-success-800 border-success-800",
+    cancelButtonClass: "btn btn-sm btn-outline bg-slate-800 text-slate-800 border-slate-800",
+    confirmButtonText: '<i class="icon-thumbs-up3"></i> Ya',
+    cancelButtonText: '<i class="icon-thumbs-down3"></i> Tidak',
+});
+
+var controller = $("#path").val();
+var Detail = $(function() {
+    $("#addrow").on("click", function() {
+        var i = $("#jml").val();
+        i++;
+        var no = $("#tablecover tbody tr").length;
+        $("#jml").val(i);
+        var newRow = $("<tr>");
+        var cols = "";
+        cols += `<td class="text-center"><spanx id="snum${i}">${no + 1}</spanx></td>`;
+        cols += `<td><select data-urut="${i}" required class="form-control form-control-sm form-control-select2" data-container-css-class="select-sm" name="i_product[]" id="i_product${i}" required data-fouc></select></td>`;
+        cols += `<td><input type="text" readonly class="form-control form-control-sm" id="e_brand_name${i}" placeholder="Brand" name="e_brand_name[]"></td>`;
+        cols += `<td><input type="text" readonly class="form-control form-control-sm" id="e_company_name${i}" placeholder="Perusahaan" name="e_company_name[]"></td>`;
+        cols += `<td>
+                    <input type="hidden" class="form-control form-control-sm" id="i_company${i}" name="i_company[]">
+                    <input type="number" required class="form-control form-control-sm" min="1" id="qty${i}" placeholder="Qty" name="qty[]">
+                    <input type="hidden" class="form-control form-control-sm" id="e_product${i}" name="e_product[]">
+                </td>`;
+        cols += `<td class="text-center"><b><i title="Hapus Baris" class="icon-cancel-circle2 text-danger ibtnDel"></i></b></td>`;
+        newRow.append(cols);
+        $("#tablecover tbody").append(newRow);
+        $("#i_product" + i).select2({
+            placeholder: "Cari Product",
+            width: "100%",
+            allowClear: true,
+            ajax: {
+                url: base_url + controller + "/get_product",
+                dataType: "json",
+                delay: 250,
+                data: function(params) {
+                    var query = {
+                        q: params.term,
+                    };
+                    return query;
+                },
+                processResults: function(data) {
+                    return {
+                        results: data,
+                    };
+                },
+                cache: false,
+            },
+        }).change(function(event) {
+            var z = $(this).data("urut");
+            var ada = false;
+            for (var x = 1; x <= $("#jml").val(); x++) {
+                if ($(this).val() !== null || $(this).val() !== '') {
+                    var product = $(this).val();
+                    var productx = $("#i_product" + x).val();
+                    console.log(product + " - " + productx);
+                    if ((product == productx) && (z != x)) {
+                        swalInit("Maaf :(", "Kode Barang tersebut sudah ada :(", "error");
+                        ada = true;
+                        break;
+                    }
+                }
+            }
+            if (!ada) {
+                var product = $(this).val();
+                produk = product.split(" - ");
+                product = produk[0];
+                brand = produk[1];
+                $.ajax({
+                    type: "POST",
+                    url: base_url + controller + "/get_detail_product",
+                    data: {
+                        i_product: product,
+                        i_brand: brand,
+                        i_company: $('#i_company' + z).val(),
+                    },
+                    dataType: "json",
+                    success: function(data) {
+                        $("#e_product" + z).val(data["detail"][0]["e_product_name"]);
+                        $("#e_brand_name" + z).val(data["detail"][0]["e_brand_name"]);
+                        $("#e_company_name" + z).val(data["detail"][0]["e_company_name"]);
+                        $("#i_company" + z).val(data["detail"][0]["i_company"]);
+                        $("#qty" + z).focus();
+                    },
+                    error: function() {
+                        swalInit(
+                            "Maaf :(",
+                            "Ada kesalahan saat mengambil data :(",
+                            "error"
+                        );
+                    },
+                });
+            } else {
+                $(this).val("");
+                $(this).html("");
+            }
+        });
+    });
+
+    /*----------  Hapus Baris Data Saudara  ----------*/
+
+    $("#tablecover").on("click", ".ibtnDel", function(event) {
+        $(this).closest("tr").remove();
+        $("#jml").val(i);
+        var obj = $("#tablecover tr:visible").find("spanx");
+        $.each(obj, function(key, value) {
+            id = value.id;
+            $("#" + id).html(key + 1);
+        });
+    });
+});
+
+document.addEventListener("DOMContentLoaded", function() {
+    var controller = $("#path").val();
+    $('.form-control-select2').select2({
+        minimumResultsForSearch: Infinity
+    });
+
+    $(document).ready(function() {
+        $("#periode").pickadate({
+            labelMonthNext: "Go to the next month",
+            labelMonthPrev: "Go to the previous month",
+            labelMonthSelect: "Pick a month from the dropdown",
+            labelYearSelect: "Pick a year from the dropdown",
+            selectMonths: true,
+            selectYears: true,
+            formatSubmit: "yyyymm",
+            format: "dd-mm-yyyy",
+            hiddenName: true,
+            min: [2021, 1, 1],
+        });
+    });
+
+    $("#icustomer").select2({
+        placeholder: "Select Customer",
+        width: "100%",
+        allowClear: true,
+        ajax: {
+            url: base_url + controller + "/get_customer",
+            dataType: "json",
+            delay: 250,
+            data: function(params) {
+                var query = {
+                    q: params.term,
+                };
+                return query;
+            },
+            processResults: function(data) {
+                return {
+                    results: data,
+                };
+            },
+            cache: false,
+        },
+    });
+
+    $("#iproduct").select2({
+        placeholder: "Search Product",
+        width: "100%",
+        allowClear: true,
+        ajax: {
+            url: base_url + controller + "/get_product",
+            dataType: "json",
+            delay: 250,
+            data: function(params) {
+                var query = {
+                    q: params.term,
+                    i_company: $('#icompany').val(),
+                };
+                return query;
+            },
+            processResults: function(data) {
+                return {
+                    results: data,
+                };
+            },
+            cache: false,
+        },
+    });
+    $(".select-search").select2();
+    $("#submit").on("click", function() {
+        let tabel = $("#tablecover tbody tr").length;
+        let ada = false;
+
+        if (tabel < 1) {
+            swalInit("Maaf :(", "Isi item product minimal 1! :(", "error");
+            return false;
+        }
+
+        $("#tablecover tbody tr td .qty").each(function() {
+            if ($(this).val() <= 0) {
+                ada = true;
+            }
+        });
+
+        var form = $(".form-validation").valid();
+        if (form) {
+            if (!ada) {
+                sweetadd(controller);
+            } else {
+                swalInit("Maaf :(", "Qty harus lebih besar dari 0 :(", "error");
+            }
+        }
+    });
+
+});

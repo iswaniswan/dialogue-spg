@@ -1,0 +1,243 @@
+
+CREATE TABLE public.dg_log (
+	id_user int4 NOT NULL,
+	ip_address varchar(16) NOT NULL,
+	waktu timestamp NOT NULL DEFAULT now(),
+	activity text NULL,
+	CONSTRAINT pk_log PRIMARY KEY (id_user, ip_address, waktu)
+);
+
+
+CREATE TABLE public.tm_sessions (
+	id varchar(128) NOT NULL,
+	ip_address varchar(45) NOT NULL,
+	"timestamp" int8 NOT NULL DEFAULT 0,
+	"data" text NOT NULL DEFAULT ''::text
+);
+
+CREATE TABLE public.tr_company (
+	i_company serial NOT NULL,
+	e_company_name varchar(30) NULL,
+	db_user varchar(30) NULL,
+	db_password varchar(60) NULL,
+	db_address varchar(15) NULL,
+	db_port varchar(8) NULL,
+	db_schema varchar(30) NULL,
+	db_name varchar(50) NULL,
+	f_status bool NULL DEFAULT true,
+	CONSTRAINT pk_company PRIMARY KEY (i_company)
+);
+
+CREATE TABLE public.tr_level (
+	i_level serial NOT NULL,
+	e_level_name varchar(20) NULL DEFAULT NULL::character varying,
+	f_status bool NULL DEFAULT true,
+	e_deskripsi varchar(100) NULL DEFAULT NULL::character varying,
+	CONSTRAINT pk_tr_level PRIMARY KEY (i_level)
+);
+
+CREATE TABLE public.tr_user_power (
+	i_power serial NOT NULL,
+	e_power_name varchar(30) NULL DEFAULT NULL::character varying,
+	CONSTRAINT pk_tr_user_power PRIMARY KEY (i_power)
+);
+
+CREATE TABLE public.tr_menu (
+	id_menu int4 NOT NULL,
+	e_menu varchar(30) NULL DEFAULT NULL::character varying,
+	i_parent int2 NULL,
+	n_urut int2 NULL,
+	e_folder varchar(30) NULL DEFAULT NULL::character varying,
+	icon varchar(30) NULL DEFAULT NULL::character varying,
+	e_sub_folder varchar(30) NULL DEFAULT NULL::character varying,
+	CONSTRAINT pk_tr_menu PRIMARY KEY (id_menu)
+);
+
+CREATE TABLE public.tm_user_role (
+	id_menu int2 NOT NULL,
+	i_power int2 NOT NULL,
+	i_level int2 NOT null,
+	CONSTRAINT pk_tm_user_role PRIMARY KEY (id_menu, i_power, i_level )
+);
+
+
+CREATE TABLE public.tm_user (
+	id_user serial NOT NULL,
+	username varchar(255) NULL,
+	"password" varchar(255) NULL,
+	e_nama varchar(255) NULL,
+	i_level int4 NULL,
+	i_company int4 null,
+	f_status bool NULL DEFAULT true,
+	f_allcustomer bool NULL DEFAULT false,
+	CONSTRAINT pk_tm_user PRIMARY KEY (id_user)
+);
+
+
+
+CREATE TABLE public.tr_type_customer (
+	i_type serial, 
+	e_type varchar(80) null,
+	CONSTRAINT pk_type_customer PRIMARY KEY (i_type)
+);
+
+
+CREATE TABLE public.tr_customer (
+	id_customer serial NOT NULL,
+	e_customer_name varchar(255) not NULL,
+	e_customer_address varchar(255) NULL,
+	i_type int NULL,
+	e_customer_owner varchar(120) NULL,
+	e_customer_phone varchar(120) NULL,
+	f_pkp boolean default false,
+	e_npwp_name varchar(120) NULL,
+	e_npwp_address varchar(120) NULL,
+	f_status bool NULL DEFAULT true,
+	CONSTRAINT pk_customer PRIMARY KEY (id_customer),
+	CONSTRAINT fk_customer FOREIGN KEY(i_type) REFERENCES tr_type_customer(i_type)
+);
+
+CREATE TABLE public.tr_customer_item (
+	id_item serial,
+	id_customer int NOT NULL,
+	i_company int NOT NULL,
+	i_customer varchar(15),
+	i_area varchar(2),
+	n_diskon1 numeric(2,2),
+	n_diskon2 numeric(2,2),
+	n_diskon3 numeric(2,2),
+	f_status bool NULL DEFAULT true,
+	CONSTRAINT pk_customer_item PRIMARY KEY (id_item),
+	CONSTRAINT fk_customer_item FOREIGN KEY(id_customer) REFERENCES tr_customer(id_customer),
+	CONSTRAINT fk_customer_item2 FOREIGN KEY(i_company) REFERENCES tr_company (i_company)
+);
+
+
+CREATE TABLE public.tm_user_customer (
+	id_user int NOT NULL,
+	id_customer int NOT NULL,
+	CONSTRAINT pk_tm_user_customer PRIMARY KEY (id_user, id_customer),
+	CONSTRAINT fk_tm_user_customer FOREIGN KEY(id_user) REFERENCES tm_user(id_user),
+	CONSTRAINT fk_tm_user_customer2 FOREIGN KEY(id_customer) REFERENCES tr_customer (id_customer)
+);
+
+
+CREATE TABLE public.tr_product (
+	i_company int NOT NULL,
+	i_product varchar(15),
+	e_product_name varchar(150),
+	e_brand varchar(50),
+	v_price_beli numeric,
+	v_price_jual numeric,
+	f_status bool default true,
+	d_entry timestamp without time zone default now(),
+	d_update timestamp without time zone default null,
+	CONSTRAINT pk_tr_product PRIMARY KEY (i_company, i_product),
+	CONSTRAINT fk_tr_product FOREIGN KEY(i_company) REFERENCES tr_company(i_company)
+);
+
+CREATE TABLE public.tr_alasan_retur (
+	i_alasan serial, 
+	e_alasan varchar(80) not null,
+	CONSTRAINT pk_alasan_retur PRIMARY KEY (i_alasan)
+);
+
+CREATE TABLE public.tm_pembelian (
+	id_document serial,
+	id_item int,
+	i_document varchar(50),
+	d_receive date,
+	e_remark text,
+	f_status bool default true,
+	d_entry timestamp without time zone default now(),
+	d_update timestamp without time zone default null,
+	CONSTRAINT pk_tm_pembelian PRIMARY KEY (id_document),
+	CONSTRAINT fk_tm_pembelian FOREIGN KEY(id_item) REFERENCES tr_customer_item (id_item)
+);
+
+
+CREATE TABLE public.tm_pembelian_item (
+	id_item serial,
+	id_document int,
+	i_company int,
+	i_product varchar(15),
+	e_product_name varchar(150),
+	n_qty int,
+	v_price numeric,
+	e_remark text,
+	CONSTRAINT pk_tm_pembelian_item PRIMARY KEY (id_item),
+	CONSTRAINT fk_tm_pembelian_item FOREIGN KEY(id_document) REFERENCES tm_pembelian (id_document)
+);
+
+
+CREATE TABLE public.tm_pembelian_retur (
+	id_document serial,
+	i_document varchar(50),
+	d_retur date,
+	e_remark text,
+	f_transfer bool default false,
+	f_status bool default true,
+	d_entry timestamp without time zone default now(),
+	d_update timestamp without time zone default null,
+	CONSTRAINT pk_tm_pembelian_retur PRIMARY KEY (id_document)
+);
+
+CREATE TABLE public.tm_pembelian_retur_item (
+	id_item serial,
+	id_document int,
+	i_company int,
+	i_product varchar(15),
+	e_product_name varchar(150),
+	n_qty int,
+	i_alasan int,
+	i_document  varchar(50),
+	CONSTRAINT pk_tm_pembelian_retur_item PRIMARY KEY (id_item),
+	CONSTRAINT fk_tm_pembelian_retur_item FOREIGN KEY(id_document) REFERENCES tm_pembelian_retur (id_document),
+	CONSTRAINT fk_tm_pembelian_retur_item2 FOREIGN KEY(i_alasan) REFERENCES tr_alasan_retur (i_alasan)
+);
+
+
+CREATE TABLE public.tm_penjualan (
+	id_document serial,
+	i_document varchar(50),
+	d_document date,
+	e_customer_sell_name varchar(120),
+	e_customer_sell_address varchar(255),
+	v_gross numeric, 
+	n_diskon numeric(2,2),
+	v_diskon numeric, 
+	v_diskon_total numeric, 
+	v_ppn numeric, 
+	v_netto numeric, 
+	v_bayar numeric, 
+	e_remark text,
+	f_status bool default true,
+	d_entry timestamp without time zone default now(),
+	d_update timestamp without time zone default null,
+	CONSTRAINT pk_tm_penjualan PRIMARY KEY (id_document)
+);
+
+CREATE TABLE public.tm_penjualan_item (
+	id_item serial,
+	id_document int,
+	i_company int,
+	i_product varchar(15),
+	e_product_name varchar(150),
+	n_qty int,
+	v_price numeric,
+	v_diskon numeric,
+	e_remark text,
+	CONSTRAINT pk_tm_penjualan_item PRIMARY KEY (id_item),
+	CONSTRAINT fk_tm_penjualan_item2 FOREIGN KEY(id_document) REFERENCES tm_penjualan (id_document)
+);
+
+
+CREATE TABLE public.tm_saldo_awal (
+	id_customer int not null,
+	i_periode varchar(6) not null,
+	i_company int,
+	i_product varchar(15) not null,
+	n_saldo int,
+	CONSTRAINT pk_tm_saldo_awal PRIMARY KEY (id_customer, i_periode, i_company, i_product)
+);
+
