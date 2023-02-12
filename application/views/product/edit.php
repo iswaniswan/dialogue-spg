@@ -1,6 +1,5 @@
 <!-- Content area -->
 <div class="content">
-
     <!-- Left and right buttons -->
     <div class="card">
         <div class="card-header border-<?= $this->color; ?> bg-transparent header-elements-inline">
@@ -66,6 +65,54 @@
                     <a href="<?= base_url($this->folder); ?>" class="btn btn bg-danger btn-sm ml-1"><i class="icon-arrow-left16"></i>&nbsp; <?= $this->lang->line('Kembali'); ?></a>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header border-<?= $this->color; ?> bg-transparent header-elements-inline">
+            <h6 class="card-title">
+                <i class="icon-price-tags2 mr-2"></i>
+                Harga Per Toko
+            </h6>
+            <input type="hidden" id="path" value="<?= $this->folder; ?>">
+            <div class="header-elements">
+                <div class="list-icons">
+                    <a class="list-icons-item" data-action="collapse"></a>
+                    <a class="list-icons-item" data-action="reload"></a>
+                    <a class="list-icons-item" data-action="remove"></a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-columned table-xs" id="serverside">
+                    <thead>
+                        <tr class="bg-<?= $this->color; ?> table-border-double">
+                            <th style="width: 25px">#</th>
+                            <th style="width: auto">Toko</th>
+                            <th style="width: 250px">Harga</th>
+                            <th style="width: 150px">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php $count = 0; ?>
+                        <?php foreach ($all_customer_price as $price) { ?>
+                            <tr>
+                                <td><?= $count++ ?></td>
+                                <td><?= $price->id_customer ?></td>
+                                <td><?= $price->v_price ?></td>
+                                <td>
+                                    <a href="#" class="x-editable" id="<?= $price->id ?>" 
+                                        data-type="number" 
+                                        data-pk="<?= $price->id ?>" 
+                                        data-url="<?= base_url() ?>product/update_editable" 
+                                        data-title="Enter price"><?= $price->v_price ?></a>
+                                </td>
+                            </tr>
+                        <?php } ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 

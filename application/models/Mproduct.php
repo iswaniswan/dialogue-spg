@@ -48,20 +48,29 @@ class Mproduct extends CI_Model {
         });
 
         /** Cek Hak Akses, Apakah User Bisa Edit */
-        if (check_role($this->id_menu, 3)) {
-            $datatables->add('action', function ($data) {
-                $id         = trim($data['i_product']);
-                $i_company  = $data['i_company'];
-                $data       = '';
-                $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id).'/'.encrypt_url($i_company)."' title='Edit Data'><i class='icon-database-edit2 text-".$this->color."-800'></i></a>";
-                return $data;
-            });
-        } else {
-            $datatables->add('action', function ($data) {
-                $data       = '';
-                return $data;
-            });
-        }           
+        // if (check_role($this->id_menu, 3)) {
+        //     $datatables->add('action', function ($data) {
+        //         $id         = trim($data['i_product']);
+        //         $i_company  = $data['i_company'];
+        //         $link =  base_url().$this->folder.'/edit/'.encrypt_url($id).'/'.encrypt_url($i_company);
+        //         $data = "<a href='$link' title='Edit Data'><i class='icon-database-edit2 text-".$this->color."-800'></i></a>";
+        //         return $data;
+        //     });
+        // } else {
+        //     $datatables->add('action', function ($data) {
+        //         $data       = '';
+        //         return $data;
+        //     });
+        // }   
+        
+        $datatables->add('action', function ($data) {
+            $id         = trim($data['i_product']);
+            $i_company  = $data['i_company'];
+            $link =  base_url().$this->folder.'/edit/'.encrypt_url($id).'/'.encrypt_url($i_company);
+            $data = "<a href='$link' title='Edit Data'><i class='icon-database-edit2 text-".$this->color."-800'></i></a>";
+            return $data;
+        });
+
         return $datatables->generate();
     }
 
@@ -320,6 +329,23 @@ class Mproduct extends CI_Model {
                     e_brand = excluded.e_brand, 
                     d_update = current_timestamp
         ", FALSE);
+    }
+
+    public function get_all_customer_price()
+    {
+        $sql = "SELECT * FROM tr_customer_price";
+
+        return $this->db->query($sql);
+    }
+
+    public function update_editable($data)
+    {
+        $update = [
+            'v_price' => $data['value']
+        ];
+
+        $this->db->where('id', $data['id']);
+        $this->db->update('tr_customer_price', $update);
     }
 }
 

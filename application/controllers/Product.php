@@ -164,10 +164,10 @@ class Product extends CI_Controller
 	public function edit()
 	{
 		/** Cek Hak Akses, Apakah User Bisa Edit */
-		$data = check_role($this->id_menu, 3);
-		if (!$data) {
-			redirect(base_url(), 'refresh');
-		}
+		// $data = check_role($this->id_menu, 3);
+		// if (!$data) {
+		// 	redirect(base_url(), 'refresh');
+		// }
 
 		add_js(
 			array(
@@ -175,6 +175,7 @@ class Product extends CI_Controller
 				'global_assets/js/plugins/forms/validation/validate.min.js',
 				'global_assets/js/plugins/forms/styling/uniform.min.js',
 				'global_assets/js/plugins/forms/selects/select2.min.js',
+				'global_assets/js/bootstrap4-editable/bootstrap-editable.min.js',
 				'assets/js/' . $this->folder . '/edit.js',
 			)
 		);
@@ -182,9 +183,13 @@ class Product extends CI_Controller
 		$id = decrypt_url($this->uri->segment(3));
 		$i_company = decrypt_url($this->uri->segment(4));
 
+		/** testing */
+		$all_customer_price = $this->mymodel->get_all_customer_price()->result();
+
 		$data = array(
 			'data' 		=> $this->mymodel->getdata($id,$i_company)->row(),
 			'company'	=> $this->mymodel->get_company_data(),
+			'all_customer_price' => $all_customer_price,
 		);
 		$this->logger->write('Membuka Form Edit ' . $this->title);
 		$this->template->load('main', $this->folder . '/edit', $data);
@@ -314,5 +319,19 @@ class Product extends CI_Controller
 			}
 		}
 		echo json_encode($data);
+	}
+
+	public function update_editable()
+	{
+		$id = $this->input->post('pk');
+		$value = $this->input->post('value');
+
+		$data = [
+			'id' => $id,
+			'value' => $value
+		];
+
+		$this->mymodel->update_editable($data);
+
 	}
 }
