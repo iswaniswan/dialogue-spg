@@ -333,7 +333,9 @@ class Mproduct extends CI_Model {
 
     public function get_all_customer_price()
     {
-        $sql = "SELECT * FROM tr_customer_price";
+        $sql = "SELECT tcp.*, tc.e_customer_name
+                FROM tr_customer_price tcp
+                INNER JOIN tr_customer tc ON tc.id_customer = tcp.id_customer";
 
         return $this->db->query($sql);
     }
@@ -346,6 +348,21 @@ class Mproduct extends CI_Model {
 
         $this->db->where('id', $data['id']);
         $this->db->update('tr_customer_price', $update);
+    }
+
+    public function get_button_status_product_price($data)
+    {
+        if ($data['f_status']=='t') {
+            $status = 'Active';
+            $color  = 'success';
+        }else{
+            $status = 'Not Active';
+            $color  = 'danger';
+        }
+        
+        $class ="btn btn-sm badge rounded-round alpha-".$color." text-".$color."-800 border-".$color."-600 legitRipple";
+        $button = "<button class='$class'".$status."</button>";
+        return $button;
     }
 }
 

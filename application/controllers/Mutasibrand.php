@@ -104,7 +104,7 @@ class Mutasibrand extends CI_Controller
 			'ecustomer'	=> $ecustomer,
 			'company'	=> $this->mymodel->get_company(),
 			'listcustomer'	=> $query2->result(),
-			'listbrand'	=> $this->mymodel->get_brand($id_user)->result(),
+			// 'listbrand'	=> $this->mymodel->get_brand($id_user)->result(),
 		);
 
 		$this->logger->write('Membuka Menu ' . $this->title);

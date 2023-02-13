@@ -72,7 +72,7 @@
         <div class="card-header border-<?= $this->color; ?> bg-transparent header-elements-inline">
             <h6 class="card-title">
                 <i class="icon-price-tags2 mr-2"></i>
-                Harga Per Toko
+                Harga Per Toko (Under development)
             </h6>
             <input type="hidden" id="path" value="<?= $this->folder; ?>">
             <div class="header-elements">
@@ -95,18 +95,36 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <?php $count = 0; ?>
+                        <?php $count = 1; ?>
                         <?php foreach ($all_customer_price as $price) { ?>
                             <tr>
                                 <td><?= $count++ ?></td>
-                                <td><?= $price->id_customer ?></td>
-                                <td><?= $price->v_price ?></td>
+                                <td><?= $price->e_customer_name ?></td>
                                 <td>
                                     <a href="#" class="x-editable" id="<?= $price->id ?>" 
                                         data-type="number" 
                                         data-pk="<?= $price->id ?>" 
                                         data-url="<?= base_url() ?>product/update_editable" 
-                                        data-title="Enter price"><?= $price->v_price ?></a>
+                                        data-title="Enter price"><?= $price->v_price ?>
+                                    </a>
+                                </td>
+                                <td>
+                                    <?php /** button status */
+                                    
+                                    $status = 'Not Active';
+                                    $color  = 'danger';
+                                    
+                                    if ($price->f_status == 't') {
+                                        $status = 'Active';
+                                        $color  = 'success';
+                                    }
+                                    
+                                    $class ="btn btn-sm badge rounded-round alpha-".$color." text-".$color."-800 border-".$color."-600 legitRipple";
+                                    $onclick = "onclick='product/update_editable'";
+                                    $button = "<button class='$class'>".$status."</button>";
+                                    
+                                    echo $button;
+                                    ?>
                                 </td>
                             </tr>
                         <?php } ?>

@@ -37,15 +37,19 @@ class Muser extends CI_Model {
             return $data;
         });
 
-        /** Cek Hak Akses, Apakah User Bisa Edit */
-        if (check_role($this->id_menu, 3)) {
-            $datatables->add('action', function ($data) {
-                $id         = trim($data['id_user']);
-                $data       = '';
-                $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 text-".$this->color."-800'></i></a>";
+
+        $datatables->add('action', function ($data) {
+            /** Cek Hak Akses, Apakah User Bisa Edit */
+            $id         = trim($data['id_user']);
+            $data       = '';
+            $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 text-".$this->color."-800'></i></a>";
+            
+            if (check_role($this->id_menu, 3)) {
                 return $data;
-            });
-        }        
+            }  
+        });
+
+              
         return $datatables->generate();
     }
 
@@ -431,6 +435,17 @@ class Muser extends CI_Model {
         };
     }
 
+    public function update_password($params=[])
+    {
+        $id_user = $params['id_user'];
+        $data = [
+            "password" => encrypt_password($params['password'])
+        ];   
+        
+        $this->db->where('id_user', $id_user);
+        $this->db->update('tm_user', $data);
+    }
+
     public function update2($params=[])
     {
         $id_user = $params['id_user'];
@@ -441,8 +456,11 @@ class Muser extends CI_Model {
             "e_nama" => ucwords($params['ename']),
             "i_level" => $params['ilevel'],
             "f_allcustomer" => $params['fallcustomer'],
-            "id_atasan" => $params['id_atasan']
         ];   
+
+        if (@$params['id_atasan'] != null){
+            $user['id_atasan'] = $params['id_atasan'];
+        }
         
         $this->db->where('id_user', $id_user);
         $this->db->update('tm_user', $user);

@@ -188,11 +188,14 @@ class User extends CI_Controller
 					'password' => $password,
 					'ename' => $ename,
 					'ilevel' => $ilevel,
-					'id_atasan' => $id_atasan,
 					'i_customer' => $i_customer,
 					'i_brand' => $i_brand,
 					'fallcustomer' => $fallcustomer
 				];
+
+				if (@$id_atasan != null) {
+					$params['id_atasan'] = $id_atasan;
+				}
 
 				$this->mymodel->save($params);
 
@@ -216,11 +219,91 @@ class User extends CI_Controller
 	}
 
 	/** Redirect ke Form Edit */
+	public function view()
+	{
+		$id_user = decrypt_url($this->uri->segment(3));
+
+		add_js(
+			array(
+				'global_assets/js/plugins/notifications/sweet_alert.min.js',
+				'global_assets/js/plugins/forms/validation/validate.min.js',
+				'global_assets/js/plugins/forms/styling/uniform.min.js',
+				'global_assets/js/plugins/forms/selects/select2.min.js',
+				'global_assets/js/plugins/forms/styling/switch.min.js',
+				'assets/js/' . $this->folder . '/view.js',
+			)
+		);
+
+		$list_team_leader = $this->db->get_where('tm_user', ['f_status' => 't', 'i_level' => '5']);
+
+		$data = array(
+			'data' 	  => $this->mymodel->getdata($id_user)->row(),
+			// 'detail'  => $this->mymodel->getdatadetail($id_user),
+			'detail'  => $this->mymodel->get_data_customer_with_brand($id_user),
+			'company' => $this->mymodel->get_company($id_user),
+			// 'brand'   => $this->mymodel->get_brand_data($id_user),
+			'level'   => $this->db->get_where('tr_level', ['f_status' => 't']),
+			'list_brand' => $this->mymodel->get_brand(),
+			'list_team_leader' => $list_team_leader
+		);
+
+		$this->logger->write('Membuka Form View ' . $this->title);
+		$this->template->load('main', $this->folder . '/view', $data);
+	}
+
+	public function edit_password()
+	{
+		if (@$this->input->post('repeat_password') != null) {
+			$params = [
+				'id_user' => $this->input->post('id_user'),
+				'password' => $this->input->post('repeat_password')
+			];
+			$this->mymodel->update_password($params);
+
+			$result = [
+				'sukses' => true,
+				'ada' => false
+			];
+
+			echo json_encode($result);
+			return;
+		}
+
+		$id_user = decrypt_url($this->uri->segment(3));
+		add_js(
+			array(
+				'global_assets/js/plugins/notifications/sweet_alert.min.js',
+				'global_assets/js/plugins/forms/validation/validate.min.js',
+				'global_assets/js/plugins/forms/styling/uniform.min.js',
+				'global_assets/js/plugins/forms/selects/select2.min.js',
+				'global_assets/js/plugins/forms/styling/switch.min.js',
+				'assets/js/' . $this->folder . '/edit_password.js',
+			)
+		);
+
+		$list_team_leader = $this->db->get_where('tm_user', ['f_status' => 't', 'i_level' => '5']);
+
+		$data = array(
+			'data' 	  => $this->mymodel->getdata($id_user)->row(),
+			// 'detail'  => $this->mymodel->getdatadetail($id_user),
+			'detail'  => $this->mymodel->get_data_customer_with_brand($id_user),
+			'company' => $this->mymodel->get_company($id_user),
+			// 'brand'   => $this->mymodel->get_brand_data($id_user),
+			'level'   => $this->db->get_where('tr_level', ['f_status' => 't']),
+			'list_brand' => $this->mymodel->get_brand(),
+			'list_team_leader' => $list_team_leader
+		);
+
+		$this->logger->write('Membuka Form Update password ' . $this->title);
+		$this->template->load('main', $this->folder . '/edit_password', $data);
+	}
+
+	/** Redirect ke Form Edit */
 	public function edit()
 	{
 		/** Cek Hak Akses, Apakah User Bisa Edit */
-		$data = check_role($this->id_menu, 3);
-		if (!$data) {
+		$granted = check_role($this->id_menu, 3);
+		if (!$granted) {
 			redirect(base_url(), 'refresh');
 		}
 

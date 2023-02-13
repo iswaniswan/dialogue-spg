@@ -162,7 +162,10 @@ class Customer extends CI_Controller
 			$eaddressnpwp = $this->input->post('eaddressnpwp', TRUE);
 			$eowner = $this->input->post('eowner', TRUE);
 			$ephone = $this->input->post('ephone', TRUE);
-			$this->mymodel->save($itype, $fpkp, $ecustomer, $ecustomernpwp, $eaddress, $eaddressnpwp, $eowner, $ephone);
+			$latitude = $this->input->post('latitude', TRUE);
+			$longitude = $this->input->post('longitude', TRUE);
+
+			$this->mymodel->save($itype, $fpkp, $ecustomer, $ecustomernpwp, $eaddress, $eaddressnpwp, $eowner, $ephone, $latitude, $longitude);
 			if ($this->db->trans_status() === FALSE) {
 				$this->db->trans_rollback();
 				$data = array(
@@ -232,7 +235,7 @@ class Customer extends CI_Controller
 			'data' 	 => $this->mymodel->getdata(decrypt_url($this->uri->segment(3)))->row(),
 			'detail' => $this->mymodel->getdatadetail(decrypt_url($this->uri->segment(3))),
 			'type'   => $this->db->get_where('tr_type_customer', ['f_status' => 't']),
-			'brand' => $this->mymodel->get_data_brand(decrypt_url($this->uri->segment(3)))
+			// 'brand' => $this->mymodel->get_data_brand(decrypt_url($this->uri->segment(3)))
 		);
 		$this->logger->write('Membuka Form View ' . $this->title);
 		$this->template->load('main', $this->folder . '/view', $data);
@@ -266,7 +269,10 @@ class Customer extends CI_Controller
 			$eaddressnpwp = $this->input->post('eaddressnpwp', TRUE);
 			$eowner = $this->input->post('eowner', TRUE);
 			$ephone = $this->input->post('ephone', TRUE);
-			$this->mymodel->update($itype, $fpkp, $ecustomer, $ecustomernpwp, $eaddress, $eaddressnpwp, $eowner, $ephone, $idcustomer);
+			$latitude = $this->input->post('latitude', TRUE);
+			$longitude = $this->input->post('longitude', TRUE);
+
+			$this->mymodel->update($itype, $fpkp, $ecustomer, $ecustomernpwp, $eaddress, $eaddressnpwp, $eowner, $ephone, $idcustomer, $latitude, $longitude);
 			if ($this->db->trans_status() === FALSE) {
 				$this->db->trans_rollback();
 				$data = array(

@@ -135,18 +135,20 @@ class Mmutasibrand extends CI_Model
     }
 
     /** Ambil Data Customer */
-    public function get_brand($id_user)
-    {
-        return $this->db->query("SELECT
-                id_brand,
-                e_brand_name
-            FROM
-                tr_brand
-            WHERE id_brand IN (SELECT id_brand from tm_user_brand WHERE id_user = COALESCE($id_user,id_user))
-            ORDER BY
-                e_brand_name ASC
-        ", FALSE);
-    }
+    // public function get_brand($id_user = null)
+    // {
+    //     $where = " WHERE id_user = COALESCE($id_user,id_user)";
+    //     if ($id_user == null) {
+    //         $where = "";
+    //     }
+
+    //     $sql = "SELECT id_brand, e_brand_name
+    //             FROM tr_brand
+    //             WHERE id_brand IN (SELECT id_brand from tm_user_brand $where)
+    //             ORDER BY e_brand_name ASC";          
+
+    //     return $this->db->query($sql, FALSE);
+    // }
 
     /** Export Data */
     public function export_data($id, $brand, $dfrom, $dto)

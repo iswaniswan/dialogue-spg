@@ -84,6 +84,20 @@
                         </div>
                     </div>
                 </div>
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label>Latitude :</label>
+                            <input type="text" class="form-control" placeholder="Latitude" name="latitude" pattern="\[[+-]?[0-9]*\.?[0-9]+,[+-]?[0-9]*\.?[0-9]+]" required>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label>Longitude :</label>
+                            <input type="text" class="form-control" placeholder="Longitude" name="longitude" pattern="\[[+-]?[0-9]*\.?[0-9]+,[+-]?[0-9]*\.?[0-9]+]" required>
+                        </div>
+                    </div>
+                </div>
                 <div class="d-flex justify-content-start align-items-center">
                     <button type="button" id="submit" class="btn btn bg-<?= $this->color; ?> btn-sm"><i class="icon-paperplane"></i>&nbsp;
                         <?= $this->lang->line('Simpan'); ?></button>
@@ -91,6 +105,8 @@
                 </div>
             </div>
         </div>
+
+        <?php /*
 
         <div class="card">
             <div class="card-body">
@@ -118,6 +134,9 @@
                 </div>
             </div>
         </div>
+
+        */ ?>
+
     </form>
 </div>
 <!-- /task manager table -->

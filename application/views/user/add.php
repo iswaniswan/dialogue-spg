@@ -66,7 +66,7 @@
                                     data-container-css-class="select-sm" 
                                     data-container-css-class="text-<?= $this->color; ?>" 
                                     data-placeholder="- Pilih Atasan -" 
-                                    required data-fouc 
+                                    data-fouc 
                                     name="id_atasan" 
                                     id="id_atasan">
                                 <option value=""></option>

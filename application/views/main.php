@@ -203,15 +203,21 @@
                         <span><?= $this->session->userdata('e_name'); ?></span>
                     </a>
 
-                    <?php 
-                    $userid = $this->session->userdata('id_user');
+                    <?php                 
+                    $id_user = $this->session->userdata('id_user');
+                    $encrypt_id_user = encrypt_url($id_user);
+                    $url_ganti_password = base_url() . 'user/edit_password/' . $encrypt_id_user;
                     ?>
                     <div class="dropdown-menu dropdown-menu-right">
-                        <!-- <a href="#" class="dropdown-item"><i class="icon-user-plus"></i> <?= $this->lang->line('Profil Saya');?></a> 
-                        <div class="dropdown-divider"></div> -->
-                        <a href="<?php echo base_url()."gantipassword".'/edit/'.encrypt_url($userid); ?>" class="dropdown-item"><i class="icon-cog5"></i> Ganti Password</a>
-                        <a href="<?= base_url('auth/logout'); ?>" class="dropdown-item"><i class="icon-switch2"></i>
-                        <?= $this->lang->line('Keluar');?></a>
+                        
+                        
+                        <a href="<?= $url_ganti_password ?>" class="dropdown-item">
+                            <i class="icon-cog5"></i> Ganti Password
+                        </a>
+                        <a href="<?= base_url('auth/logout') ?>" class="dropdown-item">
+                            <i class="icon-switch2"></i>
+                            <?= $this->lang->line('Keluar');?>
+                        </a>
                     </div>
                 </li>
             </ul>
@@ -290,22 +296,24 @@
                         </div>
 
                         <div class="sidebar-user-material-footer">
-                            <a href="#user-nav" class="d-flex justify-content-between align-items-center text-shadow-dark dropdown-toggle" data-toggle="collapse"><span><?= $this->lang->line('Akun Saya');?></span></a>
+                            <a href="#user-nav" class="d-flex justify-content-between align-items-center text-shadow-dark dropdown-toggle" data-toggle="collapse">
+                                <span><?= $this->lang->line('Akun Saya');?></span>
+                            </a>
                         </div>
                     </div>
 
                     <div class="collapse" id="user-nav">
                         <ul class="nav nav-sidebar">
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
+                                <a href="<?= base_url() . 'user/view/' . $encrypt_id_user ?>" class="nav-link">
                                     <i class="icon-user-plus"></i>
                                     <span><?= $this->lang->line('Profil Saya');?></span>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
-                                    <i class="icon-cog5"></i>
-                                    <span><?= $this->lang->line('Pengaturan Akun');?></span>
+                                <a href="<?= $url_ganti_password ?>" class="nav-link">
+                                    <i class="icon-lock2"></i>
+                                    <span>Ganti Password</span>
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -322,22 +330,11 @@
 
                 <!-- Navigation -->
                 <div class="card card-sidebar-mobile bg-<?= $this->session->userdata('color'); ?>">
-                    <div class="card-header header-elements-inline">
-                        <h6 class="card-title"><?= $this->lang->line('Navigasi');?></h6>
-                        <div class="header-elements">
-                            <div class="list-icons">
-                                <a class="list-icons-item" data-action="collapse"></a>
-                            </div>
-                        </div>
-                    </div>
-
+                    
                     <div class="card-body p-0">
-                        <ul class="nav nav-sidebar" data-nav-type="accordion">
 
-                            <!-- Main -->
-                            <li class="nav-item-header pt-0 mt-0">
-                                <div class="text-uppercase font-size-xs line-height-xs">Main</div> <i class="icon-menu" title="Main"></i>
-                            </li>
+                        <ul class="nav nav-sidebar" data-nav-type="">
+                            
                             <?php foreach (get_menu()->result() as $key) {
                                 if ($key->e_folder == '#') { ?>
                                     <li class="nav-item nav-item-submenu">
@@ -346,11 +343,16 @@
 
                                         <ul class="nav nav-group-sub" data-submenu-title="<?=$this->lang->line($key->e_menu);?>">
                                             <?php foreach (get_sub_menu($key->id_menu)->result() as $row) { ?>
+
+                                                <!-- hide menu login pengguna jika tidak punya akses create -->
+                                                <?php if (intval($row->id_menu) == 104) {
+                                                    $is_granted = check_role($row->id_menu, 1);
+
+                                                    if (!$is_granted) {
+                                                        continue;
+                                                    }
+                                                } ?>
                                                 
-                                            <!--  selain admin, hide menu brand  -->
-                                            <?php if (($this->session->userdata('i_level') != '1') and (strtolower($row->e_menu) == 'brand')) {
-                                                continue;
-                                            } ?>
 
                                                 <li class="nav-item"><a href="<?= base_url($row->e_folder); ?>" class="nav-link"><i class="icon-circle-small"></i><?=$this->lang->line($row->e_menu);?></a></li>
                                             <?php } ?>

@@ -64,23 +64,18 @@ class Mcustom extends CI_Model {
 
     public function cek_role($id_user,$id_menu,$id)
     {
-        return $this->db->query("
-            SELECT
-                DISTINCT a.*
-            FROM
-                tr_menu a
-            INNER JOIN tm_user_role b ON
-                (a.id_menu = b.id_menu)
-            INNER JOIN tm_user c ON
-                (c.i_level = b.i_level)
-            WHERE
-                c.id_user = '$id_user'
-                AND a.id_menu = '$id_menu'
-                AND b.i_power = '$id'
-            ORDER BY
-                4,
-                1
-        ", FALSE);
+        $sql = "SELECT DISTINCT a.*
+                FROM tr_menu a
+                INNER JOIN tm_user_role b ON a.id_menu = b.id_menu
+                INNER JOIN tm_user c ON c.i_level = b.i_level
+                WHERE c.id_user = '$id_user'
+                    AND a.id_menu = '$id_menu'
+                    AND b.i_power = '$id'
+                ORDER BY 4, 1";
+
+        // var_dump($sql); die();
+
+        return $this->db->query($sql, FALSE);
     }
 
     public function get_notif_saldo()

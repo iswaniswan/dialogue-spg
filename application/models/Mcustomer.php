@@ -7,7 +7,19 @@ class Mcustomer extends CI_Model {
 
     /** List Datatable */
     public function serverside(){
-        $id_user = $this->session->userdata('id_user');
+        $id_user = $this->session->userdata('id_user');   
+        
+        
+        /** default query parameters */
+        $join = " INNER JOIN tm_user_customer tuc ON tuc.id_user = '$id_user' AND tuc.id_customer = a.id_customer ";
+        $where = " WHERE tuc.id_user = '$id_user' ";
+
+        /** jika level admin, maka tampilkan semua customer */
+        $i_level = $this->session->userdata('i_level');
+        if (intval($i_level) == 1) {
+            $join = '';
+            $where = '';
+        }
 
         $datatables = new Datatables(new CodeigniterAdapter);
 
@@ -26,9 +38,9 @@ class Mcustomer extends CI_Model {
                     a.f_status
                 FROM tr_customer a
                 INNER JOIN tr_type_customer b ON b.i_type = a.i_type
-                INNER JOIN tm_user_customer tuc ON tuc.id_user = '$id_user' AND tuc.id_customer = a.id_customer
-                WHERE tuc.id_user = '$id_user'
-                ORDER BY e_customer_name";         
+                $join
+                $where
+                ORDER BY e_customer_name";
 
         $datatables->query($sql, FALSE);
 
@@ -258,7 +270,7 @@ class Mcustomer extends CI_Model {
     }
 
     /** Simpan Data */
-    public function save($itype,$fpkp,$ecustomer,$ecustomernpwp,$eaddress,$eaddressnpwp,$eowner,$ephone)
+    public function save($itype,$fpkp,$ecustomer,$ecustomernpwp,$eaddress,$eaddressnpwp,$eowner,$ephone, $latitude=null, $longitude=null)
     {
         $query = $this->db->query("SELECT max(id_customer)+1 AS id FROM tr_customer", TRUE);
 		if ($query->num_rows() > 0) {
@@ -282,6 +294,8 @@ class Mcustomer extends CI_Model {
             'f_pkp'              => $fpkp,
             'e_npwp_name'        => $ecustomernpwp,
             'e_npwp_address'     => $eaddressnpwp,
+            'latitude' => $latitude,
+            'longitude' => $longitude
         );
         if ($this->db->insert('tr_customer', $table)) {
             $x = 0;
@@ -375,7 +389,7 @@ class Mcustomer extends CI_Model {
     }
 
     /** Update Data */
-    public function update($itype,$fpkp,$ecustomer,$ecustomernpwp,$eaddress,$eaddressnpwp,$eowner,$ephone,$idcustomer)
+    public function update($itype,$fpkp,$ecustomer,$ecustomernpwp,$eaddress,$eaddressnpwp,$eowner,$ephone,$idcustomer, $latitude=null, $longitude=null)
     {
         $table = array(
             'e_customer_name'    => $ecustomer,
@@ -386,6 +400,8 @@ class Mcustomer extends CI_Model {
             'f_pkp'              => $fpkp,
             'e_npwp_name'        => $ecustomernpwp,
             'e_npwp_address'     => $eaddressnpwp,
+            'latitude' => $latitude,
+            'longitude' => $longitude
         );
         $this->db->where('id_customer', $idcustomer);
         if ($this->db->update('tr_customer', $table)) {
