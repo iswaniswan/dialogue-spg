@@ -17,18 +17,18 @@
 
         <div class="card-body">
             <form class="form-validation">
+                <input type="hidden" name="id" value="<?= $data->id ?>" />
                 <div class="form-group">
                     <label><?= $this->lang->line('Toko'); ?> :</label>
-                    <select readonly class="form-control form-control-select2" data-container-css-class="select-sm" required data-fouc id="icustomer" name="icustomer">
+                    <select readonly class="form-control form-control-select2" data-container-css-class="select-sm" required data-fouc id="id_customer" name="id_customer">
                         <option value="<?= $data->id_customer; ?>"><?= $data->e_customer_name; ?></option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label><?= $this->lang->line('Nama Barang'); ?> :</label>
-                    <select readonly class="form-control form-control-select2" data-container-css-class="select-sm" required data-fouc id="iproduct" name="iproduct">
-                        <option value="<?= $data->i_product . ' - ' . $data->id_brand; ?>"><?= $data->i_product . ' - ' . $data->e_product_name; ?></option>
+                    <select readonly class="form-control form-control-select2" data-container-css-class="select-sm" required data-fouc id="id_product" name="id_product">
+                        <option value="<?= $data->id_product ?>"><?= $data->i_product . ' - ' . $data->e_product_name; ?></option>
                     </select>
-                    <input type="hidden" id="icompany" name="icompany" value="<?= $icompany; ?>">
                 </div>
                 <div class="form-group">
                     <label><?= $this->lang->line('Harga Barang'); ?> :</label>

@@ -87,43 +87,34 @@ class Productprice extends CI_Controller
 	{
 		$filter = [];
 		$cari   = str_replace("'", "", $this->input->get('q'));
-		if ($cari != '') {
-			$data = $this->mymodel->get_customer($cari);
+		$data = $this->mymodel->get_customer($cari);
 			foreach ($data->result() as $row) {
 				$filter[] = array(
 					'id'   => $row->id,
 					'text' => ucwords(strtolower($row->e_name)),
 				);
 			}
-		} else {
-			$filter[] = array(
-				'id'   => null,
-				'text' => 'Cari Dengan Nama',
-			);
-		}
 		echo json_encode($filter);
 	}
 
-	/** Data Product */
+	/** Data Product sesuai user cover */
 	public function get_product()
 	{
 		$filter = [];
-		//$toko = $this->input->get('id_customer');
-		$cari = str_replace("'", "", $this->input->get('q'));
-		if ($cari != '') {
-			$data = $this->mymodel->get_product($cari);
-			foreach ($data->result() as $row) {
-				$filter[] = array(
-					'id'   => $row->id . ' - ' . $row->idcompany,
-					'text' => $row->id . ' - ' . ucwords(strtolower($row->e_name)) . ' - ' . ucwords(strtolower($row->brand)) . ' - ' . ucwords(strtolower($row->company)),
-				);
-			}
-		} else {
-			$filter[] = array(
-				'id'   => null,
-				'text' => 'Pilih Perusahan / Cari Dengan Kode atau Nama Product',
-			);
+		$id_customer = $this->input->get('id_customer');
+		if ($id_customer == null) {
+			echo json_encode($filter);
+			return;
 		}
+
+		$cari = str_replace("'", "", $this->input->get('q'));
+		$data = $this->mymodel->get_product($cari, $id_customer);
+		foreach ($data->result() as $row) {
+			$filter[] = array(
+				'id'   => $row->id,
+				'text' => ucwords(strtolower($row->e_name)) . ' - ' . ucwords(strtolower($row->brand)),
+			);
+		} 
 		echo json_encode($filter);
 	}
 
@@ -161,35 +152,38 @@ class Productprice extends CI_Controller
 		if (!$data) {
 			redirect(base_url(), 'refresh');
 		}
-		$this->form_validation->set_rules('icustomer', 'icustomer', 'trim|required|min_length[0]');
-		$this->form_validation->set_rules('vprice', 'vprice', 'trim|required');
-		$iproduct = $this->input->post('iproduct');
-		$iproduct = explode('-',$iproduct);
-		$iproduct = $iproduct[0];
-		if ($this->form_validation->run() == false) {
+
+		$id_product = $this->input->post('id_product');
+		$id_customer = $this->input->post('id_customer');
+		$is_customer_price_exist = $this->mymodel->is_customer_price_exist($id_product, $id_customer);
+		if ($is_customer_price_exist) {
+			$response = [
+				'sukses' => false,
+				'ada'	 => true
+			];
+
+			echo json_encode($response);
+			return;
+		}
+		
+		/** Simpan atau Update Data */
+		$this->db->trans_begin();
+		$this->mymodel->save();
+		if ($this->db->trans_status() === FALSE) {
+			$this->db->trans_rollback();
 			$data = array(
 				'sukses' => false,
 				'ada'	 => false,
 			);
 		} else {
-			/** Simpan atau Update Data */
-			$this->db->trans_begin();
-			$this->mymodel->save();
-			if ($this->db->trans_status() === FALSE) {
-				$this->db->trans_rollback();
-				$data = array(
-					'sukses' => false,
-					'ada'	 => false,
-				);
-			} else {
-				$this->db->trans_commit();
-				$this->logger->write('Simpan Data ' . $this->title . ' : ' . $iproduct);
-				$data = array(
-					'sukses' => true,
-					'ada'	 => false,
-				);
-			}
+			$this->db->trans_commit();
+			$this->logger->write("Simpan Data $this->title, id_product:'$id_product' - id_customer:'$id_customer'");
+			$data = array(
+				'sukses' => true,
+				'ada'	 => false,
+			);
 		}
+
 		echo json_encode($data);
 	}
 
@@ -232,35 +226,25 @@ class Productprice extends CI_Controller
 		if (!$data) {
 			redirect(base_url(), 'refresh');
 		}
+		
+		$id = $this->input->post('id');
 
-		$this->form_validation->set_rules('icompany', 'icompany', 'trim|required|min_length[0]');
-		$this->form_validation->set_rules('iproduct', 'iproduct', 'trim|required|min_length[0]');
-		$this->form_validation->set_rules('icustomer', 'icustomer', 'trim|required|min_length[0]');
-		$this->form_validation->set_rules('vprice', 'vprice', 'trim|required');
-		$iproduct = $this->input->post('iproduct');
-		if ($this->form_validation->run() == false) {
+		/** Simpan atau Update Data */
+		$this->db->trans_begin();
+		$this->mymodel->update();
+		if ($this->db->trans_status() === FALSE) {
+			$this->db->trans_rollback();
 			$data = array(
 				'sukses' => false,
 				'ada'	 => false,
 			);
 		} else {
-			/** Simpan atau Update Data */
-			$this->db->trans_begin();
-			$this->mymodel->update();
-			if ($this->db->trans_status() === FALSE) {
-				$this->db->trans_rollback();
-				$data = array(
-					'sukses' => false,
-					'ada'	 => false,
-				);
-			} else {
-				$this->db->trans_commit();
-				$this->logger->write('Update Data ' . $this->title . ' : ' . $iproduct);
-				$data = array(
-					'sukses' => true,
-					'ada'	 => false,
-				);
-			}
+			$this->db->trans_commit();
+			$this->logger->write('Update Data ' . $this->title . ' : ' . $id);
+			$data = array(
+				'sukses' => true,
+				'ada'	 => false,
+			);
 		}
 		echo json_encode($data);
 	}
@@ -591,15 +575,16 @@ class Productprice extends CI_Controller
 	}
 
 	public function cek_data_eksis(){
-		$iproduct = $this->input->post('iproduct');
-		$icompany = $this->input->post('icompany');
+		$id_product = $this->input->post('id_product');
+		$id_customer = $this->input->post('id_customer');
 
-		$query = $this->mymodel->cek_produk_eksis($iproduct,$icompany);
-		if ($query->num_rows() > 0) {
+		$is_customer_price_exist = $this->mymodel->is_customer_price_exist($id_product, $id_customer);
+
+		$status = true;
+		if ($is_customer_price_exist) {
 			$status = false;
-		} else {
-			$status = true;
-		}
+		} 
+
 		echo json_encode($status);
 	}
 }

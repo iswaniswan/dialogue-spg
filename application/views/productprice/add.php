@@ -32,14 +32,13 @@
                     -->
                 <div class="form-group">
                     <label><?= $this->lang->line('Toko'); ?> :</label>
-                    <select class="form-control form-control-select2" data-container-css-class="select-sm" required data-fouc id="icustomer" name="icustomer">
+                    <select class="form-control form-control-select2" data-container-css-class="select-sm" required data-fouc id="id_customer" name="id_customer">
                     </select>
                 </div>
                 <div class="form-group">
                     <label><?= $this->lang->line('Nama Barang'); ?> :</label>
-                    <select class="form-control form-control-select2" data-container-css-class="select-sm" required data-fouc id="iproduct" name="iproduct">
+                    <select class="form-control form-control-select2" data-container-css-class="select-sm" required data-fouc id="id_product" name="id_product">
                     </select>
-                    <input type="hidden" name="idcompany" id="idcompany" required data-fouc id="idcompany">
                 </div>
                 <div class="form-group">
                     <label><?= $this->lang->line('Harga Barang'); ?> :</label>

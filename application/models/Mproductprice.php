@@ -25,79 +25,51 @@ class Mproductprice extends CI_Model {
         //     ";
         // }
 
-        if ($this->fallcustomer=='t') {
-            $and = "";
-        }else{
-            $and = "
-            WHERE
-                a.id_customer IN (
-                    SELECT 
-                        id_customer
-                    FROM
-                        tm_user_customer
-                    WHERE id_user = '$this->id_user'                
-                )
-            ";
+        $where = "";
+        if (!$this->fallcustomer=='t') {
+            $where = "WHERE a.id_customer IN (
+                                    SELECT id_customer
+                                    FROM tm_user_customer
+                                    WHERE id_user = '$this->id_user'
+                )";
         }
-        $datatables->query("SELECT 
-                a.i_company,
-                a.id_customer,
-                c.e_company_name,
-                d.e_customer_name,
-                a.i_product,
-                initcap(b.e_product_name) AS e_product,
-                e.e_brand_name,
-                a.v_price,
-                CASE
-                    WHEN a.d_update ISNULL THEN to_char(a.d_entry, 'dd-mm-yyyy HH12:MI:SS')
-                    ELSE to_char(a.d_update, 'dd-mm-yyyy HH12:MI:SS')
-                END AS d_update
-            FROM
-                tr_customer_price a
-            INNER JOIN tr_product b ON
-                (
-                    b.i_product = a.i_product AND b.i_company = a.i_company
-                )
-            INNER JOIN tr_company c ON
-                (
-                    c.i_company = a.i_company
-                )
-            INNER JOIN tr_customer d ON
-                (
-                    d.id_customer = a.id_customer
-                )
-            INNER JOIN tr_brand e ON
-                (
-                    b.id_brand = e.id_brand
-                )
-            $and 
-            GROUP BY
-            1,2,3,4,5,b.e_product_name,6,7,8
-            ORDER BY
-                d_update,
-                c.e_company_name,
-                d.e_customer_name,
-                b.e_product_name
-        ", FALSE);
 
-         $datatables->edit('v_price', function ($data) {
-            $v_price         = $data['v_price'];
-            $data = "Rp. ". number_format($v_price,0);
-            return $data;
-        });
+        $sql = "SELECT a.id, 
+                        a.id_customer,
+                        d.e_customer_name,
+                        b.i_product,
+                        initcap(b.e_product_name) AS e_product,
+                        e.e_brand_name,
+                        a.v_price,
+                    CASE
+                        WHEN a.d_update ISNULL THEN to_char(a.d_entry, 'dd-mm-yyyy HH12:MI:SS')
+                        ELSE to_char(a.d_update, 'dd-mm-yyyy HH12:MI:SS')
+                    END AS d_update
+                FROM tr_customer_price a
+                INNER JOIN tr_product b ON b.id = a.id_product
+                INNER JOIN tr_customer d ON d.id_customer = a.id_customer
+                INNER JOIN tr_brand e ON b.id_brand = e.id_brand
+                $where 
+                GROUP BY 1, 2, 3, 4, 5, b.e_product_name, 6, 7
+                ORDER BY d_update, d.e_customer_name, b.e_product_name";
 
+        // var_dump($sql); die();
+
+        $datatables->query($sql, FALSE);         
         
-            $datatables->add('action', function ($data) {
-                $id         = trim($data['i_product']);
-                $i_company  = $data['i_company'];
-                $id_customer= $data['id_customer'];
-                $data       = '';
-                /** Cek Hak Akses, Apakah User Bisa Edit */
-                if (check_role($this->id_menu, 3)) {
-                    $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id).'/'.encrypt_url($i_company).'/'.encrypt_url($id_customer)."' title='Edit Data'><i class='icon-database-edit2 text-".$this->color."-800'></i></a>";
-                }
-                return $data;
-            });
+        $datatables->add('action', function ($data) {
+            $id = $data['id'];
+            $action = '';
+
+            /** Cek Hak Akses, Apakah User Bisa Edit */
+            if (check_role($this->id_menu, 3)) {
+                $link = base_url().$this->folder . '/edit/' . encrypt_url($id);
+                $class = "icon-database-edit2 text-".$this->color."-800";
+                $action = "<a href='$link' title='Edit Data'><i class='$class'></i></a>";
+            }
+
+            return $action;
+        });
                
         $datatables->hide('id_customer');
         return $datatables->generate();
@@ -151,119 +123,116 @@ class Mproductprice extends CI_Model {
         ", FALSE);
     }
 
-    /** Get Data Customer */
-    public function get_customer($cari)
+    /** Get Data Customer by user cover */
+    public function get_customer($cari='')
     {
-        if ($this->fallcustomer=='t') {
-            $where = "";
-        }else{
-            $where = "
-                AND id_customer IN (
-                    SELECT 
-                        id_customer
-                    FROM
-                        tm_user_customer
-                    WHERE id_user = '$this->id_user'                
-                )
-            ";
+        $id_user = $this->session->userdata('id_user');
+
+        $limit = "LIMIT 5";
+        if ($cari != '') {
+            $limit = "";
         }
-        return $this->db->query("
-            SELECT 
-                id_customer AS id,
-                e_customer_name AS e_name
-            FROM 
-                tr_customer 
-            WHERE 
-                (e_customer_name ILIKE '%$cari%')
-                AND f_status = 't'
-                $where
-            ORDER BY 2
-        ", FALSE);
+
+        $sql = "SELECT id_customer AS id, e_customer_name AS e_name
+                FROM tr_customer 
+                WHERE (e_customer_name ILIKE '%$cari%') AND f_status = 't' 
+                    AND id_customer IN (
+                                        SELECT  id_customer
+                                        FROM tm_user_customer
+                                        WHERE id_user = '$id_user'                
+                                    )
+                ORDER BY 2
+                $limit";
+
+        // var_dump($sql);
+
+        return $this->db->query($sql, FALSE);
     }
 
-    /** Get Data Product */
-    public function get_product($cari)
+    /** Get Data Product sesuai user cover */
+    public function get_product($cari='', $id_customer)
     {
-        return $this->db->query("
-            SELECT 
-                i_product AS id,
+        $id_user = $this->session->userdata('id_user');
+
+        $limit = 'LIMIT 5';
+        if ($cari != '') {
+            $limit = "";
+        }
+
+        $sql_brand_cover = "SELECT DISTINCT tub.id_brand 
+                            FROM tm_user_brand tub 
+                            INNER JOIN tm_user_customer tuc ON tuc.id = tub.id_user_customer
+                            WHERE tuc.id_user = '$id_customer'";
+
+        $sql = "SELECT a.id,
                 e_product_name AS e_name,
                 a.id_brand,
-                b.e_brand_name AS brand,
-                a.i_company AS idcompany,
-                c.e_company_name AS company
-            FROM 
-                tr_product a
-            INNER JOIN tr_brand b ON
-                (b.id_brand = a.id_brand)
-            INNER JOIN tr_company c ON
-                (c.i_company = a.i_company)
-            WHERE 
-                (e_product_name ILIKE '%$cari%' OR i_product ILIKE '%$cari%')
+                b.e_brand_name AS brand
+            FROM tr_product a
+            INNER JOIN tr_brand b ON b.id_brand = a.id_brand
+            WHERE (e_product_name ILIKE '%$cari%' OR i_product ILIKE '%$cari%')
                 AND a.f_status = 't'
-                AND a.id_brand IN (SELECT id_brand FROM tm_user_brand WHERE id_user = $this->id_user)
+                AND a.id_brand IN ($sql_brand_cover)
             ORDER BY 4,1
-        ", FALSE);
+            $limit";
+
+        // var_dump($sql); die();
+
+        return $this->db->query($sql, FALSE);
     }
 
     /** Simpan Data */
     public function save()
     {
-        $icustomer  = $this->input->post('icustomer', TRUE);
-        $iproduct   = $this->input->post('iproduct', TRUE);
-        $icompany   = $this->input->post('icompany', TRUE);
-        $icompany   = explode(' - ',$iproduct);
-        $iproduct   = $icompany[0];
-        $icompany   = $icompany[1];
+        $id_customer  = $this->input->post('id_customer', TRUE);
+        $id_product   = $this->input->post('id_product', TRUE);
         $vprice     = $this->input->post('vprice', TRUE);
-        $dentry     = date('Y-m-d');
-        $this->db->query("INSERT INTO tr_customer_price (id_customer, i_company, i_product, v_price, d_entry) 
-        VALUES ($icustomer, $icompany, '$iproduct', $vprice, '$dentry')
-        ON CONFLICT (i_product, i_company, id_customer) DO UPDATE 
-          SET v_price = excluded.v_price, 
-              d_update = now()", FALSE);
+
+        $product = array(
+            'id_product' => $id_product,
+            'id_customer' => $id_customer,
+            'v_price' => $vprice,
+            'd_entry' => current_datetime(),
+        );
+        
+        $this->db->insert('tr_customer_price', $product);
     }
 
     public function update()
     {
-        $icustomer  = $this->input->post('icustomer', TRUE);
-        $iproduct   = $this->input->post('iproduct', TRUE);
-        $icompany   = $this->input->post('icompany', TRUE);
-        $icompany   = explode(' - ',$iproduct);
-        $iproduct   = $icompany[0];
-        $icompany   = $icompany[1];
+        $id = $this->input->post('id');
+        $id_customer  = $this->input->post('id_customer', TRUE);
+        $id_product   = $this->input->post('id_product', TRUE);
+        
         $vprice     = $this->input->post('vprice', TRUE);
         $dupdate    = date('Y-m-d');
-        $data       = array(
-            'v_price'       => $vprice,
-            'd_update'      => $dupdate,
-        );
-        $this->db->where('i_product',$iproduct);
-        $this->db->update('tr_customer_price',$data);
+        $data       = [
+            'v_price'=> $vprice,
+            'd_update' => $dupdate,
+        ];
+
+        if (@$id_customer != null) {
+            $data['id_customer'] = $id_customer;
+        }
+
+        if (@$id_product != null) {
+            $data['id_product'] = $id_product;
+        }
+
+        $this->db->where('id', $id);
+        $this->db->update('tr_customer_price', $data);
     }
 
     /** Get Data Untuk Edit */
     public function getdata($id, $i_company, $id_customer)
     {
-        return $this->db->query("
-            SELECT 
-                a.*,d.e_customer_name, initcap(b.e_product_name) AS e_product_name, b.id_brand
-            FROM
-                tr_customer_price a
-            INNER JOIN tr_product b ON
-                (
-                    b.i_product = a.i_product AND
-                    b.i_company = a.i_company
-                )
-            INNER JOIN tr_customer d ON
-                (
-                    d.id_customer = a.id_customer
-                )
-            WHERE
-               a. i_product = '$id'
-               AND a.i_company = '$i_company'
-               AND a.id_customer = '$id_customer'
-        ", FALSE);
+        $sql = "SELECT a.*,d.e_customer_name, initcap(b.e_product_name) AS e_product_name, b.id_brand, b.i_product
+                FROM tr_customer_price a
+                INNER JOIN tr_product b ON b.id = a.id_product
+                INNER JOIN tr_customer d ON d.id_customer = a.id_customer
+                WHERE a.id = '$id'";
+
+        return $this->db->query($sql, FALSE);
     }
 
     /** Export Data */
@@ -293,6 +262,13 @@ class Mproductprice extends CI_Model {
     {
         return $this->db->query("SELECT * FROM tr_customer_price WHERE i_product = '$iproduct' AND i_company = '$icompany'");
 
+    }
+
+    public function is_customer_price_exist($id_product, $id_customer)
+    {
+        $sql = "SELECT * FROM tr_customer_price WHERE id_product = '$id_product' AND id_customer = '$id_customer'";
+        $query = $this->db->query($sql);
+        return $query->num_rows() > 0;
     }
 
     public function transfer()

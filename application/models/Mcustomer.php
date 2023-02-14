@@ -403,6 +403,7 @@ class Mcustomer extends CI_Model {
             'latitude' => $latitude,
             'longitude' => $longitude
         );
+        
         $this->db->where('id_customer', $idcustomer);
         if ($this->db->update('tr_customer', $table)) {
             $x = 0;

@@ -29,7 +29,6 @@
                     <thead>
                         <tr class="bg-<?= $this->color;?> table-border-double">
                             <th>#</th>
-                            <th><?= $this->lang->line('Perusahaan'); ?></th>
                             <th><?= $this->lang->line('Toko'); ?></th>
                             <th><?= $this->lang->line('Kode Barang'); ?></th>
                             <th><?= $this->lang->line('Nama Barang'); ?></th>

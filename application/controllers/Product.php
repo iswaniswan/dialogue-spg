@@ -116,48 +116,43 @@ class Product extends CI_Controller
 			redirect(base_url(), 'refresh');
 		}
 
-		$this->form_validation->set_rules('icompany', 'icompany', 'trim|required|min_length[0]');
-		$this->form_validation->set_rules('iproduct', 'iproduct', 'trim|required|min_length[0]');
-		$this->form_validation->set_rules('eproduct', 'eproduct', 'trim|required|min_length[0]');
-		$this->form_validation->set_rules('vpricejual', 'vpricejual', 'trim|required');
-		$this->form_validation->set_rules('vpricebeli', 'vpricebeli', 'trim|required');
-		if ($this->form_validation->run() == false) {
-			$data = array(
+		$i_product = $this->input->post('iproduct', TRUE);
+		/** Cek Jika Nama Sudah Ada */
+		$is_product_exist = $this->mymodel->is_product_exist($i_product);
+
+		/** Jika Sudah Ada Jangan Disimpan */
+		if ($is_product_exist) {
+			$response = [
+				'sukses' => false,
+				'ada'	 => true
+			];
+
+			echo json_encode($response);
+			return;
+		} 
+
+		/** Jika Belum Ada Simpan Data */
+		$this->db->trans_begin();
+		$this->mymodel->save();
+		if ($this->db->trans_status() === FALSE) {
+			$this->db->trans_rollback();
+			$response =[
 				'sukses' => false,
 				'ada'	 => false,
-			);
-		} else {
-			/** Cek Jika Nama Sudah Ada */
-			$iproduct = $this->input->post('iproduct', TRUE);
-			$icompany = $this->input->post('icompany', TRUE);
-			$cek = $this->mymodel->cek($iproduct,$icompany);
-			/** Jika Sudah Ada Jangan Disimpan */
-			if ($cek->num_rows() > 0) {
-				$data = array(
-					'sukses' => false,
-					'ada'	 => true,
-				);
-			} else {
-				/** Jika Belum Ada Simpan Data */
-				$this->db->trans_begin();
-				$this->mymodel->save();
-				if ($this->db->trans_status() === FALSE) {
-					$this->db->trans_rollback();
-					$data = array(
-						'sukses' => false,
-						'ada'	 => false,
-					);
-				} else {
-					$this->db->trans_commit();
-					$this->logger->write('Simpan Data ' . $this->title . ' : ' . $iproduct);
-					$data = array(
-						'sukses' => true,
-						'ada'	 => false,
-					);
-				}
-			}
-		}
-		echo json_encode($data);
+			];
+
+			echo json_encode($response);
+			return;
+		} 
+
+		$this->db->trans_commit();
+		$this->logger->write('Simpan Data ' . $this->title . ' : ' . $i_product);
+		$response =[
+			'sukses' => true,
+			'ada'	 => false,
+		];
+		
+		echo json_encode($response);
 	}
 
 	/** Redirect ke Form Edit */
@@ -204,49 +199,38 @@ class Product extends CI_Controller
 			redirect(base_url(), 'refresh');
 		}
 
-		$this->form_validation->set_rules('icompany', 'icompany', 'trim|required|min_length[0]');
-		$this->form_validation->set_rules('iproduct', 'iproduct', 'trim|required|min_length[0]');
-		$this->form_validation->set_rules('eproduct', 'eproduct', 'trim|required|min_length[0]');
-		$this->form_validation->set_rules('vpricejual', 'vpricejual', 'trim|required');
-		$this->form_validation->set_rules('vpricebeli', 'vpricebeli', 'trim|required');
-		if ($this->form_validation->run() == false) {
+		/** Cek Jika Nama Sudah Ada */
+		$id = $this->input->post('id');
+		$i_product = $this->input->post('iproduct');
+		$is_product_exist = $this->mymodel->is_product_exist($i_product, $id);
+		if ($is_product_exist) {
+			$response = [
+				'sukses' => false,
+				'ada'	 => true
+			];
+
+			echo json_encode($response);
+			return;
+		}
+
+		/** Jika Sudah Ada Jangan Disimpan */
+		$this->db->trans_begin();
+		$this->mymodel->update();
+		if ($this->db->trans_status() === FALSE) {
+			$this->db->trans_rollback();
 			$data = array(
 				'sukses' => false,
 				'ada'	 => false,
 			);
 		} else {
-			/** Cek Jika Nama Sudah Ada */
-			$iproduct = $this->input->post('iproduct');
-			$iproductold = $this->input->post('iproductold');
-			$icompany = $this->input->post('icompany');
-			$icompanyold = $this->input->post('icompanyold');
-			$cek = $this->mymodel->cek_edit($iproduct, $iproductold, $icompany, $icompanyold);
-			/** Jika Sudah Ada Jangan Disimpan */
-			if ($cek->num_rows() > 0) {
-				$data = array(
-					'sukses' => false,
-					'ada'	 => true,
-				);
-			} else {
-				/** Jika Belum Ada Update Data */
-				$this->db->trans_begin();
-				$this->mymodel->update();
-				if ($this->db->trans_status() === FALSE) {
-					$this->db->trans_rollback();
-					$data = array(
-						'sukses' => false,
-						'ada'	 => false,
-					);
-				} else {
-					$this->db->trans_commit();
-					$this->logger->write('Update Data ' . $this->title . ' : ' . $iproduct);
-					$data = array(
-						'sukses' => true,
-						'ada'	 => false,
-					);
-				}
-			}
+			$this->db->trans_commit();
+			$this->logger->write('Update Data ' . $this->title . ' : ' . $i_product);
+			$data = array(
+				'sukses' => true,
+				'ada'	 => false,
+			);
 		}
+		
 		echo json_encode($data);
 	}
 

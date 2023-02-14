@@ -29,7 +29,7 @@
                     <thead>
                         <tr class="bg-<?= $this->color; ?> table-border-double">
                             <th>#</th>
-                            <th><?= $this->lang->line('Perusahaan'); ?></th>
+                            <?php /* <th><?= $this->lang->line('Perusahaan'); ?></th> */ ?>
                             <th><?= $this->lang->line('Kode Barang'); ?></th>
                             <th><?= $this->lang->line('Nama Barang'); ?></th>
                             <th><?= $this->lang->line('Nama Brand'); ?></th>

@@ -270,7 +270,13 @@ class Customer extends CI_Controller
 			$eowner = $this->input->post('eowner', TRUE);
 			$ephone = $this->input->post('ephone', TRUE);
 			$latitude = $this->input->post('latitude', TRUE);
+			if ($latitude == '') {
+				$latitude = null;
+			}
 			$longitude = $this->input->post('longitude', TRUE);
+			if ($longitude == '') {
+				$longitude = null;
+			}
 
 			$this->mymodel->update($itype, $fpkp, $ecustomer, $ecustomernpwp, $eaddress, $eaddressnpwp, $eowner, $ephone, $idcustomer, $latitude, $longitude);
 			if ($this->db->trans_status() === FALSE) {

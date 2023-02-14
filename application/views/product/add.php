@@ -17,6 +17,7 @@
 
         <div class="card-body">
             <form class="form-validation">
+                <?php /*
                 <div class="form-group">
                     <label><?= $this->lang->line('Perusahaan'); ?> :</label>
                     <select class="form-control select-search" data-container-css-class="select-sm" data-container-css-class="text-<?= $this->color; ?>" data-placeholder="<?= $this->lang->line('Perusahaan'); ?>" required data-fouc name="icompany">
@@ -28,9 +29,14 @@
                         } ?>
                     </select>
                 </div>
+                */ ?>
                 <div class="form-group">
                     <label><?= $this->lang->line('Nama Brand'); ?> :</label>
-                    <select class="form-control select-search" data-container-css-class="select-sm" data-container-css-class="text-<?= $this->color; ?>" data-placeholder="<?= $this->lang->line('Brand'); ?>" required data-fouc name="ebrand" id="i_brand">
+                    <select class="form-control select-search" 
+                            data-container-css-class="select-sm" 
+                            data-container-css-class="text-<?= $this->color; ?>" 
+                            data-placeholder="<?= $this->lang->line('Brand'); ?>" 
+                            data-fouc name="ebrand" id="i_brand" required>
                         <option value=""></option>
                     </select>
                 </div>
@@ -45,19 +51,7 @@
                 <div class="form-group">
                     <label><?= $this->lang->line('Nama Grup'); ?> :</label>
                     <input type="text" class="form-control text-capitalize" placeholder="<?= $this->lang->line('Nama Grup'); ?>" name="egroup" maxlength="50" autocomplete="off" required>
-                </div>
-                <!-- <div class="form-group">
-                    <label><?= $this->lang->line('Nama Brand'); ?> :</label>
-                    <input type="text" class="form-control text-capitalize" placeholder="<?= $this->lang->line('Nama Brand'); ?>" name="ebrand" maxlength="50" autocomplete="off" required>
-                </div> -->
-                <div class="form-group" hidden>
-                    <label><?= $this->lang->line('Harga Beli'); ?> :</label>
-                    <input type="number" class="form-control" placeholder="Entry Price" name="vpricebeli" autocomplete="off" value="0" required>
-                </div>
-                <div class="form-group" hidden>
-                    <label><?= $this->lang->line('Harga Jual'); ?> :</label>
-                    <input type="number" class="form-control" placeholder="Entry Price" name="vpricejual" autocomplete="off" value="0" required>
-                </div>
+                </div>                
                 <div class="d-flex justify-content-start align-items-center">
                     <button type="button" id="submit" class="btn btn bg-<?= $this->color; ?> btn-sm"><i class="icon-paperplane"></i>&nbsp;
                         <?= $this->lang->line('Simpan'); ?></button>

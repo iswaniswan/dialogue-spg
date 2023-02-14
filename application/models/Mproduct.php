@@ -15,35 +15,34 @@ class Mproduct extends CI_Model {
         //     ";
         // }
         $datatables = new Datatables(new CodeigniterAdapter);
-        $datatables->query("SELECT
-                a.i_company,
-                b.e_company_name,
-                a.i_product,
-                initcap(a.e_product_name) AS e_product_name,
-                initcap(c.e_brand_name) AS e_brand,
-                a.f_status,
-                CASE WHEN d_update ISNULL THEN to_char(d_entry, 'dd-mm-yyyy HH12:MI:SS') ELSE to_char(d_update, 'dd-mm-yyyy HH12:MI:SS') END AS d_update
-            FROM
-                tr_product a
-            INNER JOIN tr_company b ON
-                (b.i_company = a.i_company)
-            left JOIN tr_brand c ON
-                (c.id_brand = a.id_brand)
-            ORDER BY
-                a.e_product_name ASC
-        ", FALSE);
+
+        $sql = "SELECT a.id, a.i_product,
+                    initcap(a.e_product_name) AS e_product_name,
+                    initcap(c.e_brand_name) AS e_brand,
+                    a.f_status,
+                    CASE 
+                        WHEN d_update ISNULL THEN to_char(d_entry, 'dd-mm-yyyy HH12:MI:SS') 
+                        ELSE to_char(d_update, 'dd-mm-yyyy HH12:MI:SS') 
+                    END AS d_update
+                FROM tr_product a
+                left JOIN tr_brand c ON c.id_brand = a.id_brand
+                ORDER BY a.e_product_name ASC";
+
+        $datatables->query($sql, FALSE);
 
         $datatables->edit('f_status', function ($data) {
-            $id         = $data['i_product'];
-            $i_company  = $data['i_company'];
+            $id = $data['id'];
+            $status = 'Not Active';
+            $color  = 'danger';
+
             if ($data['f_status']=='t') {
                 $status = 'Active';
                 $color  = 'success';
-            }else{
-                $status = 'Not Active';
-                $color  = 'danger';
             }
-            $data = "<button class='btn btn-sm badge rounded-round alpha-".$color." text-".$color."-800 border-".$color."-600 legitRipple' onclick='changestatus(\"".$this->folder."\",\"".$id.'|'.$i_company."\");'>".$status."</button>";
+
+            $class = "btn btn-sm badge rounded-round alpha-".$color." text-".$color."-800 border-".$color."-600 legitRipple";
+            $onclick = "changestatus(\"".$this->folder."\",\"".$id."\");";
+            $data = "<button class='$class' onclick='$onclick'>".$status."</button>";
             return $data;
         });
 
@@ -64,9 +63,10 @@ class Mproduct extends CI_Model {
         // }   
         
         $datatables->add('action', function ($data) {
-            $id         = trim($data['i_product']);
-            $i_company  = $data['i_company'];
-            $link =  base_url().$this->folder.'/edit/'.encrypt_url($id).'/'.encrypt_url($i_company);
+            $id         = trim($data['id']);
+            // $i_company  = $data['i_company'];
+            // $link =  base_url().$this->folder.'/edit/'.encrypt_url($id).'/'.encrypt_url($i_company);
+            $link =  base_url().$this->folder.'/edit/'.encrypt_url($id);
             $data = "<a href='$link' title='Edit Data'><i class='icon-database-edit2 text-".$this->color."-800'></i></a>";
             return $data;
         });
@@ -76,29 +76,20 @@ class Mproduct extends CI_Model {
 
     public function changestatus($id)
     {
-        $ex = explode("|",$id);
-        $i_product = $ex[0];
-        $i_company = $ex[1];
         $this->db->select('f_status');
         $this->db->from('tr_product');
-        $this->db->where('i_product', $i_product);
-        $this->db->where('i_company', $i_company);
+        $this->db->where('id', $id);
+
         $query = $this->db->get();
-        if ($query->num_rows()>0) {
-            $status = $query->row()->f_status;
-        }else{
-            $status = 'f';
-        }
-        if ($status=='f') {
-            $fstatus = 't';
-        }else{
-            $fstatus = 'f';
-        }
+        $old_status = $query->row()->f_status;
+
+        $new_status = $old_status == 'f' ? 't' : 'f';
+
         $table = array(
-            'f_status' => $fstatus, 
+            'f_status' => $new_status, 
         );
-        $this->db->where('i_product', $i_product);
-        $this->db->where('i_company', $i_company);
+
+        $this->db->where('id', $id);
         $this->db->update('tr_product', $table);
     }
 
@@ -168,48 +159,45 @@ class Mproduct extends CI_Model {
     }
 
     /** Cek Apakah Data Sudah Ada Pas Simpan */
-    public function cek($id,$icompany)
+    public function is_product_exist($i_product, $id=null)
     {
-        return $this->db->query("
-            SELECT 
-                i_product
-            FROM 
-                tr_product 
-            WHERE 
-                trim(upper(i_product)) = trim(upper('$id'))
-                AND i_company = '$icompany'
-        ", FALSE);
+        $where = "";
+        if ($id != null) {
+            $where = " AND id <> $id ";
+        }
+
+        $sql = "SELECT i_product
+                FROM tr_product 
+                WHERE trim(upper(i_product)) = trim(upper('$i_product')) $where";
+
+        $query = $this->db->query($sql, FALSE);
+
+        return $query->num_rows() > 0;
     }
 
     /** Simpan Data */
     public function save()
     {
         $table = array(
-            'i_company'           => $this->input->post('icompany', TRUE),
             'i_product'           => strtoupper($this->input->post('iproduct', TRUE)),
             'e_product_name'      => ucwords(strtolower($this->input->post('eproduct', TRUE))),
             'e_product_group_name'=> ucwords(strtolower($this->input->post('egroup', TRUE))),
             'id_brand'            => ucwords(strtolower($this->input->post('ebrand', TRUE))),
-            'v_price_beli'        => $this->input->post('vpricebeli', TRUE),
-            'v_price_jual'        => $this->input->post('vpricejual', TRUE),
             'd_entry'             => current_datetime(),
         );
+        
         $this->db->insert('tr_product', $table);
     }
 
     /** Get Data Untuk Edit */
-    public function getdata($id,$icompany)
+    public function getdata($id,$icompany=null)
     {
-        return $this->db->query("
-            SELECT 
-                a.*, b.e_brand_name
-            FROM 
-                tr_product a
-            INNER JOIN tr_brand b ON (b.id_brand = a.id_brand)
-            WHERE
-                i_product = '$id'
-                ANd i_company = '$icompany'
-        ", FALSE);
+        $sql = "SELECT a.*, b.e_brand_name
+                FROM tr_product a
+                INNER JOIN tr_brand b ON b.id_brand = a.id_brand
+                WHERE id = '$id'";
+
+        return $this->db->query($sql, FALSE);
     }
 
     /** Cek Apakah Data Sudah Ada Pas Edit */
@@ -231,20 +219,17 @@ class Mproduct extends CI_Model {
     /** Update Data */
     public function update()
     {
-        $iproductold = $this->input->post('iproductold', TRUE);
-        $icompanyold = $this->input->post('icompanyold', TRUE);
+        $id = $this->input->post('id');
+
         $table = array(
-            'i_company'           => $this->input->post('icompany', TRUE),
             'i_product'           => strtoupper($this->input->post('iproduct', TRUE)),
             'e_product_name'      => ucwords(strtolower($this->input->post('eproduct', TRUE))),
             'e_product_group_name'=> ucwords(strtolower($this->input->post('egroup', TRUE))),
             'id_brand'             => ucwords(strtolower($this->input->post('ebrand', TRUE))),
-            'v_price_beli'        => $this->input->post('vpricebeli', TRUE),
-            'v_price_jual'        => $this->input->post('vpricejual', TRUE),
             'd_update'            => current_datetime(),
         );
-        $this->db->where('i_product', $iproductold);
-        $this->db->where('i_company', $icompanyold);
+
+        $this->db->where('id', $id);
         $this->db->update('tr_product', $table);
     }
 

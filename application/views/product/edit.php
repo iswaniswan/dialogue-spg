@@ -13,9 +13,10 @@
                 </div>
             </div>
         </div>
-
+        
         <div class="card-body">
             <form class="form-validation">
+                <?php /*
                 <div class="form-group">
                     <label><?= $this->lang->line('Nama Perusahaan'); ?> :</label>
                     <select class="form-control select-search" data-container-css-class="select-sm" data-container-css-class="text-<?= $this->color; ?>" data-placeholder="<?= $this->lang->line('Nama Perusahaan'); ?>" required data-fouc name="icompany">
@@ -25,9 +26,10 @@
                                 <option value="<?= $key->i_company; ?>" <?php if ($key->i_company == $data->i_company) { ?> selected <?php } ?>><?= $key->e_company_name; ?></option>
                         <?php }
                         } ?>
-                    </select>
-                    <input type="hidden" name="icompanyold" value="<?= $data->i_company; ?>">
+                    </select>                    
                 </div>
+                */?>
+                <input type="hidden" name="id" value="<?= $data->id ?>" />
                 <div class="form-group">
                     <label><?= $this->lang->line('Nama Brand'); ?> :</label>
                     <select class="form-control select-search" data-container-css-class="select-sm" data-container-css-class="text-<?= $this->color; ?>" data-placeholder="<?= $this->lang->line('Brand'); ?>" required data-fouc name="ebrand" id="i_brand">
@@ -43,23 +45,11 @@
                     <label><?= $this->lang->line('Nama Barang'); ?> :</label>
                     <input type="text" class="form-control text-capitalize" placeholder="<?= $this->lang->line('Nama Barang'); ?>" name="eproduct" maxlength="150" autocomplete="off" required value="<?= $data->e_product_name; ?>">
                 </div>
-                <div class="form-group">
+                <div class="form-group mb-3">
                     <label><?= $this->lang->line('Nama Grup'); ?> :</label>
                     <input type="text" class="form-control text-capitalize" placeholder="<?= $this->lang->line('Nama Grup'); ?>" name="egroup" maxlength="50" autocomplete="off" required value="<?= $data->e_product_group_name; ?>">
                 </div>
-                <!-- <div class="form-group">
-                    <label><?= $this->lang->line('Nama Brand'); ?> :</label>
-                    <input type="text" class="form-control text-capitalize" placeholder="<?= $this->lang->line('Nama Brand'); ?>" name="ebrand" maxlength="50" autocomplete="off" required value="<?= $data->e_brand; ?>">
-                </div> -->
-                <div class="form-group" hidden>
-                    <label><?= $this->lang->line('Harga Beli'); ?> :</label>
-                    <input type="number" class="form-control" placeholder="<?= $this->lang->line('Harga Beli'); ?>" name="vpricebeli" autocomplete="off" required value="<?= $data->v_price_beli; ?>">
-                </div>
-                <div class="form-group" hidden="">
-                    <label><?= $this->lang->line('Harga Jual'); ?> :</label>
-                    <input type="number" class="form-control" placeholder="Entry Price" name="vpricejual" autocomplete="off" required value="<?= $data->v_price_jual; ?>">
-                </div>
-                <div class="d-flex justify-content-start align-items-center">
+                <div class="d-flex justify-content-start align-items-center mb-3">
                     <button type="button" id="submit" class="btn btn bg-<?= $this->color; ?> btn-sm"><i class="icon-paperplane"></i>&nbsp;
                         <?= $this->lang->line('Ubah'); ?></button>
                     <a href="<?= base_url($this->folder); ?>" class="btn btn bg-danger btn-sm ml-1"><i class="icon-arrow-left16"></i>&nbsp; <?= $this->lang->line('Kembali'); ?></a>
@@ -68,6 +58,7 @@
         </div>
     </div>
 
+    <?php /*
     <div class="card">
         <div class="card-header border-<?= $this->color; ?> bg-transparent header-elements-inline">
             <h6 class="card-title">
@@ -109,7 +100,7 @@
                                     </a>
                                 </td>
                                 <td>
-                                    <?php /** button status */
+                                    <?php 
                                     
                                     $status = 'Not Active';
                                     $color  = 'danger';
@@ -133,6 +124,7 @@
             </div>
         </div>
     </div>
+    */ ?>
 
 </div>
 <!-- /task manager table -->

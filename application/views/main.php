@@ -208,9 +208,10 @@
                     $encrypt_id_user = encrypt_url($id_user);
                     $url_ganti_password = base_url() . 'user/edit_password/' . $encrypt_id_user;
                     ?>
-                    <div class="dropdown-menu dropdown-menu-right">
-                        
-                        
+                    <div class="dropdown-menu dropdown-menu-right">                        
+                        <a href="<?= base_url() . 'user/view/' . $encrypt_id_user ?>" class="dropdown-item">
+                            <i class="icon-user-plus"></i>Profil Saya
+                        </a>
                         <a href="<?= $url_ganti_password ?>" class="dropdown-item">
                             <i class="icon-cog5"></i> Ganti Password
                         </a>
