@@ -29,10 +29,18 @@
                     <select readonly class="form-control form-control-select2" data-container-css-class="select-sm" required data-fouc id="id_product" name="id_product">
                         <option value="<?= $data->id_product ?>"><?= $data->i_product . ' - ' . $data->e_product_name; ?></option>
                     </select>
-                </div>
+                </div>                
                 <div class="form-group">
                     <label><?= $this->lang->line('Harga Barang'); ?> :</label>
-                    <input type="number" class="form-control" placeholder="<?= $this->lang->line('Harga Barang'); ?>" name="vprice" value="<?= $data->v_price; ?>" autocomplete="off" required>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Rp.</span>
+                        </div>
+                        <input type="text" class="form-control" placeholder="<?= $this->lang->line('Harga Barang'); ?>" 
+                                name="vprice" id="vprice" autocomplete="off" 
+                                value="<?= number_format($data->v_price, 2, ",", ".") ?>" 
+                                required>
+                    </div>
                 </div>
                 <div class="d-flex justify-content-start align-items-center">
                     <button type="button" id="submit" class="btn btn bg-<?= $this->color; ?> btn-sm"><i class="icon-paperplane"></i>&nbsp;

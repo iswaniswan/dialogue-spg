@@ -20,7 +20,7 @@
                 <div class="form-group row">
                     <div class="col-md-12">
                         <label><?= $this->lang->line('Nama Toko'); ?> :</label>
-                        <select class="form-control select" name="i_customer" id="i_customer" required data-fouc data-placeholder="<?= $this->lang->line('Nama Toko'); ?>">
+                        <select class="form-control select" name="id_customer" id="id_customer" required data-fouc data-placeholder="<?= $this->lang->line('Nama Toko'); ?>">
                             <option value=""></option>
                             <?php if ($customer->num_rows() > 0) {
                                 foreach ($customer->result() as $key) { ?>

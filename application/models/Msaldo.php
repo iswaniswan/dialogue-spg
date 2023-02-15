@@ -121,117 +121,122 @@ class Msaldo extends CI_Model
         ", FALSE);
     }
 
-    /** Ambil Data Customer */
-    public function get_customer($cari)
+    /** Get Data Customer by user cover */
+    public function get_customer($cari='')
     {
-        if ($this->fallcustomer == 't') {
-            $where = "";
-        } else {
-            $where = "AND id_customer IN (
-                    SELECT 
-                        id_customer
-                    FROM
-                        tm_user_customer
-                    WHERE id_user = '$this->id_user'                
-                )
-            ";
+        $id_user = $this->session->userdata('id_user');
+
+        $limit = "LIMIT 5";
+        if ($cari != '') {
+            $limit = "";
         }
-        return $this->db->query("SELECT
-                id_customer as id,
-                e_customer_name as e_name
-            FROM
-                tr_customer
-            WHERE
-                (e_customer_name ILIKE '%$cari%')
-                AND f_status = 't'
-                $where
-            ORDER BY
-                e_customer_name ASC
-        ", FALSE);
+
+        $sql = "SELECT id_customer AS id, e_customer_name AS e_name
+                FROM tr_customer 
+                WHERE (e_customer_name ILIKE '%$cari%') AND f_status = 't' 
+                    AND id_customer IN (
+                                        SELECT  id_customer
+                                        FROM tm_user_customer
+                                        WHERE id_user = '$id_user'                
+                                    )
+                ORDER BY 2
+                $limit";
+
+        // var_dump($sql);
+
+        return $this->db->query($sql, FALSE);
     }
 
-    /** Get Data Product */
-    public function get_product($cari)
+    /** Get Data Product sesuai user cover */
+    public function get_product($cari='', $id_customer, $all=false)
     {
-        return $this->db->query("
-            SELECT 
-                a.i_product AS id,
-                a.e_product_name AS e_name,
-                c.e_brand_name,
-                a.id_brand
-            FROM 
-                tr_product a
-            INNER JOIN tr_brand c ON
-                (c.id_brand = a.id_brand)
-            WHERE 
-                (e_product_name ILIKE '%$cari%' OR i_product ILIKE '%$cari%')
+        $id_user = $this->session->userdata('id_user');
+
+        $limit = 'LIMIT 5';
+        if (($cari != '') or ($all)) {
+            $limit = "";
+        }
+
+        $sql_brand_cover = "SELECT tub.id_brand
+                            FROM tm_user_brand tub						
+                            WHERE id_user_customer = (
+                                            SELECT id
+                                            FROM tm_user_customer
+                                            WHERE id_user = '$id_user' AND id_customer = '$id_customer'
+                                        )";
+
+        $sql = "SELECT a.id,
+                i_product,
+                e_product_name AS e_name,
+                a.id_brand,
+                b.e_brand_name AS brand
+            FROM tr_product a
+            INNER JOIN tr_brand b ON b.id_brand = a.id_brand
+            WHERE (e_product_name ILIKE '%$cari%' OR i_product ILIKE '%$cari%')
                 AND a.f_status = 't'
-                AND a.id_brand IN (SELECT id_brand FROM tm_user_brand WHERE id_user = $this->id_user)
-            ORDER BY 3,1
-        ", FALSE);
+                AND a.id_brand IN ($sql_brand_cover)
+            ORDER BY 4,1
+            $limit";
+
+        // var_dump($sql); die();
+
+        return $this->db->query($sql, FALSE);
     }
 
     /** Ambil Data Detail Product */
-    public function get_detail_product($i_product,$i_brand/* , $i_company */)
+    public function get_detail_product($id_product)
     {
-        return $this->db->query("SELECT
-        initcap(a.e_product_name) AS e_product_name,
-        a.id_brand,
-        c.e_brand_name, 
-        a.i_company,
-        b.e_company_name
-    FROM
-        tr_product a
-    INNER JOIN
-        tr_company b ON (b.i_company = a.i_company)
-    INNER JOIN
-        tr_brand c ON (c.id_brand = a.id_brand)
-    WHERE
-        b.i_company = a.i_company
-        AND a.i_product = '$i_product'
-        AND a.id_brand = '$i_brand'
-        ", FALSE);
+        $sql = "SELECT a.id_brand,
+                    initcap(a.e_product_name) AS e_product_name,                    
+                    c.e_brand_name
+                FROM tr_product a
+                INNER JOIN tr_brand c ON c.id_brand = a.id_brand
+                WHERE a.id = '$id_product'";
+
+        return $this->db->query($sql, FALSE);
     }
+    // public function get_detail_product($i_product,$i_brand/* , $i_company */)
+    // {
+    //     return $this->db->query("SELECT
+    //     initcap(a.e_product_name) AS e_product_name,
+    //     a.id_brand,
+    //     c.e_brand_name, 
+    //     a.i_company,
+    //     b.e_company_name
+    // FROM
+    //     tr_product a
+    // INNER JOIN
+    //     tr_company b ON (b.i_company = a.i_company)
+    // INNER JOIN
+    //     tr_brand c ON (c.id_brand = a.id_brand)
+    // WHERE
+    //     b.i_company = a.i_company
+    //     AND a.i_product = '$i_product'
+    //     AND a.id_brand = '$i_brand'
+    //     ", FALSE);
+    // }
 
     /** Simpan Data */
     public function save()
     {
+        $data_header = [
+            'id_customer' => $this->input->post('icustomer', TRUE),
+            'i_periode' => $this->input->post('periode', TRUE),
+            'e_remark' => $this->input->post('eremark', TRUE),
+        ];
 
-        $query = $this->db->query("SELECT max(id) AS id FROM tm_mutasi_saldoawal", TRUE);
-		if ($query->num_rows() > 0) {
-			$id = $query->row()->id;
-			if ($id == null) {
-				$id = 1;
-			} else {
-				$id = $id + 1;
-			}
-		} else {
-			$id = 1;
-		}
+        $this->db->insert('tm_mutasi_saldoawal', $data_header);
+        $id_header = $this->db->insert_id();
 
-        $table = array(
-            'id'                        => $id,
-            'id_customer'               => $this->input->post('icustomer', TRUE),
-            'i_periode'                 => $this->input->post('periode', TRUE),
-            'e_remark'                  => $this->input->post('eremark', TRUE),
-        );
-        $this->db->insert('tm_mutasi_saldoawal', $table);
+        $items = $this->input->post('items');
 
-        if ($this->input->post('jml', TRUE) > 0) {
-            $i = 0;
-            foreach ($this->input->post('i_product[]', TRUE) as $i_product) {
-                $iproduct = $this->input->post('i_product', TRUE)[$i];
-                $product = explode(' - ',$iproduct);
-                $i_product = $product[0];
-                $tabledetail = array(
-                    'id_header'         => $id,
-                    'i_company'         => $this->input->post('i_company', TRUE)[$i],
-                    'i_product'         => $i_product,
-                    'n_saldo'           => str_replace(',','', $this->input->post('qty', TRUE)[$i]),
-                );
-                $this->db->insert('tm_mutasi_saldoawal_item', $tabledetail);
-                $i++;
-            };
+        foreach ($items as $item) {
+            $data_detail = [
+                'id_header' => $id_header,
+                'id_product' => $item['id_product'],
+                'n_saldo' => $item['qty']
+            ];
+            $this->db->insert('tm_mutasi_saldoawal_item', $data_detail);            
         };
     }
 

@@ -473,7 +473,7 @@ class Muser extends CI_Model {
             $this->db->delete('tm_user_brand');
 
             /** hapus user customer */
-            $this->db->where('id_user', $id_user);
+            $this->db->where('id', $user_customer->id);
             $this->db->delete('tm_user_customer');
         }
 

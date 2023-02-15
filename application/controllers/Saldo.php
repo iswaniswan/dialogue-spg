@@ -65,63 +65,54 @@ class Saldo extends CI_Controller
 		echo $this->mymodel->serverside();
 	}
 
-	/** Get Customer */
+	/** Data Customer */
 	public function get_customer()
 	{
 		$filter = [];
-		$cari	= str_replace("'", "", $this->input->get('q'));
-		// if ($cari != '') {
-			$data = $this->mymodel->get_customer($cari);
+		$cari   = str_replace("'", "", $this->input->get('q'));
+		$data = $this->mymodel->get_customer($cari);
 			foreach ($data->result() as $row) {
 				$filter[] = array(
 					'id'   => $row->id,
-					'text' => strtoupper($row->e_name),
+					'text' => ucwords(strtolower($row->e_name)),
 				);
 			}
-		// } else {
-		// 	$filter[] = array(
-		// 		'id'   => null,
-		// 		'text' => 'Cari Data Berdasarkan Nama',
-		// 	);
-		// }
 		echo json_encode($filter);
 	}
-	
 
-	/** Data Product */
+	/** Data Product sesuai user cover */
 	public function get_product()
 	{
 		$filter = [];
-		$i_company = $this->input->get('i_company');
-		$cari = str_replace("'", "", $this->input->get('q'));
-		if ($cari != '') {
-			$data = $this->mymodel->get_product($cari);
-			foreach ($data->result() as $row) {
-				$filter[] = array(
-					'id'   => $row->id . ' - ' . $row->id_brand,
-					'text' => $row->id . ' - ' . ucwords(strtolower($row->e_name)) . ' - ' . $row->e_brand_name,
-				);
-			}
-		} else {
-			$filter = [];
-			$filter[] = array(
-				'id'   => null,
-				'text' => 'Pilih Perusahan / Cari Dengan Kode atau Nama Product',
-			);
+		$id_customer = $this->input->get('id_customer');
+		if ($id_customer == null) {
+			echo json_encode($filter);
+			return;
 		}
+
+		$cari = str_replace("'", "", $this->input->get('q'));
+		$data = $this->mymodel->get_product($cari, $id_customer);
+		foreach ($data->result() as $row) {
+			$filter[] = array(
+				'id'   => $row->id,
+				'text' => $row->i_product . ' - ' . ucwords(strtolower($row->e_name)) . ' - ' . ucwords(strtolower($row->brand))
+			);
+		} 
 		echo json_encode($filter);
 	}
 
 	public function get_detail_product()
 	{
 		header("Content-Type: application/json", true);
-		$i_product = $this->input->post('i_product', TRUE);
-		$i_brand = $this->input->post('i_brand', TRUE);
-		/* $i_company = $this->input->post('i_company', TRUE); */
-		$query  = array(
-			'detail' => $this->mymodel->get_detail_product($i_product,$i_brand/* , $i_company */)->result_array()
+		$id_product = $this->input->post('id_product', TRUE);
+
+		$query = $this->mymodel->get_detail_product($id_product);
+
+		$result  = array(
+			'detail' => $query->result_array()
 		);
-		echo json_encode($query);
+
+		echo json_encode($result);
 	}
 
 	/** Redirect ke Form Tambah */
@@ -163,44 +154,27 @@ class Saldo extends CI_Controller
 			redirect(base_url(), 'refresh');
 		}
 
-		$this->form_validation->set_rules('periode', 'periode', 'trim|required|min_length[0]');
-		$this->form_validation->set_rules('icustomer', 'icustomer', 'trim|required|min_length[0]');
-		$icustomer = $this->input->post('icustomer');
+		$id_customer = $this->input->post('icustomer');
 		$periode  = $this->input->post('periode');
-		if ($this->form_validation->run() == false) {
+		
+		/** Simpan atau Update Data */
+		$this->db->trans_begin();
+		$this->mymodel->save();
+		if ($this->db->trans_status() === FALSE) {
+			$this->db->trans_rollback();
 			$data = array(
 				'sukses' => false,
 				'ada'	 => false,
 			);
 		} else {
-			/** Simpan atau Update Data */
-			$cek_data = $this->db->query("select * from tm_mutasi_saldoawal where id_customer = '$icustomer' and i_periode = '$periode'", FALSE);
-			if ($cek_data->num_rows() > 0) {
-				$data = array(
-					'sukses' => false,
-					'ada'	 => true,
-				);
-			} else {
-				$this->db->trans_begin();
-				$this->mymodel->save();
-				if ($this->db->trans_status() === FALSE) {
-					$this->db->trans_rollback();
-					$data = array(
-						'sukses' => false,
-						'ada'	 => false,
-					);
-				} else {
-					$this->db->trans_commit();
-					$this->logger->write('Simpan Data ' . $this->title . ' : ' . $icustomer . '-' . $periode);
-					$data = array(
-						'sukses' => true,
-						'ada'	 => false,
-					);
-				}				
-			}
-			
-			
-		}
+			$this->db->trans_commit();
+			$this->logger->write('Simpan Data ' . $this->title . ' : ' . $id_customer . '-' . $periode);
+			$data = array(
+				'sukses' => true,
+				'ada'	 => false,
+			);
+		}	
+
 		echo json_encode($data);
 	}
 

@@ -55,7 +55,13 @@ class Mproductprice extends CI_Model {
 
         // var_dump($sql); die();
 
-        $datatables->query($sql, FALSE);         
+        $datatables->query($sql, FALSE);       
+        
+        // formatting harga
+        $datatables->edit('v_price', function ($data) {
+            $formatted = number_format($data['v_price'], 2, ",", ".");
+            return "Rp. $formatted";
+        });
         
         $datatables->add('action', function ($data) {
             $id = $data['id'];
@@ -123,6 +129,14 @@ class Mproductprice extends CI_Model {
         ", FALSE);
     }
 
+    public function get_customer_by_id($id_customer){
+        $sql = "SELECT * 
+                FROM tr_customer 
+                WHERE id_customer = '$id_customer'";
+
+        return $this->db->query($sql, FALSE);
+    }
+
     /** Get Data Customer by user cover */
     public function get_customer($cari='')
     {
@@ -150,21 +164,25 @@ class Mproductprice extends CI_Model {
     }
 
     /** Get Data Product sesuai user cover */
-    public function get_product($cari='', $id_customer)
+    public function get_product($cari='', $id_customer, $all=false)
     {
         $id_user = $this->session->userdata('id_user');
 
         $limit = 'LIMIT 5';
-        if ($cari != '') {
+        if (($cari != '') or ($all)) {
             $limit = "";
         }
 
-        $sql_brand_cover = "SELECT DISTINCT tub.id_brand 
-                            FROM tm_user_brand tub 
-                            INNER JOIN tm_user_customer tuc ON tuc.id = tub.id_user_customer
-                            WHERE tuc.id_user = '$id_customer'";
+        $sql_brand_cover = "SELECT tub.id_brand
+                            FROM tm_user_brand tub						
+                            WHERE id_user_customer = (
+                                            SELECT id
+                                            FROM tm_user_customer
+                                            WHERE id_user = '$id_user' AND id_customer = '$id_customer'
+                                        )";
 
         $sql = "SELECT a.id,
+                i_product,
                 e_product_name AS e_name,
                 a.id_brand,
                 b.e_brand_name AS brand
@@ -188,6 +206,10 @@ class Mproductprice extends CI_Model {
         $id_product   = $this->input->post('id_product', TRUE);
         $vprice     = $this->input->post('vprice', TRUE);
 
+        /** sterilize formatted number */
+        $vprice = str_replace(".", "", $vprice);
+        $vprice = str_replace(",", ".", $vprice);
+
         $product = array(
             'id_product' => $id_product,
             'id_customer' => $id_customer,
@@ -201,23 +223,21 @@ class Mproductprice extends CI_Model {
     public function update()
     {
         $id = $this->input->post('id');
-        $id_customer  = $this->input->post('id_customer', TRUE);
-        $id_product   = $this->input->post('id_product', TRUE);
+        $id_customer = $this->input->post('id_customer', TRUE);
+        $id_product = $this->input->post('id_product', TRUE);
         
-        $vprice     = $this->input->post('vprice', TRUE);
-        $dupdate    = date('Y-m-d');
-        $data       = [
+        $vprice = $this->input->post('vprice', TRUE);
+        /** sterilize formatted number */
+        $vprice = str_replace(".", "", $vprice);
+        $vprice = str_replace(",", ".", $vprice);
+
+        $dupdate = date('Y-m-d');
+        $data = [
             'v_price'=> $vprice,
             'd_update' => $dupdate,
+            'id_customer' => $id_customer,
+            'id_product' => $id_product
         ];
-
-        if (@$id_customer != null) {
-            $data['id_customer'] = $id_customer;
-        }
-
-        if (@$id_product != null) {
-            $data['id_product'] = $id_product;
-        }
 
         $this->db->where('id', $id);
         $this->db->update('tr_customer_price', $data);
@@ -238,17 +258,46 @@ class Mproductprice extends CI_Model {
     /** Export Data */
     public function exportdata()
     {
-        return $this->db->query("SELECT 
-        i_product,
-        e_product_name, 
-        0 AS v_price 
-        FROM 
-            tr_product
-        WHERE
-        f_status = 't'
-        GROUP BY i_company,1,2
-        ORDER BY 1
-        ", FALSE);
+        $sql = "SELECT i_product, e_product_name, 0 AS v_price 
+                FROM tr_product
+                WHERE f_status = 't'
+                GROUP BY 1,2
+                ORDER BY 1";
+
+        return $this->db->query($sql, FALSE);
+    }
+
+    public function export_data_by_user_cover($id_customer)
+    {
+        $id_user = $this->session->userdata('id_user');
+
+        $sql_brand_cover = "SELECT tub.id_brand
+                            FROM tm_user_brand tub						
+                            WHERE id_user_customer = (
+                                            SELECT id
+                                            FROM tm_user_customer
+                                            WHERE id_user = '$id_user' AND id_customer = '$id_customer'
+                                        )";
+
+        $sql_product = "SELECT a.id,
+                i_product,
+                e_product_name AS e_name,
+                a.id_brand,
+                b.e_brand_name AS brand,
+                $id_customer AS id_customer
+            FROM tr_product a
+            INNER JOIN tr_brand b ON b.id_brand = a.id_brand
+            WHERE a.f_status = 't'AND a.id_brand IN ($sql_brand_cover)
+            ORDER BY 4, 1";
+
+        $sql_product_price = "WITH CTE AS ($sql_product) 
+            SELECT CTE.brand, CTE.id, CTE.i_product, CTE.e_name, v_price 
+            FROM tr_customer_price tcp
+            RIGHT JOIN CTE ON CTE.id = tcp.id_product AND CTE.id_customer = tcp.id_customer";
+
+        // var_dump($sql_product_price); die();
+
+        return $this->db->query($sql_product_price);
     }
 
     public function cek_produk($i_product, $i_company)
@@ -273,20 +322,21 @@ class Mproductprice extends CI_Model {
 
     public function transfer()
     {
-        $icustomer = $this->input->post('icustomer', TRUE);
+        $id_customer = $this->input->post('id_customer', TRUE);
         $jml = $this->input->post('jml', TRUE);
+
         for ($i=1; $i <= $jml; $i++) { 
-            $iproduct   = $this->input->post('iproduct'.$i, TRUE);
-            $icompany   = $this->input->post('icompany'.$i, TRUE);
-            $vprice     = $this->input->post('vprice'.$i, TRUE);
-            if ($iproduct!='') {
-                $this->db->query("INSERT INTO tr_customer_price (id_customer, i_company, i_product, v_price, d_entry) 
-                VALUES ($icustomer, $icompany, '$iproduct', $vprice, now())
-                ON CONFLICT (id_customer, i_company, i_product) DO UPDATE 
-                SET v_price = excluded.v_price, 
-                    d_update = now()
-                WHERE excluded.v_price > 0", FALSE);
-            }
+            $id_product   = $this->input->post('id_product'.$i, TRUE);
+            $vprice     = $this->input->post('v_price'.$i, TRUE);
+
+            $sql = "INSERT INTO tr_customer_price (id_customer, id_product, v_price, d_entry) 
+                    VALUES ($id_customer, $id_product, $vprice, now())
+                    ON CONFLICT (id_customer, id_product) DO UPDATE 
+                    SET v_price = excluded.v_price, 
+                        d_update = now()
+                    WHERE excluded.v_price > 0";    
+
+            $this->db->query($sql, FALSE);
         }
     }
 

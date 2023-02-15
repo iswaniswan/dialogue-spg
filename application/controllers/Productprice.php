@@ -7,6 +7,8 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 /* use PhpOffice\PhpSpreadsheet\Style\Fill; */
 use PhpOffice\PhpSpreadsheet\Style\Style;
 /* use PhpOffice\PhpSpreadsheet\Style\Alignment; */
+use PhpOffice\PhpSpreadsheet\Style\Protection;
+use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
 use PhpOffice\PhpSpreadsheet\Style\Conditional;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -112,7 +114,7 @@ class Productprice extends CI_Controller
 		foreach ($data->result() as $row) {
 			$filter[] = array(
 				'id'   => $row->id,
-				'text' => ucwords(strtolower($row->e_name)) . ' - ' . ucwords(strtolower($row->brand)),
+				'text' => $row->i_product . ' - ' . ucwords(strtolower($row->e_name)) . ' - ' . ucwords(strtolower($row->brand))
 			);
 		} 
 		echo json_encode($filter);
@@ -288,36 +290,29 @@ class Productprice extends CI_Controller
 	public function transfer()
 	{
 		/** Cek Hak Akses, Apakah User Bisa Input */
-		$data = check_role($this->id_menu, 1);
-		if (!$data) {
-			redirect(base_url(), 'refresh');
-		}
+		// $data = check_role($this->id_menu, 1);
+		// if (!$data) {
+		// 	redirect(base_url(), 'refresh');
+		// }
 
-		$this->form_validation->set_rules('icustomer', 'icustomer', 'trim|required|min_length[0]');
-		if ($this->form_validation->run() == false) {
+		/** Jika Belum Ada Update Data */
+		$this->db->trans_begin();
+		$this->mymodel->transfer();
+		if ($this->db->trans_status() === FALSE) {
+			$this->db->trans_rollback();
 			$data = array(
 				'sukses' => false,
 				'ada'	 => false,
 			);
 		} else {
-			/** Jika Belum Ada Update Data */
-			$this->db->trans_begin();
-			$this->mymodel->transfer();
-			if ($this->db->trans_status() === FALSE) {
-				$this->db->trans_rollback();
-				$data = array(
-					'sukses' => false,
-					'ada'	 => false,
-				);
-			} else {
-				$this->db->trans_commit();
-				$this->logger->write('Tranfer Upload Data ' . $this->title);
-				$data = array(
-					'sukses' => true,
-					'ada'	 => false,
-				);
-			}
+			$this->db->trans_commit();
+			$this->logger->write('Tranfer Upload Data ' . $this->title);
+			$data = array(
+				'sukses' => true,
+				'ada'	 => false,
+			);
 		}
+
 		echo json_encode($data);
 	}
 
@@ -340,9 +335,19 @@ class Productprice extends CI_Controller
 			)
 		);
 
+		$sql = "SELECT * 
+				FROM tr_customer 
+				WHERE id_customer IN (
+										SELECT id_customer 
+										FROM tm_user_customer 
+										WHERE id_user = $this->id_user
+									)";
+		$query_customer = $this->db->query($sql);
+
 		$data = array(
-			'customer' => $this->db->query("SELECT * FROM tr_customer WHERE id_customer IN (SELECT id_customer FROM tm_user_customer WHERE id_user = $this->id_user)"),
+			'customer' => $query_customer,
 		);
+
 		$this->logger->write('Membuka Form Upload ' . $this->title);
 		$this->template->load('main', $this->folder . '/upload', $data);
 	}
@@ -355,8 +360,10 @@ class Productprice extends CI_Controller
 			redirect(base_url(), 'refresh');
 		}
 
-		$icustomer = $this->uri->segment(3);
-		$query = $this->mymodel->exportdata();
+		$id_customer = $this->uri->segment(3);
+		$customer = $this->mymodel->get_customer_by_id($id_customer)->row();
+		// $query = $this->mymodel->exportdata();
+		$query = $this->mymodel->export_data_by_user_cover($id_customer);
 
 		if ($query) {
 
@@ -379,6 +386,7 @@ class Productprice extends CI_Controller
 						'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
 					],
 					'borders' => [
+						'top' => ['borderStyle' => Border::BORDER_THIN],
 						'bottom' => ['borderStyle' => Border::BORDER_THIN],
 						'right' => ['borderStyle' => Border::BORDER_THIN],
 					],
@@ -418,34 +426,77 @@ class Productprice extends CI_Controller
 				->setName('Calibri')
 				->setSize(9);
 			$spreadsheet->setActiveSheetIndex(0)
-				->setCellValue('A1', 'No')
-				->setCellValue('B1', 'Kode Barang')
-				->setCellValue('C1', 'Nama Barang')
-				->setCellValue('D1', 'Harga Barang');
+				->setCellValue('B1', $id_customer)
+				->setCellValue('C1', $customer->e_customer_name)
+				->setCellValue('A3', 'No')
+				->setCellValue('B3', 'ID Barang')
+				->setCellValue('C3', 'Kode')
+				->setCellValue('D3', 'Nama')
+				->setCellValue('E3', 'Brand')
+				->setCellValue('F3', 'Harga');
 
-			$spreadsheet->getActiveSheet()->duplicateStyle($sharedStyle1, 'A1:D1');
+			$spreadsheet->getActiveSheet()->duplicateStyle($sharedStyle1, 'A3:F3');
 
 			$sheet = $spreadsheet->getActiveSheet();
 			foreach ($sheet->getColumnIterator() as $column) {
 				$sheet->getColumnDimension($column->getColumnIndex())->setAutoSize(true);
 			}
 
-			$kolom = 2;
-			$nomor = 1;
-			$nol = 0;
+			$kolom = 4;
+			$nomor = 1;			
 			foreach ($query->result() as $row) {
 				$spreadsheet->setActiveSheetIndex(0)
 					->setCellValue('A' . $kolom, $nomor)
-					->setCellValue('B' . $kolom, $row->i_product)
-					->setCellValue('C' . $kolom, $row->e_product_name)
-					->setCellValue('D' . $kolom, $row->v_price);
-				$spreadsheet->getActiveSheet()->duplicateStyle($sharedStyle2, 'A' . $kolom . ':D' . $kolom);
+					->setCellValue('B' . $kolom, $row->id)
+					->setCellValue('C' . $kolom, $row->i_product)
+					->setCellValue('D' . $kolom, $row->e_name)
+					->setCellValue('E' . $kolom, $row->brand)
+					->setCellValue('F' . $kolom, $row->v_price);
+				$spreadsheet->getActiveSheet()->duplicateStyle($sharedStyle2, 'A' . $kolom . ':F' . $kolom);
 
 				$kolom++;
 				$nomor++;
 			}
+
+			// hide kolom B, 
+			$spreadsheet->getActiveSheet()->getColumnDimension('B')->setCollapsed(true);
+			$spreadsheet->getActiveSheet()->getColumnDimension('B')->setVisible(false);
+
+			$spreadsheet->getActiveSheet()->getColumnDimension('F')->setAutoSize(false);
+			$spreadsheet->getActiveSheet()->getColumnDimension('F')->setWidth(20);
+
+			$default_format_rupiah = '[$Rp-421]#,##0.00;[RED]([$Rp-421]#,##0.00)';
+			$spreadsheet->getActiveSheet()
+							->getStyle('F')
+							->getNumberFormat()
+							->setFormatCode($default_format_rupiah);
+
+			// lock cells
+			$spreadsheet->getActiveSheet()->getProtection()->setSheet(true);
+			$spreadsheet->getActiveSheet()->getProtection()->setPassword('THEPASSWORD');
+			$spreadsheet->getActiveSheet()->getStyle("F4:F5000")->getProtection()->setLocked(Protection::PROTECTION_UNPROTECTED);
+
+			// input validation
+			// $validation = $spreadsheet->getActiveSheet()->getCell("F4")->getDataValidation();
+			// $validation->setType(DataValidation::TYPE_WHOLE);
+			// $validation->setErrorStyle(DataValidation::STYLE_STOP);
+			// $validation->setAllowBlank(true);
+			// $validation->setShowInputMessage(true);
+			// $validation->setShowErrorMessage(true);
+			// $validation->setErrorTitle('Input error');
+			// $validation->setError('Input is not allowed!');
+			// $validation->setPromptTitle('Allowed input');
+			// $validation->setPrompt("Only Number Value allowed");
+			// $validation->setFormula1(1);
+			// $validation->setFormula2(999999999999);
+			// $spreadsheet->getActiveSheet()->setDataValidation("F4:F$kolom", $validation);
+
+			// enable autofilter
+			$spreadsheet->getActiveSheet()->setAutoFilter("A3:F$kolom");
+			\PhpOffice\PhpSpreadsheet\Settings::setLocale('id');
+
 			$writer = new Xls($spreadsheet);
-			$nama_file = "Product_Price_" . $icustomer . ".xls";
+			$nama_file = "Product_Price_" . $customer->e_customer_name . ".xls";
 			header('Content-Type: application/vnd.ms-excel');
 			header('Content-Disposition: attachment;filename=' . $nama_file . '');
 			header('Cache-Control: max-age=0');
@@ -456,48 +507,39 @@ class Productprice extends CI_Controller
 	public function prosesupload()
 	{
 		/** Cek Hak Akses, Apakah User Bisa Create */
-		$data = check_role($this->id_menu, 1);
-		if (!$data) {
-			redirect(base_url(), 'refresh');
-		}
+		// $data = check_role($this->id_menu, 1);
+		// if (!$data) {
+		// 	redirect(base_url(), 'refresh');
+		// }
 
-		$this->form_validation->set_rules('i_customer', 'i_customer', 'trim|required|min_length[0]');
-		$i_customer	= $this->input->post('i_customer', TRUE);
-
+		$id_customer = $this->input->post('id_customer', TRUE);
 		
-		if ($this->form_validation->run() == false) {
-			$data = array(
-				'sukses' => false,
-				'ada'	 => false,
+		$filename    = "Product_Price_" . $id_customer . ".xls";
+
+		$config = array(
+			'upload_path'   => "./upload/",
+			'allowed_types' => "xls|xlsx|ods|csv",
+			'file_name'     => $filename,
+			'overwrite'     => true
+		);
+
+		$this->load->library('upload', $config);
+		if ($this->upload->do_upload("userfile")) {
+			$data = array('upload_data' => $this->upload->data());
+			$this->logger->write('Upload File Harga Barang, Id Customer : ' . $id_customer);
+
+			$data =  array(
+				'sukses'    => true,
+				'id'		=> encrypt_url($id_customer)
 			);
 		} else {
-		
-			$filename    = "Product_Price_" . $i_customer . ".xls";
-
-			$config = array(
-				'upload_path'   => "./upload/",
-				'allowed_types' => "xls|xlsx|ods|csv",
-				'file_name'     => $filename,
-				'overwrite'     => true
+			$error = array('error' => $this->upload->display_errors());
+			$data =  array(
+				'sukses' => false,
+				'error'	 => $error
 			);
-
-			$this->load->library('upload', $config);
-			if ($this->upload->do_upload("userfile")) {
-				$data = array('upload_data' => $this->upload->data());
-				$this->logger->write('Upload File Harga Barang, Id Customer : ' . $i_customer);
-
-				$data =  array(
-					'sukses'    => true,
-					'id'		=> encrypt_url($i_customer)
-				);
-			} else {
-				$error = array('error' => $this->upload->display_errors());
-				$data =  array(
-					'sukses' => false,
-					'error'	 => $error
-				);
-			}
 		}
+
 		echo json_encode($data);
 	}
 
@@ -522,9 +564,10 @@ class Productprice extends CI_Controller
 				'assets/js/' . $this->folder . '/uploaddetail.js',
 			)
 		);
-		$icustomer = decrypt_url($this->uri->segment(3));
 
-		$filename = "Product_Price_" . $icustomer . ".xls";
+		$id_customer = decrypt_url($this->uri->segment(3));
+
+		$filename = "Product_Price_" . $id_customer . ".xls";
 
 		$inputFileName = './upload/' . $filename;
 		$spreadsheet   = IOFactory::load($inputFileName);
@@ -533,43 +576,39 @@ class Productprice extends CI_Controller
 		$hrow          = $sheet->getHighestDataRow('A');
 
 		$array 		   = [];
-		for ($n = 2; $n <= $hrow; $n++) {
-			$e_customer 	= strtoupper($spreadsheet->getActiveSheet()->getCell('A' . $n)->getValue());
-			$i_customer 	= $this->mymodel->get_customer_id($e_customer);
-			$i_product 		= trim($spreadsheet->getActiveSheet()->getCell('B' . $n)->getValue());
-			$i_company 		= $this->mymodel->get_company($i_product)->row();
-			$i_company 	    = $i_company->i_company;
-			$e_product 		= ucwords(strtolower(trim($spreadsheet->getActiveSheet()->getCell('C' . $n)->getValue())));
-			$v_harga   		= $spreadsheet->getActiveSheet()->getCell('D' . $n)->getValue();
-			$cek_produk 	= $this->mymodel->cek_produk($i_product, $i_company);
-			if ($i_product !='' && $cek_produk->num_rows() > 0) {
-				$array[] = array(
-					'e_customer'	  => $e_customer,
-					'i_company'		  => $i_company,
-					'i_product'		  => $i_product,
-					'e_product'       => $e_product,
-					'v_harga'         => $v_harga,
-				);
-			}else{
-				$array[] = array(
-					'e_customer'	  => $e_customer,
-					'i_company'		  => '',
-					'i_product'		  => '',
-					'e_product'       => '',
-					'v_harga'         => '',
-				);
-			}
+
+		$_id_customer = $spreadsheet->getActiveSheet()->getCell('B1')->getValue();
+		$customer = $this->mymodel->get_customer_by_id($id_customer)->row();
+
+		if ($id_customer != $_id_customer) {
+			$referrer = $_SERVER['HTTP_REFERER'];
+			$button = "<a href='$referrer' class='btn btn-block btn-danger'>Kembali</a>";
+			echo '<h1>Invalid Customer</h1>' . $button;
+			die();
 		}
 
-		$ecustomer = $this->db->get_where('tr_customer', ['id_customer' => $icustomer])->row();
-		//$ecustomer = $ecustomer->row();
-		$ecustomer = $ecustomer->e_customer_name;
+		for ($n = 4; $n <= $hrow; $n++) {
+			$id_product = trim($spreadsheet->getActiveSheet()->getCell('B' . $n)->getValue());
+			$i_product = ucwords(strtolower(trim($spreadsheet->getActiveSheet()->getCell('C' . $n)->getValue())));
+			$e_product = ucwords(strtolower(trim($spreadsheet->getActiveSheet()->getCell('D' . $n)->getValue())));
+			$brand = ucwords(strtolower(trim($spreadsheet->getActiveSheet()->getCell('E' . $n)->getValue())));
+			$v_price = $spreadsheet->getActiveSheet()->getCell('F' . $n)->getValue();
+
+			$array[] = array(
+				'id_product' => $id_product,
+				'i_product' => $i_product,
+				'e_product' => $e_product,
+				'brand' => $brand,
+				'v_price' => $v_price,
+			);
+		}		
 
 		$data = array(
-			'icustomer'	 => $icustomer,
-			'ecustomer' => $ecustomer,
+			'id_customer' => $customer->id_customer,
+			'e_customer_name' => $customer->e_customer_name,
 			'datadetail' => $array,
 		);
+		
 		$this->logger->write('Membuka Form Detail Upload ' . $this->title);
 		$this->template->load('main', $this->folder . '/uploaddetail', $data);
 	}

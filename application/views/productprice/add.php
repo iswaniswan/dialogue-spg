@@ -42,7 +42,12 @@
                 </div>
                 <div class="form-group">
                     <label><?= $this->lang->line('Harga Barang'); ?> :</label>
-                    <input type="number" class="form-control" placeholder="<?= $this->lang->line('Harga Barang'); ?>" name="vprice" autocomplete="off" required>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Rp.</span>
+                        </div>
+                        <input type="text" class="form-control" placeholder="<?= $this->lang->line('Harga Barang'); ?>" name="vprice" id="vprice" autocomplete="off" required>
+                    </div>
                 </div>
                 <div class="d-flex justify-content-start align-items-center">
                     <button type="button" id="submit" class="btn btn bg-<?= $this->color; ?> btn-sm"><i class="icon-paperplane"></i>&nbsp;

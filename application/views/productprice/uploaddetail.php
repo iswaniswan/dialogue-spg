@@ -33,8 +33,8 @@
                 <div class="form-group row">
                     <div class="col-md-12">
                         <label><?= $this->lang->line('Toko'); ?> :</label>
-                        <select class="form-control select" name="icustomer" id="icustomer" required data-fouc data-placeholder="<?= $this->lang->line('Toko'); ?>">
-                            <option value="<?= $icustomer; ?>"><?= $ecustomer; ?></option>
+                        <select class="form-control select" name="id_customer" id="id_customer" required data-fouc data-placeholder="<?= $this->lang->line('Toko'); ?>" readonly>
+                            <option value="<?= $id_customer; ?>"><?= $e_customer_name; ?></option>
                         </select>
                     </div>
                 </div>
@@ -43,31 +43,38 @@
                         <div class="table-responsive">
                             <table class="table table-columned datatable-header-basic table-bordered table-xs demo2" id="tabledetail">
                                 <thead>
-                                    <tr class="bg-<?= $this->color; ?>-600">
-                                        <th class="text-center">No</th>
-                                        <th><?= $this->lang->line('Toko'); ?></th>
-                                        <th><?= $this->lang->line('Kode Barang'); ?></th>
-                                        <th><?= $this->lang->line('Nama Barang'); ?></th>
-                                        <th><?= $this->lang->line('Harga Barang'); ?></th>
-                                        <th class="text-center"><?= $this->lang->line('Aksi'); ?></th>
+                                    <tr class="">
+                                        <th style="width: 50px" class="text-center">No</th>
+                                        <th class="d-none" style="width: 100px;">ID Barang</th>
+                                        <th style="width: 100px;">Kode</th>
+                                        <th style="width: auto;">Nama</th>
+                                        <th style="width: auto;">Brand</th>
+                                        <th style="width: 200px">Harga</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php $i = 0;
-                                    foreach ($datadetail as $key) {
+                                    <?php $i = 0; foreach ($datadetail as $key) { 
                                         $i++;
-                                        $warna = ($key['i_product'] == '') ? 'class="table-danger"' : '';
+                                        // $warna = ($key['i_product'] == '') ? 'class="table-danger"' : '';
                                     ?>
-                                        <tr <?= $warna; ?>>
+                                        <tr>
                                             <td class="text-center">
                                                 <spanx id="snum<?= $i; ?>"><?= $i; ?></spanx>
                                             </td>
-                                            <td><?= $key["e_customer"]; ?></td>
-                                            <td><input type="text" readonly class="form-control form-control-sm product" required name="iproduct<?= $i; ?>" id="iproduct<?= $i; ?>" value="<?= $key["i_product"]; ?>">
-                                            <input type="hidden" name="icompany<?= $i; ?>" value="<?= $key["i_company"]; ?>"></td>
+                                            <td class="d-none">
+                                                <input type="text" readonly required 
+                                                        class="form-control form-control-sm product"                                                         
+                                                        name="id_product<?= $i; ?>" 
+                                                        id="id_product<?= $i; ?>" 
+                                                        value="<?= $key["id_product"]; ?>">
+                                            </td>
+                                            <td><?= $key["i_product"]; ?></td>
                                             <td><?= $key["e_product"]; ?></td>
-                                            <td><input type="number" class="form-control form-control-sm" required name="vprice<?= $i; ?>" value="<?= $key["v_harga"]; ?>" autocomplete="off" onblur="if(this.value==''){this.value='0';}" onfocus="if(this.value=='0'){this.value='';}"></td>
-                                            <td class="text-center"><i title="Hapus Baris" class="icon-cancel-circle2 text-danger ibtnDel"></td>
+                                            <td><?= $key["brand"]; ?></td>
+                                            <td>
+                                                <input type="hidden" name="v_price<?= $i; ?>" value="<?= $key["v_price"]; ?>" readonly>
+                                                <span>Rp. <?= number_format($key['v_price'], 2, ",", ".") ?></span>
+                                            </td>                                            
                                         </tr>
                                     <?php } ?>
                                     <input type="hidden" name="jml" id="jml" value="<?= $i; ?>">

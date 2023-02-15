@@ -67,7 +67,6 @@
                                         <th class="text-center" width="3%;">#</th>
                                         <th width="30%;">Barang</th>
                                         <th width="20%;">Brand</th>
-                                        <th width="20%;">Perusahaan</th>
                                         <th width="15%;">Qty</th>
                                         <th width="3%;"><i id="addrow" title="Tambah Baris" class="icon-plus-circle2"></i></th>
                                     </tr>
