@@ -150,7 +150,19 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
+    function isCommaExist(value) {
+        return value.indexOf(',') > -1;
+    } 
+
     $("#submit").on("click", function() {
+
+        const latitude = $('form').find('input[name="latitude"]').val();
+        const longitude = $('form').find('input[name="longitude"]').val();
+        if (isCommaExist(latitude) || isCommaExist(longitude)) {
+            swalInit("Invalid format, kolom Latitude dan Longitude tidak boleh ada karakter koma (,)");
+            return false;
+        }
+
         var form = $(".form-validation").valid();
         var ada = false;
         if (form) {

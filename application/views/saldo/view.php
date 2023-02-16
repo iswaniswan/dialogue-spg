@@ -83,7 +83,7 @@
                                     <tr class="bg-<?= $this->color; ?>">
                                         <th class="text-center">No</th>
                                         <th>Barang</th>
-                                        <th><?= $this->lang->line('Perusahaan'); ?></th>
+                                        <th><?= $this->lang->line('Brand'); ?></th>
                                         <th width="10%"><?= $this->lang->line('Qty'); ?></th>
                                     </tr>
                                 </thead>
@@ -98,7 +98,7 @@
                                                 <spanx id="snum<?= $i; ?>"><?= $i; ?></spanx>
                                             </td>
                                             <td><?= $key["i_product"]; ?> - <?= $key["e_product"]; ?></td>
-                                            <td><?= $key["e_company"]; ?></td>
+                                            <td><?= $key["brand"]; ?></td>
                                             <td><?= $key["qty"]; ?></td>
                                         </tr>
                                     <?php } ?>

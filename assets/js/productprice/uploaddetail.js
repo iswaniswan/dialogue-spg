@@ -21,28 +21,30 @@ document.addEventListener("DOMContentLoaded", function() {
         $('#iproduct').val('');
         $('#iproduct').html('');
     });
-    $("#icustomer").select2({
-        placeholder: "Select Customer",
-        width: "100%",
-        allowClear: true,
-        ajax: {
-            url: base_url + controller + "/get_customer",
-            dataType: "json",
-            delay: 250,
-            data: function(params) {
-                var query = {
-                    q: params.term,
-                };
-                return query;
-            },
-            processResults: function(data) {
-                return {
-                    results: data,
-                };
-            },
-            cache: false,
-        },
-    });
+    $('#id_customer').select2();
+
+    // $("#icustomer").select2({
+    //     placeholder: "Select Customer",
+    //     width: "100%",
+    //     allowClear: true,
+    //     ajax: {
+    //         url: base_url + controller + "/get_customer",
+    //         dataType: "json",
+    //         delay: 250,
+    //         data: function(params) {
+    //             var query = {
+    //                 q: params.term,
+    //             };
+    //             return query;
+    //         },
+    //         processResults: function(data) {
+    //             return {
+    //                 results: data,
+    //             };
+    //         },
+    //         cache: false,
+    //     },
+    // });
     $("#iproduct").select2({
         placeholder: "Search Product",
         width: "100%",

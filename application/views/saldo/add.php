@@ -22,14 +22,41 @@
             </div>
 
             <div class="card-body">
-                <div class="row">
-                    <div class="col-sm-6">
-                    <div class="form-group">
-                            <label>Periode :</label>
-                            <input type="text" name="periode" id="periode" class="form-control" required placeholder="Select Date" value="<?= date('d-m-Y'); ?>">
-                        </div>
-                    
+                <div class="row mb-4">
+                    <div class="col-md-2">
+                        <label><?= $this->lang->line('Bulan'); ?> :</label>
+                        <select class="form-control form-control-select2" name="month" id="month" required data-fouc data-placeholder="<?= $this->lang->line('Bulan'); ?>">
+                            <option value="01" <?php if (date('m') == '01') { ?> selected <?php } ?>>Januari</option>
+                            <option value="02" <?php if (date('m') == '02') { ?> selected <?php } ?>>Februari</option>
+                            <option value="03" <?php if (date('m') == '03') { ?> selected <?php } ?>>Maret</option>
+                            <option value="04" <?php if (date('m') == '04') { ?> selected <?php } ?>>April</option>
+                            <option value="05" <?php if (date('m') == '05') { ?> selected <?php } ?>>Mei</option>
+                            <option value="06" <?php if (date('m') == '06') { ?> selected <?php } ?>>Juni</option>
+                            <option value="07" <?php if (date('m') == '07') { ?> selected <?php } ?>>Juli</option>
+                            <option value="08" <?php if (date('m') == '08') { ?> selected <?php } ?>>Agustus</option>
+                            <option value="09" <?php if (date('m') == '09') { ?> selected <?php } ?>>September</option>
+                            <option value="10" <?php if (date('m') == '10') { ?> selected <?php } ?>>Oktober</option>
+                            <option value="11" <?php if (date('m') == '11') { ?> selected <?php } ?>>November</option>
+                            <option value="12" <?php if (date('m') == '12') { ?> selected <?php } ?>>Desember</option>
+                        </select>
                     </div>
+                    <div class="col-md-3">
+                        <label><?= $this->lang->line('Tahun'); ?> :</label>
+                        <select class="form-control form-control-select2" name="year" id="year" required data-fouc data-placeholder="<?= $this->lang->line('Tahun'); ?>">
+                            <?php
+                            for ($i = 2021; $i <= date('Y'); $i++) { ?>
+                                <option value="<?= $i; ?>" <?php if (date('Y') == $i) { ?> selected <?php } ?>><?= $i; ?></option>
+                            <?php } ?>
+                        </select>
+                    </div>
+                    <?php /*
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label>Periode :</label>
+                            <input type="text" name="i_periode" id="i_periode" class="form-control" required placeholder="Select Date" value="<?= date('d-m-Y'); ?>">
+                        </div>                    
+                    </div>
+                    */?>
                     <div class="col-sm-6">
                         <div class="form-group">
                             <label>Toko :</label>

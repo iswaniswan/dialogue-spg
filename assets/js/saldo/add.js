@@ -16,13 +16,25 @@ var Detail = $(function() {
         var newRow = $("<tr>");
         var cols = "";
         cols += `<td class="text-center"><spanx id="snum${i}">${no + 1}</spanx></td>`;
-        cols += `<td><select data-urut="${i}" required class="form-control form-control-sm form-control-select2" data-container-css-class="select-sm" name="i_product[]" id="i_product${i}" required data-fouc></select></td>`;
-        cols += `<td><input type="text" readonly class="form-control form-control-sm" id="e_brand_name${i}" placeholder="Brand" name="e_brand_name[]"></td>`;
-        cols += `<td><input type="text" readonly class="form-control form-control-sm" id="e_company_name${i}" placeholder="Perusahaan" name="e_company_name[]"></td>`;
         cols += `<td>
-                    <input type="hidden" class="form-control form-control-sm" id="i_company${i}" name="i_company[]">
-                    <input type="number" required class="form-control form-control-sm" min="1" id="qty${i}" placeholder="Qty" name="qty[]">
-                    <input type="hidden" class="form-control form-control-sm" id="e_product${i}" name="e_product[]">
+                    <select data-urut="${i}" 
+                        class="form-control form-control-sm form-control-select2" 
+                        data-container-css-class="select-sm" 
+                        name="items[${i}][id_product]"
+                        id="i_product${i}" 
+                        data-fouc required>
+                    </select>
+                </td>`;
+        cols += `<td>
+                    <input type="text" 
+                        class="form-control form-control-sm" 
+                        id="e_brand_name${i}" 
+                        placeholder="Brand" 
+                        name="items[${i}][e_brand]"
+                        readonly>
+                </td>`;
+        cols += `<td>                    
+                    <input type="number" required class="form-control form-control-sm" min="1" id="qty${i}" placeholder="Qty" name="items[${i}][qty]">
                 </td>`;
         cols += `<td class="text-center"><b><i title="Hapus Baris" class="icon-cancel-circle2 text-danger ibtnDel"></i></b></td>`;
         newRow.append(cols);
@@ -38,6 +50,7 @@ var Detail = $(function() {
                 data: function(params) {
                     var query = {
                         q: params.term,
+                        id_customer: $('#icustomer').val()
                     };
                     return query;
                 },
@@ -64,24 +77,17 @@ var Detail = $(function() {
                 }
             }
             if (!ada) {
-                var product = $(this).val();
-                produk = product.split(" - ");
-                product = produk[0];
-                brand = produk[1];
+                let id_product = $(this).val();
                 $.ajax({
                     type: "POST",
                     url: base_url + controller + "/get_detail_product",
                     data: {
-                        i_product: product,
-                        i_brand: brand,
-                        i_company: $('#i_company' + z).val(),
+                        id_product: id_product,
                     },
                     dataType: "json",
                     success: function(data) {
                         $("#e_product" + z).val(data["detail"][0]["e_product_name"]);
                         $("#e_brand_name" + z).val(data["detail"][0]["e_brand_name"]);
-                        $("#e_company_name" + z).val(data["detail"][0]["e_company_name"]);
-                        $("#i_company" + z).val(data["detail"][0]["i_company"]);
                         $("#qty" + z).focus();
                     },
                     error: function() {
@@ -102,13 +108,18 @@ var Detail = $(function() {
     /*----------  Hapus Baris Data Saudara  ----------*/
 
     $("#tablecover").on("click", ".ibtnDel", function(event) {
-        $(this).closest("tr").remove();
-        $("#jml").val(i);
+        $(this).closest("tr").remove();    
+        
         var obj = $("#tablecover tr:visible").find("spanx");
         $.each(obj, function(key, value) {
             id = value.id;
             $("#" + id).html(key + 1);
         });
+
+        let jmlvalue = $('#jml').val();
+        jmlvalue--;
+        $('#jml').val(jmlvalue);
+        console.log(jmlvalue);
     });
 });
 
@@ -119,19 +130,29 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     $(document).ready(function() {
-        $("#periode").pickadate({
-            labelMonthNext: "Go to the next month",
-            labelMonthPrev: "Go to the previous month",
-            labelMonthSelect: "Pick a month from the dropdown",
-            labelYearSelect: "Pick a year from the dropdown",
-            selectMonths: true,
-            selectYears: true,
-            formatSubmit: "yyyymm",
-            format: "dd-mm-yyyy",
-            hiddenName: true,
-            min: [2021, 1, 1],
+        // $("#i_periode").pickadate({
+        //     labelMonthNext: "Go to the next month",
+        //     labelMonthPrev: "Go to the previous month",
+        //     labelMonthSelect: "Pick a month from the dropdown",
+        //     labelYearSelect: "Pick a year from the dropdown",
+        //     selectMonths: true,
+        //     selectYears: true,
+        //     formatSubmit: "yyyymm",
+        //     format: "dd-mm-yyyy",
+        //     hiddenName: true,
+        //     min: [2021, 1, 1],
+        // });
+
+        $('#month, #year').on('change', function() {
+            $('#icustomer').val(null).trigger('change');
         });
     });
+
+    function getPeriode(){
+        const year = $('#year').val();
+        const month = $('#month').val();
+        return `${year}${month}`;
+    }
 
     $("#icustomer").select2({
         placeholder: "Select Customer",
@@ -144,6 +165,7 @@ document.addEventListener("DOMContentLoaded", function() {
             data: function(params) {
                 var query = {
                     q: params.term,
+                    i_periode: getPeriode()
                 };
                 return query;
             },

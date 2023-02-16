@@ -13,7 +13,7 @@ var swalInit = swal.mixin({
     cancelButtonText: '<i class="icon-thumbs-down3"></i> Tidak',
 });
 
-function cekData(iproduct) {
+function cekData(params) {
     $.ajax({
         type: "post",
         data: {
@@ -23,7 +23,8 @@ function cekData(iproduct) {
         dataType: "json",
         data: function(params) {
             var query = {
-                i_product: iproduct,
+                id_product: params?.id_product,
+                id_customer: params?.id_customer
             };
             return query;
         },
@@ -45,7 +46,7 @@ document.addEventListener("DOMContentLoaded", function() {
         minimumResultsForSearch: Infinity
     });
 
-    $("#icustomer").select2({
+    $("#id_customer").select2({
         placeholder: "Nama Toko",
         width: "100%",
         allowClear: true,
@@ -67,7 +68,8 @@ document.addEventListener("DOMContentLoaded", function() {
             cache: false,
         },
     });
-    $("#iproduct").select2({
+
+    $("#id_product").select2({
         placeholder: "Search Product",
         width: "100%",
         allowClear: true,
@@ -78,7 +80,7 @@ document.addEventListener("DOMContentLoaded", function() {
             data: function(params) {
                 var query = {
                     q: params.term,
-                    //id_customer: $('#icustomer').val(),
+                    id_customer: $('#id_customer').val(),
                 };
                 return query;
             },
@@ -98,45 +100,47 @@ document.addEventListener("DOMContentLoaded", function() {
 
     var getId = '';
 
-    var statusCek;
-
-    $('#iproduct').on('change', function() {
-        var id = $('#iproduct').val();
-        console.log(id);
-        var kompeni = $(this).val();
-        kompeni = kompeni.split(" - ");
-        company = kompeni[1];
-        $("#idcompany").val(company);
-        $.ajax({
-            url: base_url + controller + "/cek_data_eksis",
-            data: { iproduct: id, icompany: company },
-            dataType: 'json',
-            type: 'POST',
-            success: function(data) {
-                if (data === false) {
-                    swalInit("Maaf :(", "Barang sudah ada :(");
-                    statusCek = data;
-                } else {
-                    statusCek = data;
-                }
-            },
-        });
-
-        //alert($('#idcompany').val());
-    })
-
-
-
-
+    var statusCek;    
 
     $("#submit").on("click", function() {
         var form = $(".form-validation").valid();
         if (form) {
-            if (statusCek === true) {
-                sweetadd(controller);
-            } else {
-                swalInit("Maaf :(", "Barang yang dipilih sudah ada :(");
-            }
+            sweetadd(controller);
         }
     });
 });
+
+
+/* Fungsi formatRupiah */
+function formatRupiah(angka, prefix) {
+    var number_string = angka.replace(/[^,\d]/g, "").toString(),
+      split = number_string.split(","),
+      sisa = split[0].length % 3,
+      rupiah = split[0].substr(0, sisa),
+      ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+  
+    // tambahkan titik jika yang di input sudah menjadi angka ribuan
+    if (ribuan) {
+      separator = sisa ? "." : "";
+      rupiah += separator + ribuan.join(".");
+    }
+  
+    rupiah = split[1] != undefined ? rupiah + "," + split[1] : rupiah;
+    return rupiah;
+}
+
+
+$(document).ready(function() {
+    var rupiah = document.getElementById("vprice");
+    rupiah.addEventListener("keyup", function(e) {
+        // tambahkan 'Rp.' pada saat form di ketik
+        // gunakan fungsi formatRupiah() untuk mengubah angka yang di ketik menjadi format angka
+        rupiah.value = formatRupiah(this.value, "");
+    });
+
+    $('#id_customer').on('change', function() {
+        $('#id_product').val('');
+        $('#id_product').trigger('change.select2');
+    });
+})  
+

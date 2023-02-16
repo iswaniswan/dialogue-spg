@@ -190,11 +190,11 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     $("#href").on("click", function() {
-        if ($('#i_customer').val() == '') {
+        if ($('#id_customer').val() == '') {
             swalInit("Maaf :(", "Pilih Toko Terlebih Dahulu :)", "error");
             return false;
         } else {
-            $('#href').attr('href', base_url + '/productprice/export/' + $('#i_customer').val());
+            $('#href').attr('href', base_url + '/productprice/export/' + $('#id_customer').val());
             return true;
         }
     });

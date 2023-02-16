@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", function() {
             cache: false,
         },
     });
-    $("#iproduct").select2({
+    $("#id_product").select2({
         placeholder: "Search Product",
         width: "100%",
         allowClear: true,
@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", function() {
             data: function(params) {
                 var query = {
                     q: params.term,
-                    i_company: $('#icompany').val(),
+                    id_customer: $('#id_customer').val(),
                 };
                 return query;
             },
@@ -168,17 +168,30 @@ document.addEventListener("DOMContentLoaded", function() {
         var newRow = $("<tr>");
         var cols = "";
         cols += `<td class="text-center"><spanx id="snum${i}">${no + 1}</spanx></td>`;
-        cols += `<td><select data-urut="${i}" required class="form-control form-control-sm form-control-select2" data-container-css-class="select-sm" name="i_product[]" id="i_product${i}" required data-fouc></select></td>`;
-        cols += `<td><input type="text" readonly class="form-control form-control-sm" id="e_company_name${i}" placeholder="Perusahaan" name="e_company_name[]"></td>`;
         cols += `<td>
-                    <input type="hidden" class="form-control form-control-sm" id="i_company${i}" name="i_company[]">
-                    <input type="number" required class="form-control form-control-sm" min="1" id="qty${i}" placeholder="Qty" name="qty[]">
-                    <input type="hidden" class="form-control form-control-sm" id="e_product${i}" name="e_product[]">
+                    <select data-urut="${i}" 
+                        class="form-control form-control-sm form-control-select2" 
+                        data-container-css-class="select-sm" 
+                        name="items[${i}][id_product]"
+                        id="id_product${i}" 
+                        data-fouc required>
+                    </select>
+                </td>`;
+        cols += `<td>
+                    <input type="text" 
+                        class="form-control form-control-sm" 
+                        id="e_brand_name${i}" 
+                        placeholder="Brand" 
+                        name="items[${i}][e_brand]"
+                        readonly>
+                </td>`;
+        cols += `<td>                    
+                    <input type="number" required class="form-control form-control-sm" min="1" id="qty${i}" placeholder="Qty" name="items[${i}][qty]">
                 </td>`;
         cols += `<td class="text-center"><b><i title="Hapus Baris" class="icon-cancel-circle2 text-danger ibtnDel"></i></b></td>`;
         newRow.append(cols);
         $("#tabledetail").append(newRow);
-        $("#i_product" + i).select2({
+        $("#id_product" + i).select2({
             placeholder: "Cari Product",
             width: "100%",
             allowClear: true,
@@ -189,6 +202,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 data: function(params) {
                     var query = {
                         q: params.term,
+                        id_customer: $('#id_customer').val()
                     };
                     return query;
                 },
@@ -215,23 +229,17 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
             }
             if (!ada) {
-                var product = $(this).val();
-                produk = product.split(" - ");
-                product = produk[0];
-                brand = produk[1];
+                let id_product = $(this).val();
                 $.ajax({
                     type: "POST",
                     url: base_url + controller + "/get_detail_product",
                     data: {
-                        i_product: product,
-                        i_brand: brand,
-                        i_company: $('#i_company' + z).val(),
+                        id_product: id_product,
                     },
                     dataType: "json",
                     success: function(data) {
                         $("#e_product" + z).val(data["detail"][0]["e_product_name"]);
-                        $("#e_company_name" + z).val(data["detail"][0]["e_company_name"]);
-                        $("#i_company" + z).val(data["detail"][0]["i_company"]);
+                        $("#e_brand_name" + z).val(data["detail"][0]["e_brand_name"]);
                         $("#qty" + z).focus();
                     },
                     error: function() {

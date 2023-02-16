@@ -79,18 +79,19 @@ class Muser extends CI_Model {
     /** Ambil Data Customer */
     public function get_customer($cari="")
     {
-        return $this->db->query("
-            SELECT
-                id_customer,
-                e_customer_name
-            FROM
-                tr_customer
-            WHERE
-                (e_customer_name ILIKE '%$cari%')
-                AND f_status = 't'
-            ORDER BY
-                e_customer_name ASC
-        ", FALSE);
+        $limit = " LIMIT 5";
+
+        if ($cari != '') {
+            $limit = '';
+        }
+
+        $sql = "SELECT id_customer, e_customer_name
+                FROM tr_customer
+                WHERE (e_customer_name ILIKE '%$cari%') AND f_status = 't'
+                ORDER BY e_customer_name ASC
+                $limit";
+        
+        return $this->db->query($sql, FALSE);
     }
 
 
@@ -467,13 +468,15 @@ class Muser extends CI_Model {
 
         /** recreate user customer & user brand */
         $all_user_customer = $this->get_user_customer($id_user);
+        // var_dump($all_user_customer->result());
         foreach ($all_user_customer->result() as $user_customer) {
             /** hapus user brand */
-            $this->db->where('id_user_customer', $user_customer->id);
+            $id_user_customer = $user_customer->id;
+            $this->db->where('id_user_customer', $id_user_customer);
             $this->db->delete('tm_user_brand');
 
             /** hapus user customer */
-            $this->db->where('id', $user_customer->id);
+            $this->db->where('id', $id_user_customer);
             $this->db->delete('tm_user_customer');
         }
 

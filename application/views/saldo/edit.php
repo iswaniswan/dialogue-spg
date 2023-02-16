@@ -30,7 +30,7 @@
                 </div>
                 <div class="form-group">
                     <label><?= $this->lang->line('Toko'); ?> :</label>
-                    <select class="form-control form-control-select2" data-container-css-class="select-sm" required data-fouc id="icustomer" name="icustomer">
+                    <select class="form-control form-control-select2" data-container-css-class="select-sm" required data-fouc id="id_customer" name="id_customer">
                         <option value="<?= $data->id_customer; ?>"><?= $data->e_customer_name; ?></option>
                     </select>
                 </div>

@@ -9,6 +9,8 @@ use PhpOffice\PhpSpreadsheet\Style\Style;
 /* use PhpOffice\PhpSpreadsheet\Style\Alignment; */
 use PhpOffice\PhpSpreadsheet\Style\Conditional;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
+use PhpOffice\PhpSpreadsheet\Style\Protection;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class Saldo extends CI_Controller
@@ -69,8 +71,15 @@ class Saldo extends CI_Controller
 	public function get_customer()
 	{
 		$filter = [];
+
+		$i_periode = $this->input->get('i_periode');
+		if (@$i_periode == null) {
+			echo json_encode($filter);
+			return;
+		}
+
 		$cari   = str_replace("'", "", $this->input->get('q'));
-		$data = $this->mymodel->get_customer($cari);
+		$data = $this->mymodel->get_customer($cari, $i_periode);
 			foreach ($data->result() as $row) {
 				$filter[] = array(
 					'id'   => $row->id,
@@ -285,11 +294,14 @@ class Saldo extends CI_Controller
 		$id = decrypt_url($this->uri->segment(3));
 		$i_periode = decrypt_url($this->uri->segment(4));
 		$id_customer = decrypt_url($this->uri->segment(5));
+		
+		$e_customer_name = '';
 		if ($id_customer!='') {
-			$e_customer_name = $this->db->query("SELECT e_customer_name FROM tr_customer WHERE id_customer = '$id_customer' ", FALSE)->row()->e_customer_name;
-		}else{
-			$e_customer_name = '';
+			// $e_customer_name = $this->db->query("SELECT e_customer_name FROM tr_customer WHERE id_customer = '$id_customer' ", FALSE)->row()->e_customer_name;
+			$query_customer = $this->mymodel->get_customer_by_id($id_customer);
+			$e_customer_name = $query_customer->row()->e_customer_name;
 		}
+
 		$data = array(
 			'data' 				=> $this->mymodel->getdata($id)->row(),
 			'datadetail'		=> $this->mymodel->getdatadetail($id)->result_array(),
@@ -449,9 +461,11 @@ class Saldo extends CI_Controller
 			redirect(base_url(), 'refresh');
 		}
 
+		$id_customer = $this->uri->segment(3);
+		$customer = $this->mymodel->get_customer_by_id($id_customer)->row();
 		$i_periode = $this->uri->segment(4);
 
-		$query = $this->mymodel->exportdata();
+		$query = $this->mymodel->export_data_by_user_cover($id_customer, $i_periode);
 
 		if ($query->num_rows() > 0) {
 
@@ -459,87 +473,146 @@ class Saldo extends CI_Controller
 			$sharedStyle1 = new Style();
 			$sharedStyle2 = new Style();
 			$sharedStyle3 = new Style();
+			$styleHeader = new Style();
+			$styleTitle = new Style();
 			$conditional3 = new Conditional();
-			$spreadsheet->getActiveSheet()->getStyle('B2')->getAlignment()->applyFromArray(
-				[
-					'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
-					'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER, 'textRotation' => 0, 'wrapText' => TRUE
-				]
-			);
+			$spreadsheet->getActiveSheet()->getStyle('B2')->getAlignment()->applyFromArray([
+				'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+				'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER, 'textRotation' => 0, 'wrapText' => TRUE
+			]);
 
-			$sharedStyle1->applyFromArray(
-				[
-					'alignment' => [
-						'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
-						'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
-					],
-					'borders' => [
-						'bottom' => ['borderStyle' => Border::BORDER_THIN],
-						'right' => ['borderStyle' => Border::BORDER_THIN],
-					],
-				]
-			);
+			// spreadsheet style
+			$_style_font = [
+				'name'  => 'Arial', 'bold'  => true, 'italic' => false, 'size'  => 11
+			];
 
-			$sharedStyle2->applyFromArray(
-				[
-					'font' => [
-						'name'  => 'Arial',
-						'bold'  => false,
-						'italic' => false,
-						'size'  => 10
-					],
-					'borders' => [
-						'top'    => ['borderStyle' => Border::BORDER_THIN],
-						'bottom' => ['borderStyle' => Border::BORDER_THIN],
-						'left'   => ['borderStyle' => Border::BORDER_THIN],
-						'right'  => ['borderStyle' => Border::BORDER_THIN]
-					],
-					'alignment' => [
-						'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
-					],
-				]
-			);
+			$_style_alignment_center = [
+				'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+				'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+			];
 
-			$sharedStyle3->applyFromArray(
-				[
-					'alignment' => [
-						'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
-						'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
-					],
-				]
-			);
+			$_style_border_tblr = [
+				'top'    => ['borderStyle' => Border::BORDER_THIN],
+				'bottom' => ['borderStyle' => Border::BORDER_THIN],
+				'left'   => ['borderStyle' => Border::BORDER_THIN],
+				'right'  => ['borderStyle' => Border::BORDER_THIN]
+			];
+			// spreadsheet style end
+
+			$sharedStyle1->applyFromArray([
+				'alignment' => $_style_alignment_center,
+				'borders' => [
+					'bottom' => ['borderStyle' => Border::BORDER_THIN],
+					'right' => ['borderStyle' => Border::BORDER_THIN],
+				],
+			]);
+
+			$sharedStyle2->applyFromArray([
+				'font' => [
+					'name'  => 'Arial',
+					'bold'  => false,
+					'italic' => false,
+					'size'  => 10
+				],
+				'borders' => $_style_border_tblr,
+				'alignment' => [
+					'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+				],
+			]);
+
+			$sharedStyle3->applyFromArray(['alignment' => $_style_alignment_center]);			
+
+			$styleHeader->applyFromArray([
+				'font' => $_style_font,
+				'borders' => $_style_border_tblr,
+				'alignment' => $_style_alignment_center,
+			]);
+
+			$styleTitle->applyFromArray([
+				'font' => $_style_font,
+				'alignment' => $_style_alignment_center
+			]);
+
 			$spreadsheet->getDefaultStyle()
 				->getFont()
 				->setName('Calibri')
-				->setSize(9);
-			$h = 1;
+				->setSize(9);			
 			$spreadsheet->setActiveSheetIndex(0)
-				->setCellValue("A$h", '#ID_Perusahaan')
-				->setCellValue("B$h", 'Nama Perusahaan')
-				->setCellValue("C$h", 'Kode Barang')
-				->setCellValue("D$h", 'Nama Barang')
-				->setCellValue("E$h", 'Brand')
-				->setCellValue("F$h", 'Qty');
+				->setCellValue("B1", $id_customer)
+				->setCellValue("B2", $i_periode)
+				->setCellValue("C1", $customer->e_customer_name)
+				->setCellValue("C2", "PERIODE $i_periode")
+				->setCellValue("A3", 'No')
+				->setCellValue("B3", 'ID Barang')
+				->setCellValue("C3", 'Kode')
+				->setCellValue("D3", 'Nama')
+				->setCellValue("E3", 'Brand')
+				->setCellValue("F3", 'Saldo');
 
-			$spreadsheet->getActiveSheet()->duplicateStyle($sharedStyle1, "A$h:F$h");
+			// styling header
+			$spreadsheet->getActiveSheet()->mergeCells("C1:F1");
+			$spreadsheet->getActiveSheet()->duplicateStyle($styleTitle, "C1:F1");
 
-			$kolom = 2;
-			$nomor = 1;
+			$spreadsheet->getActiveSheet()->mergeCells("C2:F2");
+			$spreadsheet->getActiveSheet()->duplicateStyle($styleTitle, "C2:F2");
+			// styling header end
+
+			$spreadsheet->getActiveSheet()->duplicateStyle($sharedStyle1, "A3:F3");
+
+			$sheet = $spreadsheet->getActiveSheet();
+			foreach ($sheet->getColumnIterator() as $column) {
+				$sheet->getColumnDimension($column->getColumnIndex())->setAutoSize(true);
+			}
+
+			$kolom = 4;
+			$nomor = 1;		
 			foreach ($query->result() as $row) {
 				$spreadsheet->setActiveSheetIndex(0)
-					->setCellValue('A' . $kolom, trim($row->i_company))
-					->setCellValue('B' . $kolom, trim($row->e_company_name))
-					->setCellValue('C' . $kolom, trim($row->i_product))
-					->setCellValue('D' . $kolom, trim(ucwords(strtolower($row->e_product_name))))
-					->setCellValue('E' . $kolom, $row->e_brand_name)
+					->setCellValue('A' . $kolom, $nomor)
+					->setCellValue('B' . $kolom, $row->id_product)
+					->setCellValue('C' . $kolom, $row->i_product)
+					->setCellValue('D' . $kolom, $row->e_name)
+					->setCellValue('E' . $kolom, $row->brand)
 					->setCellValue('F' . $kolom, $row->n_saldo);
 				$spreadsheet->getActiveSheet()->duplicateStyle($sharedStyle2, 'A' . $kolom . ':F' . $kolom);
 
 				$kolom++;
 				$nomor++;
 			}
+
+			// hide kolom B, 
+			$spreadsheet->getActiveSheet()->getColumnDimension('B')->setCollapsed(true);
+			$spreadsheet->getActiveSheet()->getColumnDimension('B')->setVisible(false);
+
+			$spreadsheet->getActiveSheet()->getColumnDimension('F')->setAutoSize(false);
+			$spreadsheet->getActiveSheet()->getColumnDimension('F')->setWidth(20);
+
+			// lock cells
+			$spreadsheet->getActiveSheet()->getProtection()->setSheet(true);
+			$spreadsheet->getActiveSheet()->getProtection()->setPassword('THEPASSWORD');
+			$spreadsheet->getActiveSheet()->getStyle("F4:F5000")->getProtection()->setLocked(Protection::PROTECTION_UNPROTECTED);
+
+			// input validation
+			$validation = $spreadsheet->getActiveSheet()->getCell("F4")->getDataValidation();
+			$validation->setType(DataValidation::TYPE_WHOLE);
+			$validation->setErrorStyle(DataValidation::STYLE_STOP);
+			$validation->setAllowBlank(true);
+			$validation->setShowInputMessage(true);
+			$validation->setShowErrorMessage(true);
+			$validation->setErrorTitle('Input error');
+			$validation->setError('Input is not allowed!');
+			$validation->setPromptTitle('Allowed input');
+			$validation->setPrompt("Only Number Value allowed");
+			$validation->setFormula1(1);
+			$validation->setFormula2(999999999999);
+			$spreadsheet->getActiveSheet()->setDataValidation("F4:F$kolom", $validation);
+
+			// enable autofilter
+			$spreadsheet->getActiveSheet()->setAutoFilter("A3:F$kolom");
+			\PhpOffice\PhpSpreadsheet\Settings::setLocale('id');
+
 			$writer = new Xls($spreadsheet);
-			$nama_file = "Saldo_Awal_$i_periode.xls";
+			$nama_file = "Saldo_Awal_".$customer->e_customer_name."_".$i_periode.".xls";
 			header('Content-Type: application/vnd.ms-excel');
 			header('Content-Disposition: attachment;filename=' . $nama_file . '');
 			header('Cache-Control: max-age=0');
@@ -681,10 +754,10 @@ class Saldo extends CI_Controller
 		$filename = $this->uri->segment(4);
 		$periode = $this->uri->segment(5);
 
+		$e_customer_name = '';
 		if ($id_customer!='') {
-			$e_customer_name = $this->db->query("SELECT e_customer_name FROM tr_customer WHERE id_customer = '$id_customer' ", FALSE)->row()->e_customer_name;
-		}else{
-			$e_customer_name = '';
+			$query_customer = $this->mymodel->get_customer_by_id($id_customer);
+			$e_customer_name = $query_customer->row()->e_customer_name;
 		}
 
 		/* $filename = "Product_Price_" . $i_company . ".xls"; */
@@ -696,40 +769,30 @@ class Saldo extends CI_Controller
 		$hrow          = $sheet->getHighestDataRow('A');
 
 		$array 		   = [];
-		for ($n = 2; $n <= $hrow; $n++) {
-			$i_company 	= $spreadsheet->getActiveSheet()->getCell('A' . $n)->getValue();
-			$e_company 	= strtoupper($spreadsheet->getActiveSheet()->getCell('B' . $n)->getValue());
-			$i_product 	= trim($spreadsheet->getActiveSheet()->getCell('C' . $n)->getValue());
-			$e_product 	= ucwords(strtolower(trim($spreadsheet->getActiveSheet()->getCell('D' . $n)->getValue())));
-			$brand   	= $spreadsheet->getActiveSheet()->getCell('E' . $n)->getValue();
+		$id_header 	= $spreadsheet->getActiveSheet()->getCell('B1')->getValue();
+
+		for ($n = 4; $n <= $hrow; $n++) {			
+			$id_product = $spreadsheet->getActiveSheet()->getCell('B' . $n)->getValue();
+			$i_product 	= $spreadsheet->getActiveSheet()->getCell('C' . $n)->getValue();
+			$e_product = $spreadsheet->getActiveSheet()->getCell('D' . $n)->getValue();
+			$brand   	= $spreadsheet->getActiveSheet()->getCell('E' . $n)->getValue();			
 			$qty   		= $spreadsheet->getActiveSheet()->getCell('F' . $n)->getValue();
-			if ($qty > 0) {
-				$cek_produk = $this->mymodel->cek_produk($i_product, $i_company);
-				if ($i_product != '' && $cek_produk->num_rows() > 0) {
-					$array[] = array(
-						'i_company'  		=> $i_company,
-						'e_company'  		=> $e_company,
-						'i_product'  		=> $i_product,
-						'e_product'  		=> $e_product,
-						'brand'      		=> $brand,
-						'qty'      	 		=> $qty,
-					);
-				} else {
-					$array[] = array(
-						'i_company'  		=> $i_company,
-						'e_company'  		=> $e_company,
-						'i_product'  		=> '',
-						'e_product'  		=> '',
-						'brand'      		=> $brand,
-						'qty'      	 		=> 0,
-					);
-				}
+
+			if (intval($qty) <= 0) {
+				continue;
 			}
+
+			$array[] = array(
+				'id_header'  		=> $id_header,
+				'id_product'  		=> $id_product,
+				'i_product'  		=> $i_product,
+				'e_product'  		=> $e_product,
+				'brand'      		=> $brand,
+				'qty'      	 		=> $qty,
+			);
 		}
 
 		$data = array(
-			'company' 	 		=> $this->db->get_where('tr_company', ['f_status' => 't']),
-			'i_company'	 		=> $i_company,
 			'datadetail' 		=> $array,
 			'id_customer'		=> $id_customer,
 			'e_customer_name' 	=> $e_customer_name,

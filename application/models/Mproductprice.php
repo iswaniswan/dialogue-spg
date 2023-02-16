@@ -332,9 +332,8 @@ class Mproductprice extends CI_Model {
             $sql = "INSERT INTO tr_customer_price (id_customer, id_product, v_price, d_entry) 
                     VALUES ($id_customer, $id_product, $vprice, now())
                     ON CONFLICT (id_customer, id_product) DO UPDATE 
-                    SET v_price = excluded.v_price, 
-                        d_update = now()
-                    WHERE excluded.v_price > 0";    
+                    SET v_price = $vprice, 
+                        d_update = now()";
 
             $this->db->query($sql, FALSE);
         }

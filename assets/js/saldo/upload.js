@@ -160,6 +160,12 @@ var FileUpload = function() {
             minimumResultsForSearch: Infinity,
         });
 
+        function getPeriode(){
+            const year = $('#year').val();
+            const month = $('#month').val();
+            return `${year}${month}`;
+        }
+
         $("#id_customer").select2({
             placeholder: "Select Customer",
             minimumInputLength : 0,
@@ -172,8 +178,7 @@ var FileUpload = function() {
                 data: function(params) {
                     var query = {
                         q: params.term,
-                        year: $('#year').val(),
-                        month: $('#month').val(),
+                        i_periode: getPeriode()
                     };
                     return query;
                 },
@@ -220,8 +225,14 @@ document.addEventListener("DOMContentLoaded", function() {
             swalInit("Maaf :(", "Pilih Pelanggan Terlebih Dahulu :)", "error");
             return false;
         } else {
-            $('#href').attr('href', base_url + controller + '/export/' + $('#i_company').val() + '/' + $('#year').val() + $('#month').val());
+            $('#href').attr('href', base_url + controller + '/export/' + $('#id_customer').val() + '/' + $('#year').val() + $('#month').val());
             return true;
         }
     });
 });
+
+$(document).ready(function() {
+    $('#month, #year').on('change', function() {
+        $('#id_customer').val(null).trigger('change');
+    });
+})

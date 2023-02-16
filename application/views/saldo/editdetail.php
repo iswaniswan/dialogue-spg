@@ -64,7 +64,7 @@
                             <option value=""></option>
                         </select> -->
                         <input type="text" readonly class="form-control" name="e_customer_name" value="<?= $e_customer_name; ?>">
-                        <input type="hidden" name="id_customer" value="<?= $id_customer; ?>">
+                        <input type="hidden" name="id_customer" id="id_customer" value="<?= $id_customer; ?>">
                         <input type="hidden" name="i_periode" value="<?= $periode; ?>">
                         <input type="hidden" name="id" value="<?= $data->id; ?>">
                     </div>
@@ -83,7 +83,7 @@
                                     <tr class="bg-<?= $this->color; ?>">
                                         <th class="text-center">No</th>
                                         <th>Barang</th>
-                                        <th><?= $this->lang->line('Perusahaan'); ?></th>
+                                        <th><?= $this->lang->line('Brand'); ?></th>
                                         <th width="10%"><?= $this->lang->line('Qty'); ?></th>
                                         <th class="text-center">
                                         <?php 
@@ -102,17 +102,28 @@
                                     <?php $i = 0;
                                     foreach ($datadetail as $key) {
                                         $i++;
-                                        $warna = ($key['i_product'] == '') ? 'class="table-danger"' : '';
                                     ?>
-                                        <tr <?= $warna; ?>>
+                                        <tr>
                                             <td class="text-center">
                                                 <spanx id="snum<?= $i; ?>"><?= $i; ?></spanx>
                                             </td>
-                                            <td><select data-urut="<?= $i; ?>" required class="form-control form-control-sm form-control-select2" data-container-css-class="select-sm" name="i_product[]" id="i_product<?= $i; ?>" required data-fouc >
-                                                <option value="<?= $key["i_product"] . ' - ' . $key["id_brand"]; ?>"><?= $key["i_product"]; ?> - <?= $key["e_product"]; ?> - <?= $key["brand"]; ?></option>
-                                            </select></td>
-                                            <td><?= $key["e_company"]; ?><input type="hidden" name="i_company[]" id="i_company<?= $i; ?>" value="<?= $key["i_company"]; ?>"></td>
-                                            <td><input type="number" class="form-control form-control-sm" required name="qty[]" value="<?= $key["qty"]; ?>" autocomplete="off" onblur="if(this.value==''){this.value='0';}" onfocus="if(this.value=='0'){this.value='';}"></td>
+                                            <td>
+                                                <select data-urut="<?= $i; ?>" class="form-control form-control-sm form-control-select2" 
+                                                        data-container-css-class="select-sm" 
+                                                        id="id_product<?= $i; ?>"
+                                                        name="items[<?= $i ?>][id_product]" data-fouc required>
+                                                    <option value="<?= $key["id_product"] ?>">
+                                                        <?= $key["i_product"]; ?> - <?= $key["e_product"]; ?>
+                                                    </option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input type="hidden" name="items[<?= $i ?>][id_brand]" id="id_brand<?= $i; ?>" value="<?= $key["id_brand"]; ?>">
+                                                <input type="text" value="<?= $key["brand"]; ?>" class="form-control form-control-sm" readonly>
+                                            </td>
+                                            <td>
+                                                <input type="number" class="form-control form-control-sm" required name="items[<?= $i ?>][qty]" value="<?= $key["qty"]; ?>" autocomplete="off" onblur="if(this.value==''){this.value='0';}" onfocus="if(this.value=='0'){this.value='';}">
+                                            </td>
                                             <td class="text-center"><i title="Hapus Baris" class="icon-cancel-circle2 text-danger ibtnDel"></td>
                                         </tr>
                                     <?php } ?>

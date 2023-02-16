@@ -371,6 +371,8 @@ class Productprice extends CI_Controller
 			$sharedStyle1 = new Style();
 			$sharedStyle2 = new Style();
 			$sharedStyle3 = new Style();
+			$styleHeader = new Style();
+			$styleTitle = new Style();
 			$conditional3 = new Conditional();
 			$spreadsheet->getActiveSheet()->getStyle('B2')->getAlignment()->applyFromArray(
 				[
@@ -421,6 +423,43 @@ class Productprice extends CI_Controller
 					],
 				]
 			);
+
+			$styleHeader->applyFromArray(
+				[
+					'font' => [
+						'name'  => 'Arial',
+						'bold'  => true,
+						'italic' => false,
+						'size'  => 11
+					],
+					'borders' => [
+						'top'    => ['borderStyle' => Border::BORDER_THIN],
+						'bottom' => ['borderStyle' => Border::BORDER_THIN],
+						'left'   => ['borderStyle' => Border::BORDER_THIN],
+						'right'  => ['borderStyle' => Border::BORDER_THIN]
+					],
+					'alignment' => [
+						'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+						'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+					],
+				]
+			);
+
+			$styleTitle->applyFromArray(
+				[
+					'font' => [
+						'name'  => 'Arial',
+						'bold'  => true,
+						'italic' => false,
+						'size'  => 11
+					],
+					'alignment' => [
+						'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+						'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+					],
+				]
+			);
+
 			$spreadsheet->getDefaultStyle()
 				->getFont()
 				->setName('Calibri')
@@ -435,7 +474,12 @@ class Productprice extends CI_Controller
 				->setCellValue('E3', 'Brand')
 				->setCellValue('F3', 'Harga');
 
-			$spreadsheet->getActiveSheet()->duplicateStyle($sharedStyle1, 'A3:F3');
+			$spreadsheet->getActiveSheet()->duplicateStyle($styleHeader, 'A3:F3');
+
+			// styling header
+			$spreadsheet->getActiveSheet()->mergeCells('C1:F1');
+			$spreadsheet->getActiveSheet()->duplicateStyle($styleTitle, 'C1:F1');
+			// styling header end
 
 			$sheet = $spreadsheet->getActiveSheet();
 			foreach ($sheet->getColumnIterator() as $column) {
@@ -464,7 +508,7 @@ class Productprice extends CI_Controller
 
 			$spreadsheet->getActiveSheet()->getColumnDimension('F')->setAutoSize(false);
 			$spreadsheet->getActiveSheet()->getColumnDimension('F')->setWidth(20);
-
+										
 			$default_format_rupiah = '[$Rp-421]#,##0.00;[RED]([$Rp-421]#,##0.00)';
 			$spreadsheet->getActiveSheet()
 							->getStyle('F')
@@ -493,10 +537,22 @@ class Productprice extends CI_Controller
 
 			// enable autofilter
 			$spreadsheet->getActiveSheet()->setAutoFilter("A3:F$kolom");
-			\PhpOffice\PhpSpreadsheet\Settings::setLocale('id');
+			
+			// setlocale(LC_ALL, "en_US.UTF-8");
+			// $locale = 'us';
+			// $validLocale = \PhpOffice\PhpSpreadsheet\Settings::setLocale($locale);
+			// if (!$validLocale) {
+			// 	echo 'Unable to set locale to ' . $locale . " - reverting to en_us" . PHP_EOL;
+			// }
+
+			// setlocale(LC_ALL, "id_ID.UTF-8");
+
+			// \PhpOffice\PhpSpreadsheet\Shared\StringHelper::setDecimalSeparator('.');
+			// \PhpOffice\PhpSpreadsheet\Shared\StringHelper::setThousandsSeparator(',');
 
 			$writer = new Xls($spreadsheet);
 			$nama_file = "Product_Price_" . $customer->e_customer_name . ".xls";
+
 			header('Content-Type: application/vnd.ms-excel');
 			header('Content-Disposition: attachment;filename=' . $nama_file . '');
 			header('Cache-Control: max-age=0');
@@ -588,10 +644,10 @@ class Productprice extends CI_Controller
 		}
 
 		for ($n = 4; $n <= $hrow; $n++) {
-			$id_product = trim($spreadsheet->getActiveSheet()->getCell('B' . $n)->getValue());
-			$i_product = ucwords(strtolower(trim($spreadsheet->getActiveSheet()->getCell('C' . $n)->getValue())));
-			$e_product = ucwords(strtolower(trim($spreadsheet->getActiveSheet()->getCell('D' . $n)->getValue())));
-			$brand = ucwords(strtolower(trim($spreadsheet->getActiveSheet()->getCell('E' . $n)->getValue())));
+			$id_product = $spreadsheet->getActiveSheet()->getCell('B' . $n)->getValue();
+			$i_product = $spreadsheet->getActiveSheet()->getCell('C' . $n)->getValue();
+			$e_product = $spreadsheet->getActiveSheet()->getCell('D' . $n)->getValue();
+			$brand = $spreadsheet->getActiveSheet()->getCell('E' . $n)->getValue();
 			$v_price = $spreadsheet->getActiveSheet()->getCell('F' . $n)->getValue();
 
 			$array[] = array(

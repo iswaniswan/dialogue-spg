@@ -88,18 +88,11 @@ class User extends CI_Controller
 	{
 		$filter = [];
 		$cari	= str_replace("'", "", $this->input->get('q'));
-		if ($cari != '') {
-			$data = $this->mymodel->get_customer($cari);
-			foreach ($data->result() as $row) {
-				$filter[] = array(
-					'id'   => $row->id_customer,
-					'text' => strtoupper($row->e_customer_name),
-				);
-			}
-		} else {
+		$data = $this->mymodel->get_customer($cari);
+		foreach ($data->result() as $row) {
 			$filter[] = array(
-				'id'   => null,
-				'text' => 'Cari Data Berdasarkan Nama',
+				'id'   => $row->id_customer,
+				'text' => strtoupper($row->e_customer_name),
 			);
 		}
 		echo json_encode($filter);

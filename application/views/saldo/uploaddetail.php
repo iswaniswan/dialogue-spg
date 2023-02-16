@@ -81,7 +81,7 @@
                                 <thead>
                                     <tr class="bg-<?= $this->color; ?>">
                                         <th class="text-center">No</th>
-                                        <th><?= $this->lang->line('Perusahaan'); ?></th>
+                                        <th class="d-none"><?= $this->lang->line('ID mutasi saldo awal'); ?></th>
                                         <th><?= $this->lang->line('Kode Barang'); ?></th>
                                         <th><?= $this->lang->line('Nama Barang'); ?></th>
                                         <th><?= $this->lang->line('Brand'); ?></th>
@@ -99,8 +99,10 @@
                                             <td class="text-center">
                                                 <spanx id="snum<?= $i; ?>"><?= $i; ?></spanx>
                                             </td>
-                                            <td><?= $key["e_company"]; ?><input type="hidden" name="i_company<?= $i; ?>" id="i_company<?= $i; ?>" value="<?= $key["i_company"]; ?>"></td>
-                                            <td><input type="text" readonly class="form-control form-control-sm product" required name="iproduct<?= $i; ?>" id="iproduct<?= $i; ?>" value="<?= $key["i_product"]; ?>"></td>
+                                            <td>
+                                                <input type="hidden" name="id_product<?= $i ?>" value="<?= $key['id_product'] ?>">
+                                                <input type="text" readonly class="form-control form-control-sm product" required name="iproduct<?= $i; ?>" id="iproduct<?= $i; ?>" value="<?= $key["i_product"]; ?>">
+                                            </td>
                                             <td><?= $key["e_product"]; ?></td>
                                             <td><?= $key["brand"]; ?></td>
                                             <td><input type="number" class="form-control form-control-sm" required name="qty<?= $i; ?>" value="<?= $key["qty"]; ?>" autocomplete="off" onblur="if(this.value==''){this.value='0';}" onfocus="if(this.value=='0'){this.value='';}"></td>

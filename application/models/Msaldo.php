@@ -122,7 +122,7 @@ class Msaldo extends CI_Model
     }
 
     /** Get Data Customer by user cover */
-    public function get_customer($cari='')
+    public function get_customer($cari='', $i_periode)
     {
         $id_user = $this->session->userdata('id_user');
 
@@ -131,13 +131,18 @@ class Msaldo extends CI_Model
             $limit = "";
         }
 
+        $sql_mutasi = "SELECT id_customer
+                        FROM tm_mutasi_saldoawal
+                        WHERE i_periode = '$i_periode'";
+
         $sql = "SELECT id_customer AS id, e_customer_name AS e_name
                 FROM tr_customer 
                 WHERE (e_customer_name ILIKE '%$cari%') AND f_status = 't' 
                     AND id_customer IN (
                                         SELECT  id_customer
                                         FROM tm_user_customer
-                                        WHERE id_user = '$id_user'                
+                                        WHERE id_user = '$id_user' 
+                                            AND id_customer NOT IN ($sql_mutasi)        
                                     )
                 ORDER BY 2
                 $limit";
@@ -243,63 +248,76 @@ class Msaldo extends CI_Model
     /** Get Data Untuk Edit */
     public function getdata($id)
     {
-        return $this->db->query("
-            SELECT 
-               *
-            FROM
-                tm_mutasi_saldoawal
-            WHERE
-               id = '$id'
-        ", FALSE);
+        $sql = "SELECT *
+                FROM tm_mutasi_saldoawal
+                WHERE id = '$id'";
+
+        return $this->db->query($sql, FALSE);
     }
 
     /** Get Data Untuk Edit */
     public function getdatadetail($id)
     {
-        return $this->db->query("SELECT
-                a.*,
-                b.e_product_name AS e_product,
-                c.id_brand,
-                c.e_brand_name AS brand,
-                d.e_company_name AS e_company,
-                a.n_saldo AS qty
-            FROM
-                tm_mutasi_saldoawal_item a
-            INNER JOIN tr_product b ON
-                (b.i_product = a.i_product
-                    AND b.i_company = a.i_company)
-            INNER JOIN tr_brand c ON
-                (c.id_brand = b.id_brand)
-            INNER JOIN tr_company d ON
-                (d.i_company = a.i_company)
-            WHERE a.id_header = '$id'
-            ORDER BY a.i_product
-        ", FALSE);
+        $sql = "SELECT a.*,
+                    b.e_product_name AS e_product,
+                    b.i_product,
+                    c.id_brand,
+                    c.e_brand_name AS brand,
+                    a.n_saldo AS qty
+                FROM tm_mutasi_saldoawal_item a
+                INNER JOIN tr_product b ON b.id = a.id_product
+                INNER JOIN tr_brand c ON c.id_brand = b.id_brand
+                WHERE a.id_header = '$id'
+                ORDER BY a.id_product";
+
+        // var_dump($sql); die();
+        
+        return $this->db->query($sql, FALSE);
     }
 
     /** Export Data */
-    public function exportdata()
+    public function export_data_by_user_cover($id_customer, $i_periode)
     {
         /* if ($this->i_company == '1') {
             $where = "AND i_company IN (SELECT i_company FROM tm_user_company WHERE id_user = '$this->id_user' )";
         }else{
             $where = "AND i_company = '$this->i_company'";
         } */
-        return $this->db->query("
-            SELECT
-                a.i_company,
-                e_company_name,
+
+        $id_user = $this->session->userdata('id_user');
+
+        $sql_brand_cover = "SELECT tub.id_brand
+                            FROM tm_user_brand tub						
+                            WHERE id_user_customer = (
+                                            SELECT id
+                                            FROM tm_user_customer
+                                            WHERE id_user = '$id_user' AND id_customer = '$id_customer'
+                                        )";
+
+        $sql_product = "SELECT a.id,
                 i_product,
-                e_product_name,
-                e_brand_name,
-                0 AS n_saldo
-            FROM
-                tr_product a
-            INNER JOIN tr_brand b on (a.id_brand = b.id_brand)
-            INNER JOIN tr_company c ON (c.i_company = a.i_company)
-            where a.f_status = 't' and b.id_brand in (select id_brand from tm_user_brand where id_user = '$this->id_user')
-            ORDER BY 1,3
-        ", FALSE);
+                e_product_name AS e_name,
+                a.id_brand,
+                b.e_brand_name AS brand,
+                $id_customer AS id_customer
+            FROM tr_product a
+            INNER JOIN tr_brand b ON b.id_brand = a.id_brand
+            WHERE a.f_status = 't'AND a.id_brand IN ($sql_brand_cover)
+            ORDER BY 4, 1";
+
+        $sql_mutasi = "SELECT tms.*, tmsi.id_product, tmsi.n_saldo
+                       FROM tm_mutasi_saldoawal tms
+                       INNER JOIN tm_mutasi_saldoawal_item tmsi ON tmsi.id_header = tms.id
+                       WHERE tms.i_periode = '$i_periode' AND tms.id_customer = '$id_customer'";
+
+        $sql = "WITH CTE AS ($sql_product)
+                SELECT CTE.brand, CTE.id AS id_product, CTE.i_product, CTE.e_name, sm.n_saldo
+                FROM ($sql_mutasi) AS sm
+                RIGHT JOIN CTE ON CTE.id = sm.id_product";
+
+        // var_dump($sql); die();  
+
+        return $this->db->query($sql);
     }
 
     public function cek_produk($i_product, $i_company)
@@ -309,76 +327,99 @@ class Msaldo extends CI_Model
         return $this->db->get('tr_product');
     }
 
+    private function is_mutasi_exist($i_periode, $id_customer, $return_id=false)
+    {
+        $sql = "SELECT *
+                FROM tm_mutasi_saldoawal
+                WHERE i_periode = '$i_periode' AND id_customer = '$id_customer'";
+
+        $query = $this->db->query($sql);
+
+        if ($return_id) {
+            $result = $query->result()[0];
+            return $result->id;
+        }
+
+        return $query->num_rows() > 0;
+    }
+
     public function transfer()
     {
-        $query = $this->db->query("SELECT max(id)+1 AS id FROM tm_mutasi_saldoawal", TRUE);
-        if ($query->num_rows() > 0) {
-            $id = $query->row()->id;
-            if ($id == null) {
-                $id = 1;
-            } else {
-                $id = $id;
-            }
-        } else {
-            $id = 1;
-        }
         $id_customer = $this->input->post('id_customer', TRUE);
         $i_periode = $this->input->post('i_periode', TRUE);
         $e_remark = $this->input->post('e_remark', TRUE);
 
-        $this->db->query("INSERT INTO tm_mutasi_saldoawal (id, id_customer, i_periode, e_remark, d_entry) 
-                VALUES ($id, $id_customer, '$i_periode', '$e_remark', now())
-                ON CONFLICT (id_customer, i_periode) DO UPDATE 
-                SET e_remark = excluded.e_remark,
-                    d_update = now()", FALSE);
+        // cek if create or update
+        $id_mutasi_saldoawal = null;
+        if ($this->is_mutasi_exist($i_periode, $id_customer)) {
+            $id_mutasi_saldoawal = $this->is_mutasi_exist($i_periode, $id_customer, true);
+        };
+
+        // create 
+        $sql = "INSERT INTO tm_mutasi_saldoawal (id_customer, i_periode, e_remark, d_entry)     
+                        VALUES ($id_customer, '$i_periode', '$e_remark', now())";
+
+        if ($id_mutasi_saldoawal != null) {
+            // update
+            $sql = "INSERT INTO tm_mutasi_saldoawal (id, id_customer, i_periode, e_remark, d_entry)
+                    VALUES ($id_mutasi_saldoawal, $id_customer, '$i_periode', '$e_remark', now())
+                    ON CONFLICT (id_customer, i_periode) 
+                        DO UPDATE 
+                        SET e_remark = excluded.e_remark,
+                            d_update = now()";
+        }
+
+        $this->db->query($sql, FALSE);
+
+        if ($id_mutasi_saldoawal == null) {
+            $id_mutasi_saldoawal = $this->db->insert_id();
+        }
 
         $jml = $this->input->post('jml', TRUE);
         for ($i = 1; $i <= $jml; $i++) {
-            $i_company   = $this->input->post('i_company' . $i, TRUE);
-            $iproduct   = $this->input->post('iproduct' . $i, TRUE);
-            $qty     = $this->input->post('qty' . $i, TRUE);
-            if ($iproduct != '') {
-                $this->db->query("INSERT INTO tm_mutasi_saldoawal_item (id_header, i_company, i_product, n_saldo) 
-                VALUES ($id, $i_company, '$iproduct', $qty)
-                ON CONFLICT (id_header, i_company, i_product) DO UPDATE 
-                SET n_saldo = excluded.n_saldo
-                WHERE excluded.n_saldo > 0", FALSE);
-            }
+            $id_product   = $this->input->post('id_product' . $i, TRUE);
+            $qty = $this->input->post('qty' . $i, TRUE);
+
+            $sql = "INSERT INTO tm_mutasi_saldoawal_item (id_header, id_product, n_saldo) 
+                    VALUES ($id_mutasi_saldoawal, $id_product, $qty)
+                    ON CONFLICT (id_header, id_product) 
+                        DO UPDATE 
+                        SET n_saldo = excluded.n_saldo
+                        WHERE excluded.n_saldo > 0";
+
+            $this->db->query($sql, FALSE);
         }
     }
 
     public function update_detail()
     {
         $id = $this->input->post('id', TRUE);
-        $id_customer = $this->input->post('id_customer', TRUE);
-        $i_periode = $this->input->post('i_periode', TRUE);
-        $e_remark = $this->input->post('e_remark', TRUE);
+        $data_header = [
+            'id_customer' => $this->input->post('id_customer', TRUE),
+            'i_periode' => $this->input->post('i_periode', TRUE),
+            'e_remark' => $this->input->post('e_remark', TRUE),
+            'd_update' => date('Y-m-d H:i:s')
+        ];
+        $this->db->where('id', $id);
+        $this->db->update('tm_mutasi_saldoawal', $data_header);
 
-        $this->db->query("INSERT INTO tm_mutasi_saldoawal (id, id_customer, i_periode, e_remark, d_entry) 
-                VALUES ($id, $id_customer, '$i_periode', '$e_remark', now())
-                ON CONFLICT (id_customer, i_periode) DO UPDATE 
-                SET e_remark = excluded.e_remark,
-                    d_update = now()", FALSE);
-
-        $jml = $this->input->post('jml', TRUE);
+        $items = $this->input->post('items');        
         $this->db->where('id_header', $id);
         $this->db->delete('tm_mutasi_saldoawal_item');
 
-        if ($jml > 0) {
-            $i = 0;
-            foreach ($this->input->post('i_product[]', TRUE) as $i_product) {
-                $iproduct = $this->input->post('i_product', TRUE)[$i];
-                $product = explode(' - ',$iproduct);
-                $iproduk = $product[0];
-                $tabledetail = array(
-                    'id_header'         => $id,
-                    'i_company'         => $this->input->post('i_company', TRUE)[$i],
-                    'i_product'         => $iproduk,
-                    'n_saldo'           => $this->input->post('qty', TRUE)[$i],
-                );
-                $this->db->insert('tm_mutasi_saldoawal_item', $tabledetail);
-                $i++;
-            };
+        foreach ($items as $item) {
+            $id_header = $id;
+            $id_product = $item['id_product'];
+            $qty = $item['qty'];
+
+            $sql = "INSERT INTO tm_mutasi_saldoawal_item 
+                        (id_header, id_product, n_saldo)
+                    VALUES ($id_header,$id_product, $qty)
+                    ON CONFLICT (id_header, id_product) 
+                        DO UPDATE 
+                        SET n_saldo = $qty";
+
+            $this->db->query($sql, FALSE);
         };
     }
 
@@ -404,6 +445,13 @@ class Msaldo extends CI_Model
         );
         $this->db->where('id', $id);
         $this->db->update('tm_mutasi_saldoawal', $data);
+    }
+
+    public function get_customer_by_id($id_customer)
+    {
+        $this->db->select();
+        $this->db->where('id_customer', $id_customer);
+        return $this->db->get('tr_customer');        
     }
 }
 
