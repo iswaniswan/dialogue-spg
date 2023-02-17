@@ -162,33 +162,29 @@ class Mpurchase extends CI_Model {
     }
 
     /** Ambil Data Customer */
-    public function get_customer($cari)
+    public function get_customer($cari='')
     {
-        if ($this->fallcustomer=='t') {
-            $where = "";
-        }else{
-            $where = "
-                AND id_customer IN (
-                    SELECT 
-                        id_customer
-                    FROM
-                        tm_user_customer
-                    WHERE id_user = '$this->id_user'                
-                )
-            ";
+        $id_user = $this->session->userdata('id_user');
+
+        $limit = "LIMIT 5";
+        if ($cari != '') {
+            $limit = "";
         }
-        return $this->db->query("
-                SELECT 
-                    a.id_customer AS id,
-                    a.e_customer_name AS e_name
-                FROM 
-                    tr_customer a 
-                WHERE 
-                    (a.e_customer_name ILIKE '%$cari%')
-                    AND f_status = 't'
-                    $where
+
+        $sql = "SELECT id_customer AS id, e_customer_name AS e_name
+                FROM tr_customer 
+                WHERE (e_customer_name ILIKE '%$cari%') AND f_status = 't' 
+                    AND id_customer IN (
+                                        SELECT  id_customer
+                                        FROM tm_user_customer
+                                        WHERE id_user = '$id_user'                
+                                    )
                 ORDER BY 2
-        ", FALSE);
+                $limit";
+
+        // var_dump($sql);
+
+        return $this->db->query($sql, FALSE);
     }
 
     public function get_customer_item($cari)
@@ -221,26 +217,61 @@ class Mpurchase extends CI_Model {
     }
 
     /** Ambil Data Product */
-    public function get_product($cari)
-    {
-        return $this->db->query("
-        SELECT 
-            a.i_product AS id,
-            a.e_product_name AS e_name,
-            c.e_brand_name,
-            a.id_brand
-        FROM 
-            tr_product a
-        INNER JOIN tr_brand c ON
-            (c.id_brand = a.id_brand)
-        WHERE 
-            (e_product_name ILIKE '%$cari%' OR i_product ILIKE '%$cari%')
-            AND a.f_status = 't'
-            AND a.id_brand IN (SELECT id_brand FROM tm_user_brand WHERE id_user = $this->id_user)
-        ORDER BY 3,1
-        ", FALSE);
-    }
+    // public function get_product($cari)
+    // {
+    //     return $this->db->query("
+    //     SELECT 
+    //         a.i_product AS id,
+    //         a.e_product_name AS e_name,
+    //         c.e_brand_name,
+    //         a.id_brand
+    //     FROM 
+    //         tr_product a
+    //     INNER JOIN tr_brand c ON
+    //         (c.id_brand = a.id_brand)
+    //     WHERE 
+    //         (e_product_name ILIKE '%$cari%' OR i_product ILIKE '%$cari%')
+    //         AND a.f_status = 't'
+    //         AND a.id_brand IN (SELECT id_brand FROM tm_user_brand WHERE id_user = $this->id_user)
+    //     ORDER BY 3,1
+    //     ", FALSE);
+    // }
 
+    /** Get Data Product sesuai user cover */
+    public function get_product($cari='', $id_customer, $all=false)
+    {
+        $id_user = $this->session->userdata('id_user');
+
+        $limit = 'LIMIT 5';
+        if (($cari != '') or ($all)) {
+            $limit = "";
+        }
+
+        $sql_brand_cover = "SELECT tub.id_brand
+                            FROM tm_user_brand tub						
+                            WHERE id_user_customer = (
+                                            SELECT id
+                                            FROM tm_user_customer
+                                            WHERE id_user = '$id_user' AND id_customer = '$id_customer'
+                                        )";
+
+        $sql = "SELECT a.id,
+                i_product,
+                e_product_name AS e_name,
+                a.id_brand,
+                b.e_brand_name AS brand
+            FROM tr_product a
+            INNER JOIN tr_brand b ON b.id_brand = a.id_brand
+            WHERE (e_product_name ILIKE '%$cari%' OR i_product ILIKE '%$cari%')
+                AND a.f_status = 't'
+                AND a.id_brand IN ($sql_brand_cover)
+            ORDER BY 4,1
+            $limit";
+
+        // var_dump($sql); die();
+
+        return $this->db->query($sql, FALSE);
+    }
 
     /** Ambil Data Detail Product */
     public function get_detail_product($i_product,$i_brand)
@@ -409,6 +440,27 @@ class Mpurchase extends CI_Model {
                 b.i_company = a.i_company
             )
         ", FALSE);
+    }
+
+    public function get_company_distributor($cari='')
+    {
+        $id_user = $this->session->userdata('id_user');
+
+        $limit = "LIMIT 5";
+        if ($cari != '') {
+            $limit = "";
+        }
+
+        $sql = "SELECT *
+                FROM tr_company 
+                WHERE (e_company_name ILIKE '%$cari%') AND 
+                    f_status = 't' AND
+                    jenis_company = 'distributor'                    
+                $limit";
+
+        // var_dump($sql);
+
+        return $this->db->query($sql, FALSE);
     }
 
     /** Get Data Company Edit */

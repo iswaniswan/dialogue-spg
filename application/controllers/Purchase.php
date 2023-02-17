@@ -132,22 +132,14 @@ class Purchase extends CI_Controller
 	public function get_company()
 	{
 		$filter = [];
-		$cari	= str_replace("'", "", $this->input->get('q'));
-		$id	= str_replace("'", "", $this->input->get('id_customer'));
-		if ($cari != '') {
-			$data = $this->mymodel->get_companyy($cari,$id);
+		$cari   = str_replace("'", "", $this->input->get('q'));
+		$data = $this->mymodel->get_company_distributor($cari);
 			foreach ($data->result() as $row) {
 				$filter[] = array(
-					'id'   => $row->id,
-					'text' => strtoupper($row->e_name),
+					'id'   => $row->i_company,
+					'text' => ucwords(strtolower($row->e_company_name)),
 				);
 			}
-		} else {
-			$filter[] = array(
-				'id'   => null,
-				'text' => 'Cari Data Berdasarkan Nama',
-			);
-		}
 		echo json_encode($filter);
 	}
 
@@ -155,21 +147,14 @@ class Purchase extends CI_Controller
 	public function get_customer()
 	{
 		$filter = [];
-		$cari	= str_replace("'", "", $this->input->get('q'));
-		if ($cari != '') {
-			$data = $this->mymodel->get_customer($cari);
+		$cari   = str_replace("'", "", $this->input->get('q'));
+		$data = $this->mymodel->get_customer($cari);
 			foreach ($data->result() as $row) {
 				$filter[] = array(
 					'id'   => $row->id,
-					'text' => strtoupper($row->e_name),
+					'text' => ucwords(strtolower($row->e_name)),
 				);
 			}
-		} else {
-			$filter[] = array(
-				'id'   => null,
-				'text' => 'Cari Data Berdasarkan Nama',
-			);
-		}
 		echo json_encode($filter);
 	}
 
@@ -196,27 +181,24 @@ class Purchase extends CI_Controller
 		echo json_encode($filter);
 	}
 
-	/** Get Product */
+	/** Data Product sesuai user cover */
 	public function get_product()
 	{
 		$filter = [];
-		$i_company = $this->input->get('i_company');
-		$cari = str_replace("'", "", $this->input->get('q'));
-		if ($cari != '') {
-			$data = $this->mymodel->get_product($cari);
-			foreach ($data->result() as $row) {
-				$filter[] = array(
-					'id'   => $row->id . ' - ' . $row->id_brand,
-					'text' => $row->id . ' - ' . ucwords(strtolower($row->e_name)) . ' - ' . $row->e_brand_name,
-				);
-			}
-		} else {
-			$filter = [];
-			$filter[] = array(
-				'id'   => null,
-				'text' => 'Pilih Perusahan / Cari Dengan Kode atau Nama Product',
-			);
+		$id_customer = $this->input->get('id_customer');
+		if ($id_customer == null) {
+			echo json_encode($filter);
+			return;
 		}
+
+		$cari = str_replace("'", "", $this->input->get('q'));
+		$data = $this->mymodel->get_product($cari, $id_customer);
+		foreach ($data->result() as $row) {
+			$filter[] = array(
+				'id'   => $row->id,
+				'text' => $row->i_product . ' - ' . ucwords(strtolower($row->e_name)) . ' - ' . ucwords(strtolower($row->brand))
+			);
+		} 
 		echo json_encode($filter);
 	}
 

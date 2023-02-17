@@ -21,7 +21,7 @@ var Detail = $(function() {
                         class="form-control form-control-sm form-control-select2" 
                         data-container-css-class="select-sm" 
                         name="items[${i}][id_product]"
-                        id="i_product${i}" 
+                        id="id_product${i}" 
                         data-fouc required>
                     </select>
                 </td>`;
@@ -39,7 +39,7 @@ var Detail = $(function() {
         cols += `<td class="text-center"><b><i title="Hapus Baris" class="icon-cancel-circle2 text-danger ibtnDel"></i></b></td>`;
         newRow.append(cols);
         $("#tablecover tbody").append(newRow);
-        $("#i_product" + i).select2({
+        $("#id_product" + i).select2({
             placeholder: "Cari Product",
             width: "100%",
             allowClear: true,
@@ -67,7 +67,7 @@ var Detail = $(function() {
             for (var x = 1; x <= $("#jml").val(); x++) {
                 if ($(this).val() !== null || $(this).val() !== '') {
                     var product = $(this).val();
-                    var productx = $("#i_product" + x).val();
+                    var productx = $("#id_product" + x).val();
                     console.log(product + " - " + productx);
                     if ((product == productx) && (z != x)) {
                         swalInit("Maaf :(", "Kode Barang tersebut sudah ada :(", "error");

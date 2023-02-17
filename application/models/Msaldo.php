@@ -132,8 +132,8 @@ class Msaldo extends CI_Model
         }
 
         $sql_mutasi = "SELECT id_customer
-                        FROM tm_mutasi_saldoawal
-                        WHERE i_periode = '$i_periode'";
+                        FROM tm_mutasi_saldoawal";
+                        // WHERE i_periode = '$i_periode'";
 
         $sql = "SELECT id_customer AS id, e_customer_name AS e_name
                 FROM tr_customer 
@@ -224,9 +224,13 @@ class Msaldo extends CI_Model
     /** Simpan Data */
     public function save()
     {
+        $year = $this->input->post('year');
+		$month = $this->input->post('month');
+		$i_periode = "$year$month";
+
         $data_header = [
             'id_customer' => $this->input->post('icustomer', TRUE),
-            'i_periode' => $this->input->post('periode', TRUE),
+            'i_periode' => $i_periode,
             'e_remark' => $this->input->post('eremark', TRUE),
         ];
 

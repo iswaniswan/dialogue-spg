@@ -12,6 +12,7 @@ use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
 use PhpOffice\PhpSpreadsheet\Style\Protection;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 
 class Saldo extends CI_Controller
 {
@@ -164,7 +165,8 @@ class Saldo extends CI_Controller
 		}
 
 		$id_customer = $this->input->post('icustomer');
-		$periode  = $this->input->post('periode');
+		$year = $this->input->post('year');
+		$month = $this->input->post('month');
 		
 		/** Simpan atau Update Data */
 		$this->db->trans_begin();
@@ -177,7 +179,7 @@ class Saldo extends CI_Controller
 			);
 		} else {
 			$this->db->trans_commit();
-			$this->logger->write('Simpan Data ' . $this->title . ' : ' . $id_customer . '-' . $periode);
+			$this->logger->write('Simpan Data ' . $this->title . ' : ' . $id_customer . '-' . $year.$month);
 			$data = array(
 				'sukses' => true,
 				'ada'	 => false,
@@ -533,6 +535,8 @@ class Saldo extends CI_Controller
 				'alignment' => $_style_alignment_center
 			]);
 
+			$month_year = $this->periode_to_format($i_periode);
+
 			$spreadsheet->getDefaultStyle()
 				->getFont()
 				->setName('Calibri')
@@ -540,8 +544,8 @@ class Saldo extends CI_Controller
 			$spreadsheet->setActiveSheetIndex(0)
 				->setCellValue("B1", $id_customer)
 				->setCellValue("B2", $i_periode)
-				->setCellValue("C1", $customer->e_customer_name)
-				->setCellValue("C2", "PERIODE $i_periode")
+				->setCellValue("C1", strtoupper($customer->e_customer_name))
+				->setCellValue("C2", "PERIODE ". strtoupper($month_year))
 				->setCellValue("A3", 'No')
 				->setCellValue("B3", 'ID Barang')
 				->setCellValue("C3", 'Kode')
@@ -618,6 +622,11 @@ class Saldo extends CI_Controller
 			header('Cache-Control: max-age=0');
 			$writer->save('php://output');
 		}
+	}
+
+	private function periode_to_format($periode, $format='m-Y')
+	{
+		return date('F Y', strtotime($periode. '00'));
 	}
 
 	public function prosesupload()

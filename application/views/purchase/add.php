@@ -26,7 +26,15 @@
                     <div class="col-sm-6">
                         <div class="form-group">
                             <label>Nomor Dokumen :</label>
-                            <input type="text" class="form-control" value="<?= $number; ?>" data-inputmask="'mask': 'BON-9999-999999'" autofocus placeholder="Entry No Document" id="idocument" name="idocument" maxlength="20" autocomplete="off" required>
+                            <input type="text" class="form-control" value="<?= $number; ?>" 
+                                    data-inputmask="'mask': 'BON-9999-999999'" 
+                                    placeholder="Entry No Document" 
+                                    id="idocument" 
+                                    name="idocument" 
+                                    maxlength="20" 
+                                    autocomplete="off" 
+                                    autofocus 
+                                    required>
                         </div>
                     </div>
                     <div class="col-sm-6">
@@ -37,31 +45,58 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-sm-3">
+                    <div class="col-sm-6">
                         <div class="form-group">
                             <label>Toko :</label>
-                            <select class="form-control select-search" data-container-css-class="select-sm" data-placeholder="Select Customer" required data-fouc name="idcustomer" id="idcustomer">
+                            <select class="form-control select-search" data-container-css-class="select-sm" 
+                                    data-placeholder="Select Customer" 
+                                    name="id_customer" id="id_customer"
+                                    required data-fouc>
                             </select>
                         </div>
                     </div>
-                    <div class="col-sm-3">
+                    <div class="col-sm-6">
                         <div class="form-group">
                             <label>Nama Distributor :</label>
                             <select class="form-control select-search" data-container-css-class="select-sm" data-placeholder="Select Customer" required data-fouc name="customeritem" id="customeritem">
                             </select>
                         </div>
                     </div>
+                   
+                </div>
+                <div class="row">
                     <div class="col-sm-6">
                         <div class="form-group">
-                            <label>Keterangan :</label>
-                            <textarea class="form-control" name="eremark" placeholder="Isi keterangan jika ada .."></textarea>
+                            <label>No. Surat Jalan :</label>
+                            <input type="text" class="form-control" value="" autofocus 
+                                    placeholder="Entry No Surat Jalan" 
+                                    id="i_surat_jalan" 
+                                    name="i_surat_jalan" 
+                                    maxlength="20" 
+                                    autocomplete="off" required>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label>Tanggal Surat Jalan :</label>
+                            <input type="text" name="d_surat_jalan" id="d_surat_jalan" class="form-control date" required placeholder="Select Date" value="<?= date('Y-m-d'); ?>">
                         </div>
                     </div>
                 </div>
-                <div class="d-flex justify-content-start align-items-center">
-                    <button type="button" id="submit" class="btn btn bg-<?= $this->color; ?> btn-sm"><i class="icon-paperplane"></i>&nbsp;
-                        Save</button>
-                    <a href="<?= base_url($this->folder); ?>" class="btn btn bg-danger btn-sm ml-1"><i class="icon-arrow-left16"></i>&nbsp; Back</a>
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label>Keterangan :</label>
+                            <textarea rows="2" class="form-control" name="eremark" placeholder="Isi keterangan jika ada .."></textarea>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">                        
+                        <div class="d-flex justify-content-start align-items-center">
+                            <button type="button" id="submit" class="btn btn bg-<?= $this->color; ?> btn-sm"><i class="icon-paperplane"></i>&nbsp;
+                                Save</button>
+                            <a href="<?= base_url($this->folder); ?>" class="btn btn bg-danger btn-sm ml-1"><i class="icon-arrow-left16"></i>&nbsp; Back</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -79,8 +114,8 @@
                                         <th width="40%;">Barang</th>
                                         <th width="15%;">Qty</th>
                                         <!-- <th width="15%;">Disc (%)</th> -->
-                                        <!-- <th width="20%;">Harga</th> -->
-                                        <th width="20%;">Keterangan</th>
+                                        <th width="20%;">Harga</th>
+                                        <th width="20%;">Total</th>
                                         <th width="3%;"><i id="addrow" title="Tambah Baris" class="icon-plus-circle2"></i></th>
                                     </tr>
                                 </thead>

@@ -55,22 +55,53 @@ var Detail = $(function() {
         $("#jml").val(i);
         var newRow = $("<tr>");
         var cols = "";
-        cols += `<td class="text-center"><spanx id="snum${i}">${
-			no + 1
-		}</spanx></td>`;
-        cols += `<td><select data-urut="${i}" required class="form-control form-control-sm form-control-select2" data-container-css-class="select-sm" name="i_product[]" id="i_product${i}" required data-fouc></select></td>`;
-        cols += `<td><input type="number" required class="form-control form-control-sm" min="1" onblur=\'if(this.value==""){this.value="1";}\' onfocus=\'if(this.value=="1"){this.value="";}\' value="1" id="qty${i}" onkeyup="hetang();" placeholder="Qty" name="qty[]"></td>`;
-        // cols += `<td hidden><input type="number" required class="form-control form-control-sm" onblur=\'if(this.value==""){this.value="0";}\' onfocus=\'if(this.value=="0"){this.value="";}\' value="0" id="diskon${i}" onkeyup="hetang();" placeholder="Diskon" name="vdiskon[]"></td>`;
-        // cols += `<td><input type="number" required class="form-control form-control-sm harga" id="harga${i}" placeholder="Harga" name="harga[]"  onblur=\'if(this.value==""){this.value="0";}\' onfocus=\'if(this.value=="0"){this.value="";}\' value="0" onkeyup="hetang();" ></td>`;
+        cols += `<td class="text-center"><spanx id="snum${i}">${no + 1}</spanx></td>`;
         cols += `<td>
-					<input type="text" class="form-control form-control-sm" placeholder="Keterangan" name="enote[]">
-					<input type="hidden" class="form-control form-control-sm" id="e_product${i}" name="e_product[]">
-					<input type="hidden" class="form-control form-control-sm" id="i_company${i}" name="i_company[]">
+                    <select data-urut="${i}" class="form-control form-control-sm form-control-select2" 
+                        data-container-css-class="select-sm" 
+                        name="items[${i}][id_product]" 
+                        id="id_product${i}" required data-fouc>
+                    </select>
+                </td>`;
+        cols += `<td>
+                    <input type="number" required class="form-control form-control-sm" min="1" 
+                        placeholder="Qty"
+                        id="qty${i}" 
+                        name="items[${i}][qty]">
+                </td>`;
+        // cols += `<td>
+        //             <input type="number" required class="form-control form-control-sm" min="1" 
+        //                 placeholder="Harga" 
+        //                 id="price${i}"
+        //                 name="items[${i}][price]">
+        //         </td>`;
+
+        cols += `<td>
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Rp.</span>
+                        </div>
+                        <input type="text" class="form-control"
+                                name="items[${i}][price]" id="price${i}" autocomplete="off" 
+                                value="" required>
+                    </div>
+                </td>`;
+        cols += `<td>
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Rp.</span>
+                        </div>
+                        <input type="text" class="form-control form-control-sm"
+                            name="items[${i}][total]"
+                            id="total${i}" readonly>
+                    </div>					
 				</td>`;
         cols += `<td class="text-center" width="3%;"><b><i title="Hapus Baris" class="icon-cancel-circle2 text-danger ibtnDel"></i></b></td>`;
+
         newRow.append(cols);
+
         $("#tablecover").append(newRow);
-        $("#i_product" + i).select2({
+        $("#id_product" + i).select2({
             placeholder: "Cari Product",
             width: "100%",
             allowClear: true,
@@ -81,7 +112,7 @@ var Detail = $(function() {
                 data: function(params) {
                     var query = {
                         q: params.term,
-                        id_company: $('#customeritem').val(),
+                        id_customer: $('#id_customer').val(),
                     };
                     return query;
                 },
@@ -107,39 +138,26 @@ var Detail = $(function() {
                     }
                 }
             }
-            if (!ada) {
-                var product = $(this).val();
-                produk = product.split(" - ");
-                product = produk[0];
-                brand = produk[1];
-                $.ajax({
-                    type: "POST",
-                    url: base_url + controller + "/get_detail_product",
-                    data: {
-                        i_product: product,
-                        i_brand: brand,
-                        id_customer: $("#idcustomer").val(),
-                    },
-                    dataType: "json",
-                    success: function(data) {
-                        //$("#harga" + z).val(formatcemua(data["detail"][0]["v_price"]));
-                        $("#e_product" + z).val(data["detail"][0]["e_product_name"]);
-                        $("#i_company" + z).val(data["detail"][0]["i_company"]);
-                        //hetang();
-                    },
-                    error: function() {
-                        swalInit(
-                            "Maaf :(",
-                            "Ada kesalahan saat mengambil data :(",
-                            "error"
-                        );
-                    },
-                });
-            } else {
+            if (ada) {
                 $(this).val("");
                 $(this).html("");
-            }
+            } 
         });
+
+        let elementQty = document.getElementById("qty"+i);
+        elementQty.addEventListener("keyup", function(e) {
+            calculateTotal(i);
+            calculateGrandTotal();
+        })
+
+        let elementPrice = document.getElementById("price"+i);
+        elementPrice.addEventListener("keyup", function(e) {
+            elementPrice.value = formatRupiah(this.value, "");
+            calculateTotal(i);
+            calculateGrandTotal();
+        });   
+
+        buildElementGrandTotalHarga($('#tablecover'));
     });
 
     /*----------  Hapus Baris Data Saudara  ----------*/
@@ -207,6 +225,65 @@ var Detail = $(function() {
 //     $("#netto").val(netto);
 // }
 
+
+function calculateTotal(index) {
+    let qty = document.getElementById('qty'+index).value;
+    let price = document.getElementById('price'+index).value;
+
+    if (qty == undefined || isNaN(qty) || parseInt(qty) <= 0 || qty == '') {
+        qty = 1;
+    }
+
+    price = price.replace(".", "");
+    price = parseInt(price);
+    let total = price * qty;    
+
+    document.getElementById('total'+index).value = formatRupiah(total.toString());
+}
+
+function calculateGrandTotal()
+{
+
+}
+
+/* Fungsi formatRupiah */
+function formatRupiah(angka, prefix) {
+    var number_string = angka.replace(/[^,\d]/g, "").toString(),
+      split = number_string.split(","),
+      sisa = split[0].length % 3,
+      rupiah = split[0].substr(0, sisa),
+      ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+  
+    // tambahkan titik jika yang di input sudah menjadi angka ribuan
+    if (ribuan) {
+      separator = sisa ? "." : "";
+      rupiah += separator + ribuan.join(".");
+    }
+  
+    rupiah = split[1] != undefined ? rupiah + "," + split[1] : rupiah;
+    return rupiah;
+}
+
+
+const trGrandTotalHarga = `<tr style="border-top: 1px solid #ddd" id="tr_grand_total_price">
+                            <td colspan="4">Grand Total Harga</td>
+                            <td>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">Rp.</span>
+                                    </div>
+                                    <input type="text" class="form-control"
+                                            id="grand_total_price" value="0" readonly>
+                                </div>
+                            </td>
+                            <td></td>
+                        </tr>`;
+
+function buildElementGrandTotalHarga(table) {
+    $('#tr_total_price').remove();
+    table.append(trGrandTotalHarga);
+}
+
 function number() {
     $.ajax({
         type: "post",
@@ -234,7 +311,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     $(".select-search").select2();
 
-    $("#idcustomer").select2({
+    $("#id_customer").select2({
         placeholder: "Cari Customer",
         width: "100%",
         allowClear: true,
@@ -271,7 +348,7 @@ document.addEventListener("DOMContentLoaded", function() {
             data: function(params) {
                 var query = {
                     q: params.term,
-                    id_customer: $('#idcustomer').val(),
+                    id_customer: $('#id_customer').val(),
                 };
                 return query;
             },

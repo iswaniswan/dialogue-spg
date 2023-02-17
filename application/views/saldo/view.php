@@ -78,13 +78,13 @@
                 <div class="form-group row">
                     <div class="col-md-12">
                         <div class="table-responsive">
-                            <table class="table table-columned datatable-header-basic table-bordered table-xs demo2" id="tabledetail">
+                            <table class="table table-columned datatable-header-basic table-bordered demo2" id="tabledetail">
                                 <thead>
                                     <tr class="bg-<?= $this->color; ?>">
-                                        <th class="text-center">No</th>
-                                        <th>Barang</th>
-                                        <th><?= $this->lang->line('Brand'); ?></th>
-                                        <th width="10%"><?= $this->lang->line('Qty'); ?></th>
+                                        <th class="text-center" style="width: 23px">No</th>
+                                        <th style="width: auto">Barang</th>
+                                        <th style="width: 200px"><?= $this->lang->line('Brand'); ?></th>
+                                        <th style="width: 30px"><?= $this->lang->line('Qty'); ?></th>
                                     </tr>
                                 </thead>
                                 <tbody>

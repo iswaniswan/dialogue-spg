@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", function() {
         var form = $(".form-validation").valid();
         if (form) {
             if (sama.length > 0) {
-                swalInit("Maaf :(", "Kode Barang Berikut Duplicat : " + sama, "error");
+                swalInit("Maaf :(", "Kode Barang Berikut Duplicate : " + sama, "error");
             } else {
                 sweetedit(controller);
             }

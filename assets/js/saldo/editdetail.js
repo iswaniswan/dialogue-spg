@@ -219,7 +219,7 @@ document.addEventListener("DOMContentLoaded", function() {
             for (var x = 1; x <= $("#jml").val(); x++) {
                 if ($(this).val() != null) {
                     var product = $(this).val();
-                    var productx = $("#i_product" + x).val();
+                    var productx = $("#id_product" + x).val();
                     console.log(product + " - " + productx);
                     if ((product == productx) && (z != x)) {
                         swalInit("Maaf :(", "Kode Barang tersebut sudah ada :(", "error");
