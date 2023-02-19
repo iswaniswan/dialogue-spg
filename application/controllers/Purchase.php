@@ -224,43 +224,31 @@ class Purchase extends CI_Controller
 			redirect(base_url(), 'refresh');
 		}
 
-		$this->form_validation->set_rules('idcustomer', 'idcustomer', 'trim|required|min_length[0]');
-		$this->form_validation->set_rules('idocument', 'idocuument', 'trim|required|min_length[0]');
-		$this->form_validation->set_rules('dreceive', 'dreceive', 'trim|required|min_length[0]');
-		if ($this->form_validation->run() == false) {
+		// $this->form_validation->set_rules('idcustomer', 'idcustomer', 'trim|required|min_length[0]');
+		// $this->form_validation->set_rules('idocument', 'idocuument', 'trim|required|min_length[0]');
+		// $this->form_validation->set_rules('dreceive', 'dreceive', 'trim|required|min_length[0]');
+
+		/** Simpan Data */
+		$idocument = $this->input->post('idocument', TRUE);
+		$cek = $this->mymodel->cek($idocument);
+		
+		$this->db->trans_begin();
+		$this->mymodel->save();
+		if ($this->db->trans_status() === FALSE) {
+			$this->db->trans_rollback();
 			$data = array(
 				'sukses' => false,
 				'ada'	 => false,
 			);
 		} else {
-			/** Simpan Data */
-			$idocument = $this->input->post('idocument', TRUE);
-			$cek = $this->mymodel->cek($idocument);
-			/** Jika Sudah Ada Jangan Disimpan */
-			if ($cek->num_rows() > 0) {
-				$data = array(
-					'sukses' => false,
-					'ada'	 => true,
-				);
-			} else {
-				$this->db->trans_begin();
-				$this->mymodel->save();
-				if ($this->db->trans_status() === FALSE) {
-					$this->db->trans_rollback();
-					$data = array(
-						'sukses' => false,
-						'ada'	 => false,
-					);
-				} else {
-					$this->db->trans_commit();
-					$this->logger->write('Simpan Data ' . $this->title . ' : ' . $idocument);
-					$data = array(
-						'sukses' => true,
-						'ada'	 => false,
-					);
-				}
-			}
+			$this->db->trans_commit();
+			$this->logger->write('Simpan Data ' . $this->title . ' : ' . $idocument);
+			$data = array(
+				'sukses' => true,
+				'ada'	 => false,
+			);
 		}
+		
 		echo json_encode($data);
 	}
 

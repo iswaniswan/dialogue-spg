@@ -1,3 +1,13 @@
+var countItems = 0;
+
+function reIndexRowNumber() {
+    let rows = document.querySelectorAll('spanx');
+    
+    for (i=0; i<rows.length; i++) {
+        rows[i].outerHTML = i+1;
+    }
+}
+
 var Plugin = (function() {
     var _componentPickadate = function() {
         if (!$().pickadate) {
@@ -47,17 +57,16 @@ var swalInit = swal.mixin({
 });
 
 var controller = $("#path").val();
-var Detail = $(function() {
-    var i = $("#jml").val();
-    $("#addrow").on("click", function() {
-        i++;
-        var no = $("#tablecover tbody tr").length;
-        $("#jml").val(i);
-        var newRow = $("<tr>");
-        var cols = "";
-        cols += `<td class="text-center"><spanx id="snum${i}">${no + 1}</spanx></td>`;
+var Detail = $(function() {    
+    $("#addrow").on("click", function() {                
+        const i = countItems++;
+        
+        let newRow = $("<tr>");
+
+        let cols = "";
+        cols += `<td class="text-center"><spanx id="snum${i}">${i+1}</spanx></td>`;
         cols += `<td>
-                    <select data-urut="${i}" class="form-control form-control-sm form-control-select2" 
+                    <select data-urut="${i}" class="form-control form-control-sm form-control-select2 form-input-product" 
                         data-container-css-class="select-sm" 
                         name="items[${i}][id_product]" 
                         id="id_product${i}" required data-fouc>
@@ -69,13 +78,6 @@ var Detail = $(function() {
                         id="qty${i}" 
                         name="items[${i}][qty]">
                 </td>`;
-        // cols += `<td>
-        //             <input type="number" required class="form-control form-control-sm" min="1" 
-        //                 placeholder="Harga" 
-        //                 id="price${i}"
-        //                 name="items[${i}][price]">
-        //         </td>`;
-
         cols += `<td>
                     <div class="input-group">
                         <div class="input-group-prepend">
@@ -91,16 +93,19 @@ var Detail = $(function() {
                         <div class="input-group-prepend">
                             <span class="input-group-text">Rp.</span>
                         </div>
-                        <input type="text" class="form-control form-control-sm"
+                        <input type="text" class="form-control form-control-sm form-input-total"
                             name="items[${i}][total]"
                             id="total${i}" readonly>
                     </div>					
 				</td>`;
-        cols += `<td class="text-center" width="3%;"><b><i title="Hapus Baris" class="icon-cancel-circle2 text-danger ibtnDel"></i></b></td>`;
+        cols += `<td class="text-center" width="3%;">
+                    <b><i title="Hapus Baris" class="icon-cancel-circle2 text-danger ibtnDel"></i></b>
+                </td>`;
 
         newRow.append(cols);
 
         $("#tablecover").append(newRow);
+
         $("#id_product" + i).select2({
             placeholder: "Cari Product",
             width: "100%",
@@ -124,28 +129,30 @@ var Detail = $(function() {
                 cache: false,
             },
         }).change(function(event) {
-            var z = $(this).data("urut");
-            var ada = false;
-            for (var x = 1; x <= $("#jml").val(); x++) {
-                if ($(this).val() != null) {
-                    var product = $(this).val();
-                    var productx = $("#i_product" + x).val();
-                    console.log(product + " - " + productx);
-                    if ((product == productx) && (z != x)) {
-                        swalInit("Maaf :(", "Kode Barang tersebut sudah ada :(", "error");
-                        ada = true;
-                        break;
-                    }
+            let isDuplicate = false;
+            let products = [];
+            $(".form-input-product").each(function() {
+                const idProduct = $(this).val();
+                if (products.includes(idProduct)) {
+                    isDuplicate = true;
                 }
-            }
-            if (ada) {
+                products.push($(this).val());
+            });
+
+            if (isDuplicate) {
                 $(this).val("");
                 $(this).html("");
-            } 
+                swalInit("Maaf :(", "Kode Barang tersebut sudah ada :(", "error");
+            }
         });
 
         let elementQty = document.getElementById("qty"+i);
         elementQty.addEventListener("keyup", function(e) {
+            calculateTotal(i);
+            calculateGrandTotal();
+        })
+
+        elementQty.addEventListener("change", function(e) {
             calculateTotal(i);
             calculateGrandTotal();
         })
@@ -163,14 +170,9 @@ var Detail = $(function() {
     /*----------  Hapus Baris Data Saudara  ----------*/
 
     $("#tablecover").on("click", ".ibtnDel", function(event) {
-        $(this).closest("tr").remove();
-        //hetang();
-        $("#jml").val(i);
-        var obj = $("#tablecover tr:visible").find("spanx");
-        $.each(obj, function(key, value) {
-            id = value.id;
-            $("#" + id).html(key + 1);
-        });
+        $(this).closest("tr").remove();  
+        countItems--;
+        reIndexRowNumber();
     });
 });
 
@@ -234,6 +236,10 @@ function calculateTotal(index) {
         qty = 1;
     }
 
+    if (price == undefined || isNaN(price) || parseInt(price) <= 0 || price == '') {
+        price = '0';
+    }
+
     price = price.replace(".", "");
     price = parseInt(price);
     let total = price * qty;    
@@ -243,7 +249,18 @@ function calculateTotal(index) {
 
 function calculateGrandTotal()
 {
-
+    let items = document.querySelectorAll('.form-input-total');
+    let grandTotal = 0;
+    for (i=0; i<items.length; i++) {
+        let total = items[i].value.toString();
+        if (total == '') {
+            total = '0';
+        }
+        total = total.replace(".", "");
+        total = total.replace(",", ".");
+        grandTotal += parseFloat(total);
+    }
+    document.getElementById('grand_total_price').value = formatRupiah(grandTotal.toString());
 }
 
 /* Fungsi formatRupiah */
@@ -280,8 +297,9 @@ const trGrandTotalHarga = `<tr style="border-top: 1px solid #ddd" id="tr_grand_t
                         </tr>`;
 
 function buildElementGrandTotalHarga(table) {
-    $('#tr_total_price').remove();
+    $('#tr_grand_total_price').remove();
     table.append(trGrandTotalHarga);
+    calculateGrandTotal();
 }
 
 function number() {
@@ -332,9 +350,6 @@ document.addEventListener("DOMContentLoaded", function() {
             },
             cache: false,
         },
-    }).change(function() {
-        $("#tablecover tbody tr:gt(0)").remove();
-        $("#jml").val(0);
     });
 
     $("#customeritem").select2({
@@ -359,9 +374,6 @@ document.addEventListener("DOMContentLoaded", function() {
             },
             cache: false,
         },
-    }).change(function() {
-        $("#tablecover tbody tr:gt(0)").remove();
-        $("#jml").val(0);
     });
 
     $("#ddocument").on("change", function() {

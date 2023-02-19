@@ -370,6 +370,17 @@ class Mpurchase extends CI_Model {
         };
     }
 
+    public function save2()
+    {
+        $i_document = $this->input->post('iddocument');
+        $d_receive = $this->input->post('dreceive');
+        $id_customer = $this->input->post('id_customer');
+        $i_surat_jalan = $this->input->post('i_surat_jalan');
+        $d_surat_jalan = $this->input->post('d_surat_jalan');
+        $e_remark = $this->input->post('eremark');
+        $items = $this->input->post('items');
+    }
+
     /** Get Data Untuk Edit */
     public function getdata($id)
     {
