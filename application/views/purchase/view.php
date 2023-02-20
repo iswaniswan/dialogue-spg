@@ -41,10 +41,34 @@
                         <div class="form-group">
                             <label>Toko :</label>
                             <select class="form-control select-search" disabled="true" data-container-css-class="select-sm">
-                                <option value="<?= $data->id_item; ?>"><?= $data->e_customer_name; ?></option>
+                                <option value="<?= $data->id_customer; ?>"><?= $data->e_customer_name; ?></option>
                             </select>
                         </div>
                     </div>
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label>Distributor :</label>
+                            <select class="form-control select-search" disabled="true" data-container-css-class="select-sm">
+                                <option value="<?= $data->i_company; ?>"><?= $data->e_company_name; ?></option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label>No. Surat Jalan :</label>
+                            <input type="text" class="form-control" readonly value="<?= $data->i_surat_jalan; ?>">
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label>Tanggal Surat Jalan :</label>
+                            <input type="text" class="form-control" readonly value="<?= $data->d_surat_jalan; ?>">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
                     <div class="col-sm-6">
                         <div class="form-group">
                             <label>Keterangan :</label>
@@ -72,34 +96,42 @@
                                         <th>Nama Barang</th>
                                         <th class="text-right">Qty</th>
                                         <!-- <th class="text-right">Harga</th> -->
-                                        <th>Keterangan</th>
+                                        <th>Harga</th>
+                                        <th>Total</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php $i = 0;
-                                    if ($detail) {
-                                        foreach ($detail->result() as $key) {
-                                            $i++; ?>
-                                            <tr>
-                                                <td class="text-center">
-                                                    <spanx id="snum<?= $i; ?>"><?= $i; ?></spanx>
-                                                </td>
-                                                <td><?= $key->i_product; ?></td>
-                                                <td><?= $key->e_product_name; ?></td>
-                                                <td class="text-right"><?= $key->n_qty; ?></td>
-                                                <!-- <td class="text-right"><?= number_format($key->v_price); ?></td> -->
-                                                <td>
-                                                    <?= $key->e_remark; ?>
-                                                    <input type="hidden" id="i_product<?= $i; ?>" value="<?= $key->i_product; ?>" name="i_product[]">
-                                                    <input type="hidden" id="qty<?= $i; ?>" value="<?= $key->n_qty; ?>" name="qty[]">
-                                                    <!-- <input type="hidden" value="0" id="diskon<?= $i; ?>" name="vdiskon[]">
-                                                    <input type="hidden" class="harga" id="harga<?= $i; ?>" value="<?= $key->v_price; ?>" name="harga[]"> -->
-                                                </td>
-                                            </tr>
-                                    <?php }
-                                    } ?>
+                                    <?php $grand_total = 0; ?>
+                                    <?php $i = 0; foreach ($detail->result() as $key) { $i++; ?>
+                                        <tr>
+                                            <td class="text-center">
+                                                <spanx id="snum<?= $i; ?>"><?= $i; ?></spanx>
+                                            </td>
+                                            <td><?= $key->i_product; ?></td>
+                                            <td><?= $key->e_product_name; ?></td>
+                                            <td class="text-right"><?= $key->n_qty; ?></td>
+                                            <td class="text-right">Rp. <?= number_format($key->v_price, 0, ",", "."); ?></td>
+                                            <td class="text-right">
+                                                <?php $total = $key->n_qty * $key->v_price;
+                                                    echo "Rp. " . number_format($total, 0, ",", ".")
+                                                ?>  
+                                                <?php $grand_total += $total; ?>                                                  
+                                            </td>
+                                        </tr>
+                                    <?php } ?>
                                 </tbody>
-                                <!-- <tfoot>
+
+                                <?php if ($i >= 1) { ?>
+                                    <tfoot style="border-top: 1px solid #ddd;">
+                                        <tr>
+                                            <th colspan="5">Grand Total</th>
+                                            <th class="text-right">Rp. <?= number_format($grand_total, 0, ",", ".") ?></th>
+                                        </tr>
+                                    </tfoot>
+                                <?php } ?>
+
+                                <?php /*
+                                <tfoot>
                                     <tr>
                                         <th colspan="4" class="text-right">Bruto</th>
                                         <th class="text-right">
@@ -141,7 +173,8 @@
                                         </th>
                                         <th colspan="2"></th>
                                     </tr>
-                                </tfoot> -->
+                                </tfoot>
+                                */ ?>
                                 <input type="hidden" id="jml" name="jml" value="<?= $i; ?>">
                             </table>
                         </div>

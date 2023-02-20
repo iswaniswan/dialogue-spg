@@ -236,11 +236,12 @@ function calculateTotal(index) {
         qty = 1;
     }
 
-    if (price == undefined || isNaN(price) || parseInt(price) <= 0 || price == '') {
+    if (price == undefined || parseInt(price) <= 0 || price == '') {
         price = '0';
     }
 
-    price = price.replace(".", "");
+    price = price.replaceAll(".", "");
+    // console.log("price: ", price);
     price = parseInt(price);
     let total = price * qty;    
 
@@ -256,8 +257,8 @@ function calculateGrandTotal()
         if (total == '') {
             total = '0';
         }
-        total = total.replace(".", "");
-        total = total.replace(",", ".");
+        total = total.replaceAll(".", "");
+        total = total.replaceAll(",", ".");
         grandTotal += parseFloat(total);
     }
     document.getElementById('grand_total_price').value = formatRupiah(grandTotal.toString());
@@ -319,6 +320,14 @@ function number() {
     });
 }
 
+function clearTableDetailBarang() {
+    const table = $('#tablecover');
+    const allButtonDelete = table.find('.ibtnDel');
+    $(allButtonDelete).each(function() {
+        $(this).trigger('click');
+    });
+}
+
 document.addEventListener("DOMContentLoaded", function() {
     Plugin.init();
     Detail.init();
@@ -350,10 +359,12 @@ document.addEventListener("DOMContentLoaded", function() {
             },
             cache: false,
         },
+    }).change(function() {
+        clearTableDetailBarang();
     });
 
-    $("#customeritem").select2({
-        placeholder: "Cari Customer",
+    $("#id_distributor").select2({
+        placeholder: "Cari Distributor",
         width: "100%",
         allowClear: true,
         ajax: {

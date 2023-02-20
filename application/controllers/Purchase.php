@@ -137,7 +137,7 @@ class Purchase extends CI_Controller
 			foreach ($data->result() as $row) {
 				$filter[] = array(
 					'id'   => $row->i_company,
-					'text' => ucwords(strtolower($row->e_company_name)),
+					'text' => strtoupper($row->e_company_name),
 				);
 			}
 		echo json_encode($filter);
@@ -231,15 +231,21 @@ class Purchase extends CI_Controller
 		/** Simpan Data */
 		$idocument = $this->input->post('idocument', TRUE);
 		$cek = $this->mymodel->cek($idocument);
+
+		$error = [
+			'sukses' => false,
+			'ada'	 => false,
+		];
+
+		if ($cek->num_rows() >= 1) {
+			echo json_encode($error);
+			return;
+		}
 		
 		$this->db->trans_begin();
-		$this->mymodel->save();
+		$this->mymodel->save2();
 		if ($this->db->trans_status() === FALSE) {
-			$this->db->trans_rollback();
-			$data = array(
-				'sukses' => false,
-				'ada'	 => false,
-			);
+			$this->db->trans_rollback();			
 		} else {
 			$this->db->trans_commit();
 			$this->logger->write('Simpan Data ' . $this->title . ' : ' . $idocument);
@@ -274,8 +280,8 @@ class Purchase extends CI_Controller
 		);
 
 		$data = array(
-			'data' 	  => $this->mymodel->getdata(decrypt_url($this->uri->segment(3)))->row(),
-			'detail'  => $this->mymodel->getdatadetail(decrypt_url($this->uri->segment(3))),
+			'data' 	  => $this->mymodel->get_data(decrypt_url($this->uri->segment(3)))->row(),
+			'detail'  => $this->mymodel->get_data_detail(decrypt_url($this->uri->segment(3))),
 		);
 		$this->logger->write('Membuka Form Edit ' . $this->title);
 		$this->template->load('main', $this->folder . '/edit', $data);
@@ -289,35 +295,31 @@ class Purchase extends CI_Controller
 		if (!$data) {
 			redirect(base_url(), 'refresh');
 		}
-		$this->form_validation->set_rules('id', 'id', 'trim|required|min_length[0]');
-		$this->form_validation->set_rules('idcustomer', 'idcustomer', 'trim|required|min_length[0]');
-		$this->form_validation->set_rules('idocument', 'idocuument', 'trim|required|min_length[0]');
-		$this->form_validation->set_rules('ddocument', 'ddocument', 'trim|required|min_length[0]');
+		// $this->form_validation->set_rules('id', 'id', 'trim|required|min_length[0]');
+		// $this->form_validation->set_rules('idcustomer', 'idcustomer', 'trim|required|min_length[0]');
+		// $this->form_validation->set_rules('idocument', 'idocuument', 'trim|required|min_length[0]');
+		// $this->form_validation->set_rules('ddocument', 'ddocument', 'trim|required|min_length[0]');
+
 		$id = $this->input->post('id', TRUE);
-		if ($this->form_validation->run() == false) {
+		
+		/** Update Data */
+		$this->db->trans_begin();
+		$this->mymodel->update2($id);
+		if ($this->db->trans_status() === FALSE) {
+			$this->db->trans_rollback();
 			$data = array(
 				'sukses' => false,
 				'ada'	 => false,
 			);
 		} else {
-			/** Update Data */
-			$this->db->trans_begin();
-			$this->mymodel->update();
-			if ($this->db->trans_status() === FALSE) {
-				$this->db->trans_rollback();
-				$data = array(
-					'sukses' => false,
-					'ada'	 => false,
-				);
-			} else {
-				$this->db->trans_commit();
-				$this->logger->write('Update Data ' . $this->title . ' ID : ' . $id);
-				$data = array(
-					'sukses' => true,
-					'ada'	 => false,
-				);
-			}
+			$this->db->trans_commit();
+			$this->logger->write('Update Data ' . $this->title . ' ID : ' . $id);
+			$data = array(
+				'sukses' => true,
+				'ada'	 => false,
+			);
 		}
+		
 		echo json_encode($data);
 	}
 
@@ -345,8 +347,8 @@ class Purchase extends CI_Controller
 		);
 
 		$data = array(
-			'data' 	  => $this->mymodel->getdata(decrypt_url($this->uri->segment(3)))->row(),
-			'detail'  => $this->mymodel->getdatadetail(decrypt_url($this->uri->segment(3))),
+			'data' 	  => $this->mymodel->get_data(decrypt_url($this->uri->segment(3)))->row(),
+			'detail'  => $this->mymodel->get_data_detail(decrypt_url($this->uri->segment(3))),
 		);
 		$this->logger->write('Membuka Form Detail ' . $this->title);
 		$this->template->load('main', $this->folder . '/view', $data);

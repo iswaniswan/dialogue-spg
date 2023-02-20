@@ -6,72 +6,34 @@ use Ozdemir\Datatables\DB\CodeigniterAdapter;
 class Mpurchase extends CI_Model {
 
     /** List Datatable */
-    public function serverside($dfrom,$dto){
+    public function serverside($dfrom,$dto)
+    {
 
         $datatables = new Datatables(new CodeigniterAdapter);
-        if ($this->fallcustomer == 'f') {
-            $where = "
-                AND b.id_customer IN (
-                    SELECT 
-                        id_customer
-                    FROM 
-                        tm_user_customer
-                    WHERE 
-                        id_user = '$this->id_user'
-                )
-            ";
-        }else{
-            $where = "";
-        }
-        /*
+        
+        $id_user = $this->session->userdata('id_user');
 
-        if ($this->i_company=='1') {
-            $and = "
-                AND b.i_company IN (
-                SELECT 
-                    i_company
-                FROM 
-                    tm_user_company
-                WHERE 
-                    id_user = '$this->id_user'
-            )
-            ";
-        }else{
-            $and = "
-                AND b.i_company = '$this->i_company'
-            ";
-        }*/
-        $datatables->query("SELECT
-                DISTINCT id_document,
-                e_company_name,
-                i_document,
-                d_receive,
-                c.e_customer_name,
-                a.e_remark, 
-                a.f_status
-            FROM
-                tm_pembelian a
-            INNER JOIN tr_customer_item b ON
-                (
-                    b.id_item = a.id_item
-                )
-            INNER JOIN tr_customer c ON
-                (
-                    c.id_customer = b.id_customer
-                ) 
-            INNER JOIN tr_company d ON
-                (
-                    d.i_company = b.i_company
-                ) 
-            WHERE 
-                d_receive BETWEEn '$dfrom' 
-                AND '$dto' 
-                $where
-            ORDER BY d_receive, i_document ASC
-            ", FALSE);
+        $sql = "SELECT DISTINCT a.id,
+                    i_document,
+                    d_receive,
+                    UPPER(c.e_customer_name) AS e_customer_name,
+                    c2.e_company_name,
+                    a.e_remark, 
+                    a.f_status
+                FROM tm_pembelian a
+                INNER JOIN tm_user_customer tuc ON tuc.id_user = '$id_user' AND tuc.id_customer = a.id_customer
+                INNER JOIN tr_customer c ON c.id_customer = tuc.id_customer
+                INNER JOIN tr_company c2 ON c2.i_company = a.i_company
+                WHERE  d_receive BETWEEn '$dfrom' AND '$dto'
+                    AND a.f_status = 't'
+                ORDER BY d_receive, i_document ASC";
+
+        // var_dump($sql); die();
+
+        $datatables->query($sql, FALSE);
 
         $datatables->edit('f_status', function ($data) {
-            $id         = $data['id_document'];
+            $id         = $data['i_document'];
             if ($data['f_status']=='t') {
                 $status = 'Aktif';
                 $color  = 'success';
@@ -85,7 +47,8 @@ class Mpurchase extends CI_Model {
 
         /** Cek Hak Akses, Apakah User Bisa Edit */
         $datatables->add('action', function ($data) {
-            $id         = trim($data['id_document']);
+            // $id         = trim($data['i_document']);
+            $id = $data['id'];
             $ddocument  = $data['d_receive'];
             $month      = date('m', strtotime($ddocument));
             $bulan      = date('m');
@@ -372,13 +335,45 @@ class Mpurchase extends CI_Model {
 
     public function save2()
     {
-        $i_document = $this->input->post('iddocument');
+        // $i_document = $this->input->post('idocument');
+
+        $tgl = date('Y-m-d');
+        $i_document = $this->mymodel->runningnumber(date('ym', strtotime($tgl)), date('Y', strtotime($tgl)));
+
         $d_receive = $this->input->post('dreceive');
         $id_customer = $this->input->post('id_customer');
+        $id_distributor = $this->input->post('id_distributor');
         $i_surat_jalan = $this->input->post('i_surat_jalan');
         $d_surat_jalan = $this->input->post('d_surat_jalan');
         $e_remark = $this->input->post('eremark');
         $items = $this->input->post('items');
+
+        // insert table tm_pembelian
+        $data = [
+            'i_document' => $i_document,
+            'd_receive' => $d_receive,
+            'e_remark' => $e_remark,
+            'i_surat_jalan' => $i_surat_jalan,
+            'd_surat_jalan' => $d_surat_jalan,
+            'id_customer' => $id_customer,
+            'i_company' => $id_distributor
+        ];
+        $this->db->insert('tm_pembelian', $data);
+
+        $inserted_id = $this->db->insert_id();
+
+        foreach($items as $item) {
+            $price = str_replace(".", "", @$item['price']);
+
+            $data = [
+                'id_pembelian' => $inserted_id,
+                'id_product' => $item['id_product'],
+                'n_qty' => $item['qty'],
+                'v_price' => $price
+            ];
+            $this->db->insert('tm_pembelian_item', $data);
+        };
+
     }
 
     /** Get Data Untuk Edit */
@@ -404,6 +399,27 @@ class Mpurchase extends CI_Model {
             WHERE 
                 id_document = '$id'
         ", FALSE);
+    }
+
+    public function get_data($id)
+    {
+        $sql = "SELECT a.*, c.e_customer_name, c2.e_company_name
+                FROM tm_pembelian a 
+                INNER JOIN tr_customer c ON c.id_customer = a.id_customer
+                INNER JOIN tr_company c2 ON c2.i_company = a.i_company
+                WHERE id = '$id'";
+
+        return $this->db->query($sql);
+    }
+
+    public function get_data_detail($id_pembelian)
+    {
+        $sql = "SELECT a.*, tp.i_product, tp.e_product_name
+                FROM tm_pembelian_item a 
+                INNER JOIN tr_product tp ON tp.id = a.id_product
+                WHERE id_pembelian = '$id_pembelian'";
+
+        return $this->db->query($sql);
     }
 
     /** Get Data Untuk Edit */
@@ -561,12 +577,84 @@ class Mpurchase extends CI_Model {
         };
     }
 
+    public function update2($id)
+    {
+        $d_receive = $this->input->post('d_receive');
+        $id_customer = $this->input->post('id_customer');
+        $id_distributor = $this->input->post('id_distributor');
+        $i_surat_jalan = $this->input->post('i_surat_jalan');
+        $d_surat_jalan = $this->input->post('d_surat_jalan');
+        $e_remark = $this->input->post('eremark');
+        $current_items = $this->input->post('current_items');
+        $items = @$this->input->post('items');
+
+        $data = array(
+            'd_receive' => $d_receive,
+            'i_surat_jalan' => $i_surat_jalan,
+            'd_surat_jalan' => $d_surat_jalan,
+            'id_customer' => $id_customer,
+            'i_company' => $id_distributor,
+            'e_remark' => $e_remark,
+            'd_update' => current_datetime(),
+        );
+        $this->db->where('id', $id);
+        $this->db->update('tm_pembelian', $data);
+
+        // update detail, delete insert item pembelian
+        // delete old record
+        $this->delete_pembelian_item_by_id_pembelian($id);
+
+        // insert new record
+        foreach ($current_items as $item) {
+            $price = str_replace(".", "", @$item['price']);
+
+            $data = [
+                'id_pembelian' => $id,
+                'id_product' => $item['id_product'],
+                'n_qty' => $item['qty'],
+                'v_price' => $price
+            ];
+            $this->db->insert('tm_pembelian_item', $data);
+        }
+
+        if (!isset($items)) {
+            return;
+        }
+
+        foreach ($items as $item) {
+            $price = str_replace(".", "", @$item['price']);
+            $price = str_replace(",", ".", @$item['price']);
+
+            $data = [
+                'id_pembelian' => $id,
+                'id_product' => $item['id_product'],
+                'n_qty' => $item['qty'],
+                'v_price' => $price
+            ];
+            $this->db->insert('tm_pembelian_item', $data);
+        }        
+    }
+
+    private function delete_pembelian_item_by_id_pembelian($id_pembelian) 
+    {
+        $sql = "SELECT id 
+                FROM tm_pembelian_item
+                WHERE id_pembelian = '$id_pembelian'";
+
+        $query = $this->db->query($sql);
+
+        foreach($query->result() as $row) {
+            $this->db->where('id', $row->id);
+            $this->db->delete('tm_pembelian_item');
+        }
+    }
+
     public function cancel($id)
     {
         $data = array(
             'f_status' => false, 
         );
-        $this->db->where('id_document', $id);
+        $this->db->where('id', $id);
         $this->db->update('tm_pembelian', $data);
     }
 

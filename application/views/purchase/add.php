@@ -58,8 +58,12 @@
                     <div class="col-sm-6">
                         <div class="form-group">
                             <label>Nama Distributor :</label>
-                            <select class="form-control select-search" data-container-css-class="select-sm" data-placeholder="Select Customer" required data-fouc name="customeritem" id="customeritem">
-                            </select>
+                                <select class="form-control select-search" 
+                                    data-container-css-class="select-sm" 
+                                    data-placeholder="Select Customer" 
+                                    name="id_distributor" id="id_distributor"
+                                    required data-fouc>
+                                </select>
                         </div>
                     </div>
                    

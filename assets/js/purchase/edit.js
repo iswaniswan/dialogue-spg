@@ -1,3 +1,13 @@
+var countItems = 0;
+
+function reIndexRowNumber() {
+    let rows = document.querySelectorAll('spanx');
+    
+    for (i=0; i<rows.length; i++) {
+        rows[i].outerHTML = i+1;
+    }
+}
+
 var Plugin = (function() {
     var _componentPickadate = function() {
         if (!$().pickadate) {
@@ -46,114 +56,204 @@ var swalInit = swal.mixin({
     cancelButtonText: '<i class="icon-thumbs-down3"></i> Tidak',
 });
 
+var getCountItems = function() {
+    let rows = document.querySelectorAll('.form-input-total');
+    return rows.length > 0 ? rows.length: 1;
+}
+
 var controller = $("#path").val();
 var Detail = $(function() {
-    var i = $("#jml").val();
-    $("#addrow").on("click", function() {
-        i++;
-        var no = $("#tablecover tbody tr").length;
-        $("#jml").val(i);
-        var newRow = $("<tr>");
-        var cols = "";
-        cols += `<td class="text-center"><spanx id="snum${i}">${no+1}</spanx></td>`;
-        cols += `<td><select data-urut="${i}" required class="form-control form-control-sm form-control-select2" data-container-css-class="select-sm" name="i_product[]" id="i_product${i}" required data-fouc></select></td>`;
-        cols += `<td><input type="number" required class="form-control form-control-sm" min="1" id="qty${i}" onkeyup="hetang();" placeholder="Qty" name="qty[]"></td>`;
-        cols += `<td hidden><input type="number" required class="form-control form-control-sm" onblur=\'if(this.value==""){this.value="0";}\' onfocus=\'if(this.value=="0"){this.value="";}\' value="0" id="diskon${i}" onkeyup="hetang();" placeholder="Diskon" name="vdiskon[]"></td>`;
-        // cols += `<td><input type="number" required class="form-control form-control-sm harga" id="harga${i}" placeholder="Harga" name="harga[]"  onblur=\'if(this.value==""){this.value="0";}\' onfocus=\'if(this.value=="0"){this.value="";}\' value="0" onkeyup="hetang();" ></td>`;
+    $("#addrow").on("click", function() {                
+        let i = getCountItems();
+        
+        let newRow = $("<tr>");
+
+        let cols = "";
+        cols += `<td class="text-center"><spanx id="snum${i}">${i+1}</spanx></td>`;
         cols += `<td>
-					<input type="text" class="form-control form-control-sm" placeholder="Keterangan" name="enote[]">
-					<input type="hidden" class="form-control form-control-sm" id="e_product${i}" name="e_product[]">
-					<input type="hidden" class="form-control form-control-sm" id="i_company${i}" name="i_company[]">
+                    <select data-urut="${i}" class="form-control form-control-sm form-control-select2 form-input-product" 
+                        data-container-css-class="select-sm" 
+                        name="items[${i}][id_product]" 
+                        id="id_product${i}" required data-fouc>
+                    </select>
+                </td>`;
+        cols += `<td>
+                    <input type="number" required class="form-control form-control-sm" min="1" 
+                        placeholder="Qty"
+                        id="qty${i}" 
+                        name="items[${i}][qty]">
+                </td>`;
+        cols += `<td>
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Rp.</span>
+                        </div>
+                        <input type="text" class="form-control"
+                                name="items[${i}][price]" id="price${i}" autocomplete="off" 
+                                value="" required>
+                    </div>
+                </td>`;
+        cols += `<td>
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Rp.</span>
+                        </div>
+                        <input type="text" class="form-control form-control-sm form-input-total"
+                            name="items[${i}][total]"
+                            id="total${i}" readonly>
+                    </div>					
 				</td>`;
-        cols += `<td class="text-center"><b><i title="Hapus Baris" class="icon-cancel-circle2 text-danger ibtnDel"></i></b></td>`;
+        cols += `<td class="text-center" width="3%;">
+                    <b><i title="Hapus Baris" class="icon-cancel-circle2 text-danger ibtnDel"></i></b>
+                </td>`;
+
         newRow.append(cols);
+
         $("#tablecover").append(newRow);
-        $("#i_product" + i).select2({
-                placeholder: "Cari Product",
-                width: "100%",
-                allowClear: true,
-                ajax: {
-                    url: base_url + controller + "/get_product",
-                    dataType: "json",
-                    delay: 250,
-                    data: function(params) {
-                        var query = {
-                            q: params.term,
-                            id_company: $('#customeritem').val(),
-                        };
-                        return query;
-                    },
-                    processResults: function(data) {
-                        return {
-                            results: data,
-                        };
-                    },
-                    cache: false,
+
+        $("#id_product" + i).select2({
+            placeholder: "Cari Product",
+            width: "100%",
+            allowClear: true,
+            ajax: {
+                url: base_url + controller + "/get_product",
+                dataType: "json",
+                delay: 250,
+                data: function(params) {
+                    var query = {
+                        q: params.term,
+                        id_customer: $('#id_customer').val(),
+                    };
+                    return query;
                 },
-            })
-            .change(function(event) {
-                var z = $(this).data("urut");
-                var ada = false;
-                for (var x = 1; x <= $("#jml").val(); x++) {
-                    if ($(this).val() != null) {
-                        var product = $(this).val();
-                        var productx = $("#i_product" + x).val();
-                        console.log(product + " - " + productx);
-                        if ((product == productx) && (z != x)) {
-                            swalInit("Maaf :(", "Kode Barang tersebut sudah ada :(", "error");
-                            ada = true;
-                            break;
-                        }
-                    }
+                processResults: function(data) {
+                    return {
+                        results: data,
+                    };
+                },
+                cache: false,
+            },
+        }).change(function(event) {
+            let isDuplicate = false;
+            let products = [];
+            $(".form-input-product").each(function() {
+                const idProduct = $(this).val();
+                if (products.includes(idProduct)) {
+                    isDuplicate = true;
                 }
-                if (!ada) {
-                    var product = $(this).val();
-                    produk = product.split(" - ");
-                    product = produk[0];
-                    brand = produk[1];
-                    $.ajax({
-                        type: "POST",
-                        url: base_url + controller + "/get_detail_product",
-                        data: {
-                            i_product: product,
-                            i_brand: brand,
-                            id_customer: $('#idcustomer').val(),
-                        },
-                        dataType: "json",
-                        success: function(data) {
-                            //$("#harga" + z).val(formatcemua(data["detail"][0]["v_price"]));
-                            $("#e_product" + z).val(data["detail"][0]["e_product_name"]);
-                            $("#i_company" + z).val(data["detail"][0]["i_company"]);
-                        },
-                        error: function() {
-                            swalInit(
-                                "Maaf :(",
-                                "Ada kesalahan saat mengambil data :(",
-                                "error"
-                            );
-                        },
-                    });
-                } else {
-                    $(this).val("");
-                    $(this).html("");
-                }
+                products.push($(this).val());
             });
+
+            if (isDuplicate) {
+                $(this).val("");
+                $(this).html("");
+                swalInit("Maaf :(", "Kode Barang tersebut sudah ada :(", "error");
+            }
+        });
+
+        let elementQty = document.getElementById("qty"+i);
+        elementQty.addEventListener("keyup", function(e) {
+            calculateTotal(i);
+            calculateGrandTotal();
+        })
+
+        elementQty.addEventListener("change", function(e) {
+            calculateTotal(i);
+            calculateGrandTotal();
+        })
+
+        let elementPrice = document.getElementById("price"+i);
+        elementPrice.addEventListener("keyup", function(e) {
+            elementPrice.value = formatRupiah(this.value, "");
+            calculateTotal(i);
+            calculateGrandTotal();
+        });   
+
+        buildElementGrandTotalHarga($('#tablecover'));
     });
 
     /*----------  Hapus Baris Data Saudara  ----------*/
 
     $("#tablecover").on("click", ".ibtnDel", function(event) {
-        $(this).closest("tr").remove();
-        //hetang();
-        $("#jml").val(i);
-        var obj = $("#tablecover tr:visible").find("spanx");
-        $.each(obj, function(key, value) {
-            id = value.id;
-            $("#" + id).html(key + 1);
-        });
+        $(this).closest("tr").remove();  
+        countItems--;
+        reIndexRowNumber();
     });
 });
 
+function calculateTotal(index) {
+    let qty = document.getElementById('qty'+index).value;
+    let price = document.getElementById('price'+index).value;
+
+    if (qty == undefined || isNaN(qty) || parseInt(qty) <= 0 || qty == '') {
+        qty = 1;
+    }
+
+    if (price == undefined || parseInt(price) <= 0 || price == '') {
+        price = '0';
+    }
+
+    price = price.replaceAll(".", "");
+    // console.log("price: ", price);
+    price = parseInt(price);
+    let total = price * qty;    
+
+    document.getElementById('total'+index).value = formatRupiah(total.toString());
+}
+
+function calculateGrandTotal()
+{
+    let items = document.querySelectorAll('.form-input-total');
+    let grandTotal = 0;
+    for (i=0; i<items.length; i++) {
+        let total = items[i].value.toString();
+        if (total == '') {
+            total = '0';
+        }
+        total = total.replaceAll(".", "");
+        total = total.replaceAll(",", ".");
+        grandTotal += parseFloat(total);
+    }
+    document.getElementById('grand_total_price').value = formatRupiah(grandTotal.toString());
+}
+
+/* Fungsi formatRupiah */
+function formatRupiah(angka, prefix) {
+    var number_string = angka.replace(/[^,\d]/g, "").toString(),
+      split = number_string.split(","),
+      sisa = split[0].length % 3,
+      rupiah = split[0].substr(0, sisa),
+      ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+  
+    // tambahkan titik jika yang di input sudah menjadi angka ribuan
+    if (ribuan) {
+      separator = sisa ? "." : "";
+      rupiah += separator + ribuan.join(".");
+    }
+  
+    rupiah = split[1] != undefined ? rupiah + "," + split[1] : rupiah;
+    return rupiah;
+}
+
+const trGrandTotalHarga = `<tr style="border-top: 1px solid #ddd" id="tr_grand_total_price">
+                            <td colspan="4">Grand Total Harga</td>
+                            <td>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">Rp.</span>
+                                    </div>
+                                    <input type="text" class="form-control"
+                                            id="grand_total_price" value="0" readonly>
+                                </div>
+                            </td>
+                            <td></td>
+                        </tr>`;
+
+function buildElementGrandTotalHarga(table) {
+    $('#tr_grand_total_price').remove();
+    table.append(trGrandTotalHarga);
+    calculateGrandTotal();
+}
 // function hetang() {
 //     var bruto = 0;
 //     var diskonrp = 0;
@@ -205,11 +305,12 @@ var Detail = $(function() {
 //     $('#netto').val(netto);
 // }
 
+
 function number() {
     $.ajax({
         type: "post",
         data: {
-            'tgl': $('#ddocument').val(),
+            'tgl': $('#d_receive').val(),
         },
         url: base_url + controller + "/number",
         dataType: "json",
@@ -232,54 +333,58 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     $(".select-search").select2();
-
-    $("#idcustomer").select2({
-        placeholder: "Cari Customer",
+    $("#id_customer").select2({
         width: "100%",
-        allowClear: true,
-        ajax: {
-            url: base_url + controller + "/get_customer",
-            dataType: "json",
-            delay: 250,
-            data: function(params) {
-                var query = {
-                    q: params.term,
-                };
-                return query;
-            },
-            processResults: function(data) {
-                return {
-                    results: data,
-                };
-            },
-            cache: false,
-        },
-    }).change(function() {
-        $("#tablecover tbody tr:gt(0)").remove();
-        $("#jml").val(0);
-        /* $.ajax({
-            type: "POST",
-            url: base_url + controller + "/get_detail_customer",
-            data: {
-                id_customer: $(this).val(),
-            },
-            dataType: "json",
-            success: function(data) {
-                $("#alamat").val(data.e_customer_address);
-                $("#nama").val(data.e_customer_name);
-            },
-            error: function() {
-                swalInit(
-                    "Maaf :(",
-                    "Ada kesalahan saat mengambil data :(",
-                    "error"
-                );
-            },
-        }); */
-    });
+        allowClear: false,
+    })
+
+    // $("#id_customer").select2({
+    //     placeholder: "Cari Customer",
+    //     width: "100%",
+    //     allowClear: true,
+    //     ajax: {
+    //         url: base_url + controller + "/get_customer",
+    //         dataType: "json",
+    //         delay: 250,
+    //         data: function(params) {
+    //             var query = {
+    //                 q: params.term,
+    //             };
+    //             return query;
+    //         },
+    //         processResults: function(data) {
+    //             return {
+    //                 results: data,
+    //             };
+    //         },
+    //         cache: false,
+    //     },
+    // }).change(function() {
+    //     $("#tablecover tbody tr:gt(0)").remove();
+    //     $("#jml").val(0);
+    //     /* $.ajax({
+    //         type: "POST",
+    //         url: base_url + controller + "/get_detail_customer",
+    //         data: {
+    //             id_customer: $(this).val(),
+    //         },
+    //         dataType: "json",
+    //         success: function(data) {
+    //             $("#alamat").val(data.e_customer_address);
+    //             $("#nama").val(data.e_customer_name);
+    //         },
+    //         error: function() {
+    //             swalInit(
+    //                 "Maaf :(",
+    //                 "Ada kesalahan saat mengambil data :(",
+    //                 "error"
+    //             );
+    //         },
+    //     }); */
+    // });
 
     for (let i = 1; i <= $("#jml").val(); i++) {
-        $("#i_product" + i)
+        $("#id_product" + i)
             .select2({
                 placeholder: "Cari Product",
                 width: "100%",
@@ -291,7 +396,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     data: function(params) {
                         var query = {
                             q: params.term,
-                            id_company: $('#customeritem').val(),
+                            id_customer: $('#id_customer').val(),
                         };
                         return query;
                     },
@@ -304,50 +409,20 @@ document.addEventListener("DOMContentLoaded", function() {
                 },
             })
             .change(function(event) {
-                var z = $(this).data("urut");
-                var ada = false;
-                for (var x = 1; x <= $("#jml").val(); x++) {
-                    if ($(this).val() != null) {
-                        var product = $(this).val();
-                        var productx = $("#i_product" + x).val();
-                        console.log(product + " - " + productx);
-                        if ((product == productx) && (z != x)) {
-                            swalInit("Maaf :(", "Kode Barang tersebut sudah ada :(", "error");
-                            ada = true;
-                            break;
-                        }
+                let isDuplicate = false;
+                let products = [];
+                $(".form-input-product").each(function() {
+                    const idProduct = $(this).val();
+                    if (products.includes(idProduct)) {
+                        isDuplicate = true;
                     }
-                }
-                if (!ada) {
-                    var product = $(this).val();
-                    produk = product.split(" - ");
-                    product = produk[0];
-                    brand = produk[1];
-                    $.ajax({
-                        type: "POST",
-                        url: base_url + controller + "/get_detail_product",
-                        data: {
-                            i_product: product,
-                            i_brand: brand,
-                            id_customer: $('#idcustomer').val(),
-                        },
-                        dataType: "json",
-                        success: function(data) {
-                            $("#harga" + z).val(formatcemua(data["detail"][0]["v_price"]));
-                            $("#e_product" + z).val(data["detail"][0]["e_product_name"]);
-                            $("#i_company" + z).val(data["detail"][0]["i_company"]);
-                        },
-                        error: function() {
-                            swalInit(
-                                "Maaf :(",
-                                "Ada kesalahan saat mengambil data :(",
-                                "error"
-                            );
-                        },
-                    });
-                } else {
+                    products.push($(this).val());
+                });
+
+                if (isDuplicate) {
                     $(this).val("");
                     $(this).html("");
+                    swalInit("Maaf :(", "Kode Barang tersebut sudah ada :(", "error");
                 }
             });
     }
@@ -377,3 +452,54 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 });
+
+$(document).ready(function() {
+
+    $("#id_distributor").select2({
+        placeholder: "Cari Distributor",
+        width: "100%",
+        allowClear: true,
+        ajax: {
+            url: base_url + controller + "/get_company",
+            dataType: "json",
+            delay: 250,
+            data: function(params) {
+                var query = {
+                    q: params.term,
+                    id_customer: $('#id_customer').val(),
+                };
+                return query;
+            },
+            processResults: function(data) {
+                return {
+                    results: data,
+                };
+            },
+            cache: false,
+        },
+    });
+
+    let allElementQty = document.querySelectorAll('.form-input-current-items-qty');
+    // console.log(allElementQty.length);
+
+    for (let i=0; i<allElementQty.length; i++) {
+        let elementQty = document.getElementById("qty"+i);
+
+        elementQty.addEventListener("keyup", function(e) {
+            calculateTotal(i);
+            calculateGrandTotal();
+        })
+
+        elementQty.addEventListener("change", function(e) {
+            calculateTotal(i);
+            calculateGrandTotal();
+        })
+
+        let elementPrice = document.getElementById("price"+i);
+        elementPrice.addEventListener("keyup", function(e) {
+            elementPrice.value = formatRupiah(this.value, "");
+            calculateTotal(i);
+            calculateGrandTotal();
+        });
+    }    
+})
