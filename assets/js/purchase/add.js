@@ -143,7 +143,12 @@ var Detail = $(function() {
                 $(this).val("");
                 $(this).html("");
                 swalInit("Maaf :(", "Kode Barang tersebut sudah ada :(", "error");
+                return;
             }
+
+            // set default value for qty and price
+            $('#qty'+i).val(1);
+            $('#price'+i).val(0);
         });
 
         let elementQty = document.getElementById("qty"+i);
@@ -233,7 +238,7 @@ function calculateTotal(index) {
     let price = document.getElementById('price'+index).value;
 
     if (qty == undefined || isNaN(qty) || parseInt(qty) <= 0 || qty == '') {
-        qty = 1;
+        qty = 0;
     }
 
     if (price == undefined || parseInt(price) <= 0 || price == '') {

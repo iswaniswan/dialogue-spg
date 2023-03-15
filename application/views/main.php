@@ -146,11 +146,11 @@
                                             foreach(get_notification_retur()->result() as $row){?>
                                 <li class="media">
                                     <div class="mr-3">
-                                        <a href="<?= base_url() . 'retur/approvement/' . encrypt_url($row->id_document) ?>" class="btn bg-warning-400 rounded-round btn-icon"><i class="icon-pencil"></i></a>
+                                        <a href="<?= base_url() . 'retur/approvement/' . encrypt_url($row->id) ?>" class="btn bg-warning-400 rounded-round btn-icon"><i class="icon-pencil"></i></a>
                                     </div>
 
                                     <div class="media-body">
-                                        Retur Pembelian <a href="<?= base_url() . 'retur/approvement/' . encrypt_url($row->id_document) ?>"><?= $row->i_document ?></a> Meminta Approve
+                                        Retur Pembelian <a href="<?= base_url() . 'retur/approvement/' . encrypt_url($row->id) ?>"><?= $row->i_document ?></a> Meminta Approve
                                         <div class="font-size-sm text-muted mt-1"><?= $row->d_entry ?></div>
                                     </div>
                                 </li>

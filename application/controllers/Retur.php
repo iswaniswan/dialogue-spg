@@ -137,7 +137,7 @@ class Retur extends CI_Controller
 	{
 		$filter = [];
 		$cari	= str_replace("'", "", $this->input->get('q'));
-		$data 	= $this->mymodel->get_company_data($cari);
+		$data 	= $this->mymodel->get_list_company($cari);
 		foreach ($data->result() as $row) {
 			$filter[] = array(
 				'id'   => $row->i_company,
@@ -167,18 +167,12 @@ class Retur extends CI_Controller
 	{
 		$filter = [];
 		$cari	= str_replace("'", "", $this->input->get('q'));
-		if ($cari != '') {
-			$data = $this->mymodel->get_customer($cari);
-			foreach ($data->result() as $row) {
-				$filter[] = array(
-					'id'   => $row->id_customer,
-					'text' => strtoupper($row->e_customer_name),
-				);
-			}
-		} else {
+		
+		$data = $this->mymodel->get_customer_user($cari);
+		foreach ($data->result() as $row) {
 			$filter[] = array(
-				'id'   => null,
-				'text' => 'Cari Data Berdasarkan Nama',
+				'id'   => $row->id_customer,
+				'text' => strtoupper($row->e_customer_name),
 			);
 		}
 		echo json_encode($filter);
@@ -198,28 +192,17 @@ class Retur extends CI_Controller
 	{
 		$filter = [];
 		/* $i_company = $this->input->get('i_company'); */
+		$id_customer = $this->input->get('id_customer');
 		$cari	= str_replace("'", "", $this->input->get('q'));
-		/* if ($i_company != '') { */
-			if ($cari != '') {
-				$data = $this->mymodel->get_product(/* $i_company,  */$cari);
-				foreach ($data->result() as $row) {
-					$filter[] = array(
-						'id'   => $row->i_product . ' - ' . $row->id_brand,
-						'text' => $row->i_product . ' - ' . $row->e_product_name . ' - ' . $row->e_brand_name,
-					);
-				}
-			} else {
-				$filter[] = array(
-					'id'   => null,
-					'text' => 'Cari Berdasarkan Kode / Nama Barang!',
-				);
-			}
-		/* } else {
+		
+		$data = $this->mymodel->get_product_user_brand($id_customer, $cari);
+		foreach ($data->result() as $row) {
 			$filter[] = array(
-				'id'   => null,
-				'text' => 'Perusahaan Harus Dipilih!',
+				'id'   => $row->id,
+				'text' => $row->i_product . ' - ' . $row->e_product_name . ' - ' . $row->e_brand_name,
 			);
-		} */
+		}
+		
 		echo json_encode($filter);
 	}
 
@@ -236,6 +219,18 @@ class Retur extends CI_Controller
 		echo json_encode($query);
 	}
 
+	/** get product by id */
+	public function get_product_by_id($id_product=null)
+	{
+		header("Content-Type: application/json", true);
+		$id_product = $this->input->post('id_product', TRUE);
+
+		$query  = array(
+			'detail' => $this->mymodel->get_product_by_id($id_product)->result_array()
+		);
+		echo json_encode($query);
+	}
+
 	/** Simpan Data */
 	public function prosesupload()
 	{
@@ -244,15 +239,10 @@ class Retur extends CI_Controller
 		if (!$data) {
 			redirect(base_url(), 'refresh');
 		}
-		
-		$this->form_validation->set_rules('idcustomer', 'idcustomer', 'trim|required|min_length[0]');
-		$this->form_validation->set_rules('idocument', 'idocuument', 'trim|required|min_length[0]');
-		$this->form_validation->set_rules('ddocument', 'ddocument', 'trim|required|min_length[0]');
 
 		/** upload */
-
         $datafoto = [];
-        $idocument = $this->input->post('idocument', TRUE);
+        $i_document = $this->input->post('idocument', TRUE);
         $jml = $this->input->post('jml', TRUE);
         for($i=0;$i<$jml;$i++){
 
@@ -265,7 +255,7 @@ class Retur extends CI_Controller
             $name       = $_FILES['file']['name'];
             $ext = pathinfo($name, PATHINFO_EXTENSION);
             $cek = $i + 1;
-            $filename    = "foto-" . $idocument. "-" . $cek .".".$ext;
+            $filename    = "foto-" . $i_document. "-" . $cek .".".$ext;
 
             $config = array(
                 'upload_path'   => "./upload/images/",
@@ -276,58 +266,66 @@ class Retur extends CI_Controller
             
             $this->load->library('upload', $config);
             $this->upload->initialize($config);
+
+			if(file_exists("./upload/images/".$filename)) {
+				unlink("./upload/images/".$filename);
+			}
+
             $upload = $this->upload->do_upload('file');
             if ($upload) {
-				$dataupload = $this->upload->data();
+				$this->upload->data();
                 //var_dump("berhasil upload ".$filename);
                 $datafoto[] = $filename;
             } else {
                 $error = array('error' => $this->upload->display_errors());
-                //var_dump($error);
-            }
-            
+                var_dump($error);
+            }            
         }
-
         /** upload end */   
+		
+		/** Simpan Data */
+		$data = array(
+			'sukses' => false,
+			'ada'	 => false,
+		);
+		$this->db->trans_begin();
+		
+		$d_retur = $this->input->post('ddocument');
+		$id_customer = $this->input->post('idcustomer');
+		$e_remark = $this->input->post('eremark');
+		$id_user = $this->session->userdata('id_user');
+		$id_company = $this->input->post('id_company');
+		$items = $this->input->post('items');
 
-		if ($this->form_validation->run() == false) {
-			$data = array(
-				'sukses' => false,
-				'ada'	 => false,
-			);
-		} else {
-			/** Simpan Data */
-			$idocument  = $this->input->post('idocument', TRUE);
-			$idcustomer = $this->input->post('idcustomer', TRUE);
-			$cek = $this->mymodel->cek($idocument);
-			/** Jika Sudah Ada Jangan Disimpan */
-			if ($cek->num_rows() > 0) {
-				$data = array(
-					'sukses' => false,
-					'ada'	 => true,
-				);
-			} else {
+		$this->mymodel->insert_header($i_document, $d_retur, $id_customer, $e_remark, $id_user, $id_company);
 
-				$this->db->trans_begin();
-				$this->mymodel->save($datafoto);
-				if ($this->db->trans_status() === FALSE) {
-					$this->db->trans_rollback();
-					$data = array(
-						'sukses' => false,
-						'ada'	 => false,
-					);
-				} else {
-					$this->db->trans_commit();
-					$this->logger->write('Simpan Data ' . $this->title . ' : ' . $idocument);
-					$data = array(
-						'sukses' 		=> true,
-						'ada'	 		=> false,
-						'filename' 		=> $idocument,
-						'id'	 		=> $idocument
-					);
-				}
-			}
+		$insert_id = $this->db->insert_id();
+
+		$idx = 0;
+		foreach ($items as $item) {
+			$id_retur = $insert_id;
+			$id_product = $item['id_product'];
+			$n_qty = $item['qty'];
+			$i_alasan = $item['i_alasan'];			
+			$path_foto = $datafoto[$idx];
+			$this->mymodel->insert_detail($id_retur, $id_product, $n_qty, $i_alasan, $path_foto);			
+			$idx++;
 		}
+
+		if ($this->db->trans_status() === FALSE) {
+			$this->db->trans_rollback();
+			echo json_encode($data);
+			return;
+		}
+
+		$this->db->trans_commit();
+		$this->logger->write('Simpan Data ' . $this->title . ' : ' . $i_document);
+		$data = array(
+			'sukses' 		=> true,
+			'ada'	 		=> false,
+			'filename' 		=> $i_document,
+			'id'	 		=> $insert_id
+		);
 		
 		echo json_encode($data);
 	}
@@ -370,102 +368,111 @@ class Retur extends CI_Controller
 		if (!$data) {
 			redirect(base_url(), 'refresh');
 		}
-		$this->form_validation->set_rules('id', 'id', 'trim|required|min_length[0]');
-		$this->form_validation->set_rules('idcustomer', 'idcustomer', 'trim|required|min_length[0]');
-		$this->form_validation->set_rules('idocument', 'idocuument', 'trim|required|min_length[0]');
-		$this->form_validation->set_rules('ddocument', 'ddocument', 'trim|required|min_length[0]');
 
-		/** upload */
+		$items = $this->input->post('items');
 		
-			$datafoto = [];
-			$idocument = $this->input->post('idocument', TRUE);
-			$jml = $this->input->post('jml');
-			
-			for($i=0;$i<$jml;$i++){
-				$n = $i +1;
-				$foto = $this->input->post('fotolama'.$n, TRUE);
-
-
-				if(isset($_FILES['foto'.$n]) && !empty($_FILES['foto'.$n]['name'])){
-					
-					$_FILES['file']['name'] = $_FILES['foto'.$n]['name'];
-					$_FILES['file']['type'] = $_FILES['foto'.$n]['type']; 
-					$_FILES['file']['tmp_name'] = $_FILES['foto'.$n]['tmp_name'];
-					$_FILES['file']['error'] = $_FILES['foto'.$n]['error'];
-					$_FILES['file']['size'] = $_FILES['foto'.$n]['size'];
+		/** upload */		
+		$datafoto = [];
+		$idocument = $this->input->post('idocument', TRUE);
+		$jml = $this->input->post('jml');
 		
-					$name       = $_FILES['file']['name'];
-					$ext = pathinfo($name, PATHINFO_EXTENSION);
-					$cek = $i + 1;
-					$filename    = "foto-" . $idocument. "-" . $cek .".".$ext;
-					$hapus = "foto-" . $idocument. "-" . $cek;
+		for($i=0;$i<$jml;$i++){
+			$n = $i +1;
+			$foto = $this->input->post('fotolama'.$n, TRUE);
 
-					if(file_exists("./upload/images/".$hapus.".png")) {
-						unlink("./upload/images/".$hapus.".png");
-				   }else if(file_exists("./upload/images/".$hapus.".jpg")) {
-						unlink("./upload/images/".$hapus.".jpg");
-				   }
+			if(isset($_FILES['foto'.$n]) && !empty($_FILES['foto'.$n]['name'])){
+				
+				$_FILES['file']['name'] = $_FILES['foto'.$n]['name'];
+				$_FILES['file']['type'] = $_FILES['foto'.$n]['type']; 
+				$_FILES['file']['tmp_name'] = $_FILES['foto'.$n]['tmp_name'];
+				$_FILES['file']['error'] = $_FILES['foto'.$n]['error'];
+				$_FILES['file']['size'] = $_FILES['foto'.$n]['size'];
+	
+				$name       = $_FILES['file']['name'];
+				$ext = pathinfo($name, PATHINFO_EXTENSION);
+				$cek = $i + 1;
+				$filename    = "foto-" . $idocument. "-" . $cek .".".$ext;
 
-					if($foto[$i] = $filename){
-						$overwrite = true;
-					}
-					else{
-						$overwrite = false;
-					}
-					
-			
-					$config = array(
-						'upload_path'   => "./upload/images/",
-						'allowed_types' => 'jpg|jpeg|png|gif',
-						'file_name'     => $filename,
-						'overwrite'		=> $overwrite
-					);
-								
-					$this->load->library('upload', $config);
-					$this->upload->initialize($config);
-					$upload = $this->upload->do_upload('file');
-					if ($upload) {
-						$dataupload = $this->upload->data();
-						//var_dump("berhasil upload ".$filename);
-						$datafoto[] = $filename;
-					} else {
-						$error = array('error' => $this->upload->display_errors());
-						//var_dump($error);
-					}
-					
-				}else{					  
-					$datafoto[] = $foto;	
+				if(file_exists("./upload/images/".$filename)) {
+					unlink("./upload/images/".$filename);
 				}
+
+				$overwrite = false;
+				if($foto[$i] = $filename){
+					$overwrite = true;
+				}				
+		
+				$config = array(
+					'upload_path'   => "./upload/images/",
+					'allowed_types' => 'jpg|jpeg|png|gif',
+					'file_name'     => $filename,
+					'overwrite'		=> $overwrite
+				);
+							
+				$this->load->library('upload', $config);
+				$this->upload->initialize($config);
+				$upload = $this->upload->do_upload('file');
+				if ($upload) {
+					$this->upload->data();
+					//var_dump("berhasil upload ".$filename);
+					$items[$n]['foto'] = $filename;
+				} else {
+					$error = array('error' => $this->upload->display_errors());
+					var_dump($error);
+				}
+				
+			}else{					  
+				// $datafoto[] = $foto;	
+				$items[$n]['foto'] = $foto;
 			}
-			
+		}
+		// var_dump($items); die();			
         /** upload end */   
 
 		$id = $this->input->post('id', TRUE);
-		if ($this->form_validation->run() == false) {
+		$i_document = $this->input->post('idocument');
+		$d_retur = $this->input->post('ddocument');
+		$id_customer = $this->input->post('idcustomer');
+		$e_remark = $this->input->post('eremark');
+		$id_user = $this->session->userdata('id_user');
+		$id_company = $this->input->post('id_company');
+		// $items = $this->input->post('items');
+
+		/** Update Data */
+		$this->db->trans_begin();
+
+		$this->mymodel->update_header($i_document, $d_retur, $id_customer, $e_remark, $id_user, $id_company, $id);
+		/** delete existing item */
+		$this->mymodel->delete_retur_item($id);
+
+		// var_dump($items); die();
+		
+		foreach ($items as $item) {
+			if ($item['foto'] == null) continue;
+
+			$id_product = $item['id_product'];
+			$n_qty = $item['qty'];
+			$i_alasan = $item['i_alasan'];			
+			$path_foto = $item['foto'];
+			$this->mymodel->insert_detail($id, $id_product, $n_qty, $i_alasan, $path_foto);
+		}
+
+		// $this->mymodel->update($datafoto);
+		if ($this->db->trans_status() === FALSE) {
+			$this->db->trans_rollback();
 			$data = array(
 				'sukses' => false,
 				'ada'	 => false,
 			);
 		} else {
-			/** Update Data */
-			$this->db->trans_begin();
-			$this->mymodel->update($datafoto);
-			if ($this->db->trans_status() === FALSE) {
-				$this->db->trans_rollback();
-				$data = array(
-					'sukses' => false,
-					'ada'	 => false,
-				);
-			} else {
-				$this->db->trans_commit();
-				$this->logger->write('Update Data ' . $this->title . ' ID : ' . $id);
-				$data = array(
-					'sukses' 	=> true,
-					'ada'	 	=> false,
-					'filename' 	=> $idocument,
-					'id'	 	=> $idocument
-				);
-			}
+			$this->db->trans_commit();
+			$this->logger->write('Update Data ' . $this->title . ' ID : ' . $id);
+			$data = array(
+				'sukses' 	=> true,
+				'ada'	 	=> false,
+				'filename' 	=> $idocument,
+				'id'	 	=> $idocument
+			);
 		}
 		echo json_encode($data);
 	}
@@ -502,6 +509,7 @@ class Retur extends CI_Controller
 	/** Redirect ke Form View */
 	public function view()
 	{
+		$id = decrypt_url($this->uri->segment(3));		
 		/** Cek Hak Akses, Apakah User Bisa View */
 		$data = check_role($this->id_menu, 2);
 		if (!$data) {
@@ -521,8 +529,8 @@ class Retur extends CI_Controller
 		);
 
 		$data = array(
-			'data' 	  => $this->mymodel->getdata(decrypt_url($this->uri->segment(3)))->row(),
-			'detail'  => $this->mymodel->getdatadetail(decrypt_url($this->uri->segment(3))),
+			'data' 	  => $this->mymodel->getdata($id)->row(),
+			'detail'  => $this->mymodel->getdatadetail($id),
 		);
 		$this->logger->write('Membuka Form Detail ' . $this->title);
 		$this->template->load('main', $this->folder . '/view', $data);
@@ -608,5 +616,14 @@ class Retur extends CI_Controller
 			unlink($hapus);
 	   }
 		
+	}
+
+	/** Hapus retur item */
+	public function delete_retur_item_by_id()
+	{
+		$id = $this->input->post('id');
+		if ($id != null) {
+			$this->mymodel->delete_retur_item_by_id($id);
+		}
 	}
 }

@@ -44,20 +44,31 @@
                             <select class="form-control select-search" data-container-css-class="select-sm" data-placeholder="Select Customer" required data-fouc name="idcustomer" id="idcustomer">
                                 <option value=""></option>
                             </select>
-                            <input type="hidden" id="icompany" name="icompany" required data-fouc>
                         </div>
                     </div>
                     <div class="col-sm-6">
                         <div class="form-group">
+                            <label>Distributor :</label>
+                            <select class="form-control select-search" data-container-css-class="select-sm" data-placeholder="Select Company" required data-fouc name="id_company" id="id_company">
+                                <option value=""></option>
+                            </select>
+                        </div>
+                    </div>                    
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
                             <label>Keterangan :</label>
-                            <textarea class="form-control" name="eremark" placeholder="Isi keterangan jika ada .."></textarea>
+                            <textarea class="form-control" name="eremark" rows="1" placeholder="Isi keterangan jika ada .."></textarea>
                         </div>
                     </div>
-                </div>
-                <div class="d-flex justify-content-start align-items-center">
-                    <button type="submit" id="submit" class="btn btn bg-<?= $this->color; ?> btn-sm"><i class="icon-paperplane"></i>&nbsp;
-                        Save</button>
-                    <a href="<?= base_url($this->folder); ?>" class="btn btn bg-danger btn-sm ml-1"><i class="icon-arrow-left16"></i>&nbsp; Back</a>
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-start align-items-center">
+                            <button type="submit" id="submit" class="btn btn bg-<?= $this->color; ?> btn-sm"><i class="icon-paperplane"></i>&nbsp;
+                                Save</button>
+                            <a href="<?= base_url($this->folder); ?>" class="btn btn bg-danger btn-sm ml-1"><i class="icon-arrow-left16"></i>&nbsp; Back</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -72,9 +83,9 @@
                                 <thead>
                                     <tr class="alpha-<?= $this->color; ?> text-<?= $this->color; ?>-600">
                                         <th class="text-center" width="3%;">#</th>
-                                        <th width="15%;">Barang</th>
-                                        <th width="25%;">Perusahaan</th>
-                                        <th width="15%;">Qty</th>
+                                        <th width="40%;">Barang</th>
+                                        <!-- <th width="25%;">Perusahaan</th> -->
+                                        <th width="10%;">Qty</th>
                                         <th width="20%;">Alasan</th>
                                         <th width="20%;">Foto</th>
                                         <th width="3%;"><i id="addrow" title="Tambah Baris" class="icon-plus-circle2"></i></th>

@@ -9,7 +9,7 @@ class Mretur extends CI_Model {
     public function serverside($dfrom,$dto){
         $datatables = new Datatables(new CodeigniterAdapter);
         $datatables->query("SELECT
-                id_document,
+                id,
                 i_document,
                 d_retur,
                 e_remark,
@@ -43,7 +43,7 @@ class Mretur extends CI_Model {
         });
 
         $datatables->edit('f_status', function ($data) {
-            $id         = $data['id_document'];
+            $id         = $data['id'];
             if ($data['f_status']=='t') {
                 $status = 'Aktif';
                 $color  = 'success';
@@ -57,7 +57,7 @@ class Mretur extends CI_Model {
 
         /** Cek Hak Akses, Apakah User Bisa Edit */
         $datatables->add('action', function ($data) {
-            $id         = trim($data['id_document']);
+            $id         = trim($data['id']);
             $ddocument  = $data['d_retur'];
             $month      = date('m', strtotime($ddocument));
             $bulan      = date('m');
@@ -91,7 +91,7 @@ class Mretur extends CI_Model {
                 }
             }        
             
-            if (check_role($this->id_menu, 4) && $status=='t') {
+            if (check_role($this->id_menu, 4) && $status=='t' && $approve == '') {
                 if($month == $bulan && $ddocument <= $batas && $tgl <= $batas){
                 $data      .= "<a href='#' onclick='sweetcancel(\"".$this->folder."\",\"".$id."\");' title='Cancel Data'><i class='icon-database-remove text-danger-800 ml-1'></i></a>";
                 }
@@ -180,6 +180,26 @@ class Mretur extends CI_Model {
         ", FALSE);
     }
 
+    /** Data customer berdasarkan cover user_customer*/
+    public function get_customer_user($cari)
+    {
+        $id_user = $this->session->userdata('id_user');
+
+        $limit = " ORDER BY e_customer_name LIMIT 5 ";
+        if ($cari != '') {
+            $limit = '';
+        }
+        
+
+        $sql = "SELECT * 
+                FROM tr_customer tc 
+                INNER JOIN tm_user_customer tuc ON tuc.id_customer = tc.id_customer 
+                WHERE tuc.id_user = '$id_user' AND tc.e_customer_name ILIKE '%$cari%'
+                $limit ;";
+
+        return $this->db->query($sql);
+    }
+
     /** Ambil Data Company */
     public function get_company_data($cari)
     {
@@ -238,6 +258,38 @@ class Mretur extends CI_Model {
         ", FALSE);
     }
 
+    public function get_product_user_brand($id_customer=null, $cari)
+    {
+        if ($id_customer == null) {
+            return [];
+        }
+
+        $id_user = $this->session->userdata('id_user');
+
+        $sql_cover_customer = "SELECT id FROM tm_user_customer tuc WHERE id_user = '$id_user' AND id_customer = '$id_customer'";
+
+        $sql_cover_brand = "SELECT id_brand 
+                FROM tm_user_brand tub 
+                WHERE id_user_customer IN ($sql_cover_customer)";
+
+        $sql = "SELECT 
+                    a.id,
+                    a.i_product,
+                    a.e_product_name,
+                    c.e_brand_name,
+                    a.id_brand
+                FROM tr_product a
+                INNER JOIN tr_brand c ON c.id_brand = a.id_brand
+                WHERE (e_product_name ILIKE '%$cari%' OR i_product ILIKE '%$cari%' OR e_brand_name ILIKE '%$cari%')
+                    AND a.f_status = 't'
+                    AND a.id_brand IN ($sql_cover_brand)
+                ORDER BY 3,1";
+
+        // var_dump($sql);die();
+
+        return $this->db->query($sql);
+    }
+
     /** Ambil Data Product */
     public function get_product(/* $i_company,  */$cari)
     {
@@ -279,6 +331,20 @@ class Mretur extends CI_Model {
         AND a.i_product = '$i_product'
         AND a.id_brand = '$i_brand'
         ", FALSE);
+    }
+
+    public function get_product_by_id($id_product)
+    {
+        $sql = "SELECT
+                    a.id,
+                    initcap(a.e_product_name) AS e_product_name,
+                    a.id_brand,
+                    b.e_brand_name
+                FROM tr_product a
+                INNER JOIN tr_brand b ON (b.id_brand = a.id_brand)
+                WHERE a.id = '$id_product'";
+
+        return $this->db->query($sql);
     }
 
     /** Cek Apakah Data Sudah Ada Pas Simpan */
@@ -348,20 +414,41 @@ class Mretur extends CI_Model {
         };
     }
 
+    public function insert_header($i_document, $d_retur, $id_customer, $e_remark, $id_user, $id_company)
+    {
+        $data = [
+            'i_document'=> $i_document,
+            'd_retur' => $d_retur,
+            'id_customer' => $id_customer,
+            'e_remark' => $e_remark,
+            'id_user' => $id_user,
+            'id_company' => $id_company
+        ];
+        $this->db->insert('tm_pembelian_retur', $data);
+    }
+
+    public function insert_detail($id_retur, $id_product, $n_qty, $i_alasan, $path_foto)
+    {
+        $data = [
+            'id_retur' => $id_retur,
+            'id_product' => $id_product,
+            'n_qty' => $n_qty,
+            'i_alasan' => $i_alasan,
+            'foto' => $path_foto
+        ];
+        $this->db->insert('tm_pembelian_retur_item', $data);
+    }
+
     /** Get Data Untuk Edit */
     public function getdata($id)
     {
-        return $this->db->query("
-            SELECT
-                a.*, b.e_customer_name
-            FROM
-                tm_pembelian_retur a
-            INNER JOIN 
-                tr_customer b ON 
-                (b.id_customer = a.id_customer)
-            WHERE 
-                id_document = '$id'
-        ", FALSE);
+        $sql = "SELECT a.*, b.e_customer_name, c.e_company_name
+                FROM tm_pembelian_retur a
+                INNER JOIN tr_customer b ON b.id_customer = a.id_customer
+                INNER JOIN tr_company c ON c.i_company = a.id_company
+                WHERE a.id = '$id'";
+
+        return $this->db->query($sql, FALSE);
     }
 
     /** Get Data Untuk Edit */
@@ -370,24 +457,18 @@ class Mretur extends CI_Model {
         return $this->db->query("
             SELECT
                 a.*,
-                b.e_company_name,
                 c.e_alasan,
                 d.id_brand,
-                e.e_brand_name
+                e.e_brand_name,
+                d.i_product,
+                d.e_product_name
             FROM
                 tm_pembelian_retur_item a
-            INNER JOIN tr_product d ON
-                (d.i_product = a.i_product AND d.i_company = a.i_company)
-            INNER JOIN tr_brand e ON
-                (e.id_brand = d.id_brand)
-            INNER JOIN tr_company b ON 
-                (b.i_company = a.i_company)
-            INNER JOIN tr_alasan_retur c ON 
-                (c.i_alasan = a.i_alasan)
-            WHERE
-                id_document = '$id'
-            ORDER BY 
-                id_item
+            INNER JOIN tr_product d ON d.id = a.id_product
+            INNER JOIN tr_brand e ON e.id_brand = d.id_brand
+            INNER JOIN tr_alasan_retur c ON c.i_alasan = a.i_alasan
+            WHERE a.id_retur = '$id'
+            ORDER BY a.id ASC
         ", FALSE);
     }
 
@@ -461,7 +542,7 @@ class Mretur extends CI_Model {
         $data = array(
             'f_status' => false, 
         );
-        $this->db->where('id_document', $id);
+        $this->db->where('id', $id);
         $this->db->update('tm_pembelian_retur', $data);
     }
 
@@ -481,13 +562,45 @@ class Mretur extends CI_Model {
     /** Approve */
     public function approve($id)
     {
+        $data = array(
+            'd_approve' => date('Y-m-d'), 
+        );
+        $this->db->where('id', $id);
+        $this->db->update('tm_pembelian_retur', $data);
 
-            $data = array(
-                'd_approve' => date('Y-m-d'), 
-            );
-            $this->db->where('id_document', $id);
-            $this->db->update('tm_pembelian_retur', $data);
+    }
 
+    public function update_header($i_document, $d_retur, $id_customer, $e_remark, $id_user, $id_company, $id)
+    {
+        $data = [
+            'i_document'=> $i_document,
+            'd_retur' => $d_retur,
+            'id_customer' => $id_customer,
+            'e_remark' => $e_remark,
+            'id_user' => $id_user,
+            'id_company' => $id_company
+        ];
+        $this->db->where('id', $id);
+        $this->db->update('tm_pembelian_retur', $data);
+    }
+
+    public function delete_retur_item($id_retur) 
+    {
+        $this->db->where('id_retur', $id_retur);
+        $this->db->delete('tm_pembelian_retur_item');
+    }
+
+    public function get_list_company($cari)
+    {
+        $sql = "SELECT * FROM tr_company WHERE e_company_name ILIKE '%$cari%' AND f_status = 't'";
+
+        return $this->db->query($sql);
+    }
+
+    public function delete_retur_item_by_id($id)
+    {
+        $this->db->where('id', $id);
+        $this->db->delete('tm_pembelian_retur_item');
     }
 }
 

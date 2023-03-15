@@ -10,7 +10,7 @@
         <!-- Left and right buttons -->
         <div class="card">
             <div class="card-header border-<?= $this->color; ?> bg-transparent header-elements-inline">
-                <h6 class="card-title"><i class="icon-eye mr-2"></i> Edit <?= $this->title; ?></h6>
+                <h6 class="card-title"><i class="icon-eye mr-2"></i> View <?= $this->title; ?></h6>
                 <input type="hidden" id="path" value="<?= $this->folder; ?>">
                 <div class="header-elements">
                     <div class="list-icons">
@@ -45,13 +45,24 @@
                     </div>
                     <div class="col-sm-6">
                         <div class="form-group">
+                            <label>Distributor :</label>
+                            <input type="text" readonly class="form-control" value="<?= $data->e_company_name; ?>">
+                        </div>
+                    </div>   
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
                             <label>Keterangan :</label>
-                            <textarea class="form-control" readonly><?= $data->e_remark; ?></textarea>
+                            <textarea class="form-control" name="eremark" rows="1" readonly><?= $data->e_remark ?></textarea>
                         </div>
                     </div>
-                </div>
-                <div class="d-flex justify-content-start align-items-center">
-                    <a href="<?= base_url($this->folder); ?>" class="btn btn bg-danger btn-sm"><i class="icon-arrow-left16"></i>&nbsp; Back</a>
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-start align-items-center">
+                            <a href="<?= base_url($this->folder); ?>" class="btn btn bg-danger btn-sm"><i class="icon-arrow-left16"></i>&nbsp; Back</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -68,31 +79,27 @@
                                         <th class="text-center" width="3%;">#</th>
                                         <th>Kode Barang</th>
                                         <th>Nama Barang</th>
-                                        <th>Perusahaan</th>
+                                        <th>Brand</th>
                                         <th class="text-right">Qty</th>
                                         <th>Alasan</th>
                                         <th>Foto</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php $i = 0;
-                                    if ($detail) {
-                                        foreach ($detail->result() as $key) {
-                                            $i++; ?>
-                                            <tr>
-                                                <td class="text-center">
-                                                    <spanx id="snum<?= $i; ?>"><?= $i; ?></spanx>
-                                                </td>
-                                                <td><?= $key->i_product; ?></td>
-                                                <td><?= $key->e_product_name; ?></td>
-                                                <td><?= $key->e_company_name; ?></td>
-                                                <td class="text-right"><?= $key->n_qty; ?></td>
-                                                <td><?= $key->e_alasan; ?></td>
-                                                <td><input type="hidden" class="form-control form-control-sm" id="fotosrc<?= $i; ?>" name="fotosrc<?= $i; ?>" value="<?= base_url().'./upload/images/'.$key->foto; ?>">
-                                                    <b><i title="Lihat Foto" class="icon-eye text-primary lihatfoto" data-toggle="modal" data-target="#imageModal" id="<?= $i; ?>"></i></b></td></td>
-                                            </tr>
-                                    <?php }
-                                    } ?>
+                                    <?php $i = 0; foreach ($detail->result() as $key) { $i++; ?>
+                                        <tr>
+                                            <td class="text-center">
+                                                <spanx id="snum<?= $i; ?>"><?= $i; ?></spanx>
+                                            </td>
+                                            <td><?= $key->i_product; ?></td>
+                                            <td><?= $key->e_product_name; ?></td>
+                                            <td><?= $key->e_brand_name; ?></td>
+                                            <td class="text-right"><?= $key->n_qty; ?></td>
+                                            <td><?= $key->e_alasan; ?></td>
+                                            <td><input type="hidden" class="form-control form-control-sm" id="fotosrc<?= $i; ?>" name="fotosrc<?= $i; ?>" value="<?= base_url().'./upload/images/'.$key->foto; ?>">
+                                                <b><i title="Lihat Foto" class="icon-eye text-primary lihatfoto" data-toggle="modal" data-target="#imageModal" id="<?= $i; ?>"></i></b></td></td>
+                                        </tr>
+                                    <?php } ?>
                                 </tbody>
                                 <input type="hidden" id="jml" name="jml" value="<?= $i; ?>">
                             </table>

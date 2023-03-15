@@ -98,7 +98,7 @@ class Mcustom extends CI_Model {
     {
         return $this->db->query("
             SELECT
-                id_document,
+                id,
                 i_document,
                 d_entry
             FROM

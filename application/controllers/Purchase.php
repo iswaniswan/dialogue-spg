@@ -152,7 +152,7 @@ class Purchase extends CI_Controller
 			foreach ($data->result() as $row) {
 				$filter[] = array(
 					'id'   => $row->id,
-					'text' => ucwords(strtolower($row->e_name)),
+					'text' => strtoupper($row->e_name),
 				);
 			}
 		echo json_encode($filter);

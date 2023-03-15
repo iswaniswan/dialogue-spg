@@ -57,44 +57,35 @@ var Detail = $(function() {
         var cols = "";
         cols += `<td class="text-center"><spanx id="snum${i}">${no + 1}</spanx></td>`;
         // cols += `<td><select data-urutan="${i}" required class="form-control form-control-sm form-control-select2" data-container-css-class="select-sm" name="i_company[]" id="i_company${i}" required data-fouc></select></td>`;
-        cols += `<td><select data-urut="${i}" required class="form-control form-control-sm form-control-select2" data-container-css-class="select-sm" name="i_product[]" id="i_product${i}" required data-fouc></select></td>`;
-        cols += `<td><input type="text" readonly class="form-control form-control-sm" id="e_company_name${i}" placeholder="Perusahaan" name="e_company_name[]"></td>`;
-        cols += `<td><input type="number" required class="form-control form-control-sm" min="1" id="qty${i}" placeholder="Qty" name="qty[]"></td>`;
         cols += `<td>
-                    <select required class="form-control form-control-sm form-control-select2" data-container-css-class="select-sm" name="i_alasan[]" id="i_alasan${i}" required data-fouc></select>
-					<input type="hidden" class="form-control form-control-sm" id="e_product${i}" name="e_product[]">
-					<input type="hidden" class="form-control form-control-sm" id="i_company${i}" name="i_company[]">
+                    <select data-urut="${i}" 
+                        class="form-control form-control-sm form-control-select2" 
+                        data-container-css-class="select-sm" 
+                        name="items[${i}][id_product]" 
+                        id="i_product${i}" required data-fouc>
+                    </select>
+                </td>`;
+        cols += `<td>
+                    <input type="number" 
+                        required class="form-control form-control-sm" min="1" id="qty${i}" placeholder="Qty" 
+                        name="items[${i}][qty]">
+                </td>`;
+        cols += `<td>
+                    <select class="form-control form-control-sm form-control-select2" 
+                            data-container-css-class="select-sm" 
+                            name="items[${i}][i_alasan]" 
+                            id="i_alasan${i}" required data-fouc>
+                    </select>
+					<input type="hidden" class="form-control form-control-sm" id="e_product${i}" name="items[${i}][e_product]">
+					<input type="hidden" class="form-control form-control-sm" id="i_company${i}" name="items[${i}][i_company]">
 				</td>`;
-        cols += `<td><input type="file" class="file-input-ajax" id="foto${i}" placeholder="Foto" name="foto[]"></td>`;
+        cols += `<td>
+                    <input type="file" class="file-input-ajax" id="foto${i}" placeholder="Foto" 
+                        name="foto[]" required>
+                </td>`;
         cols += `<td class="text-center"><b><i title="Hapus Baris" class="icon-cancel-circle2 text-danger ibtnDel"></i></b></td>`;
         newRow.append(cols);
         $("#tablecover").append(newRow);
-        /* $("#i_company" + i).select2({
-            placeholder: "Pilih Perusahaan",
-            width: "100%",
-            allowClear: true,
-            ajax: {
-                url: base_url + controller + "/get_company",
-                dataType: "json",
-                delay: 250,
-                data: function(params) {
-                    var query = {
-                        q: params.term,
-                    };
-                    return query;
-                },
-                processResults: function(data) {
-                    return {
-                        results: data,
-                    };
-                },
-                cache: false,
-            },
-        }).change(function(event) {
-            var z = $(this).data("urutan");
-            $("#i_product" + z).val("");
-            $("#i_product" + z).html("");
-        }); */
 
         $("#i_alasan" + i).select2({
             placeholder: "Pilih Alasan Retur",
@@ -130,6 +121,7 @@ var Detail = $(function() {
                 data: function(params) {
                     var query = {
                         q: params.term,
+                        id_customer: $('#idcustomer').val()
                         /* i_company: $("#i_company" + $(this).data("urut")).val(), */
                     };
                     return query;
@@ -142,6 +134,29 @@ var Detail = $(function() {
                 cache: false,
             },
         }).change(function(event) {
+            $.ajax({
+                type: "POST",
+                url: base_url + controller + "/get_product_by_id",
+                data: {
+                    id_product: $(this).val(),
+                },
+                dataType: "json",
+                success: function(data) {
+                    console.log(data);
+                    $("#e_product" + z).val(data["detail"][0]["e_product_name"]);
+                    $("#e_company_name" + z).val(data["detail"][0]["e_company_name"]);
+                    $("#i_company" + z).val(data["detail"][0]["i_company"]);
+                    $("#qty" + z).focus();
+                },
+                error: function() {
+                    swalInit(
+                        "Maaf :(",
+                        "Ada kesalahan saat mengambil data :(",
+                        "error"
+                    );
+                },
+            });
+            /**
             var z = $(this).data("urut");
             var ada = false;
             for (var x = 1; x <= $("#jml").val(); x++) {
@@ -157,37 +172,12 @@ var Detail = $(function() {
                 }
             }
             if (!ada) {
-                var product = $(this).val();
-                produk = product.split(" - ");
-                product = produk[0];
-                brand = produk[1];
-                $.ajax({
-                    type: "POST",
-                    url: base_url + controller + "/get_detail_product",
-                    data: {
-                        i_product: product,
-                        i_brand: brand,
-                        i_company: $('#i_company' + z).val(),
-                    },
-                    dataType: "json",
-                    success: function(data) {
-                        $("#e_product" + z).val(data["detail"][0]["e_product_name"]);
-                        $("#e_company_name" + z).val(data["detail"][0]["e_company_name"]);
-                        $("#i_company" + z).val(data["detail"][0]["i_company"]);
-                        $("#qty" + z).focus();
-                    },
-                    error: function() {
-                        swalInit(
-                            "Maaf :(",
-                            "Ada kesalahan saat mengambil data :(",
-                            "error"
-                        );
-                    },
-                });
+                
             } else {
                 $(this).val("");
                 $(this).html("");
             }
+            */
         });
     });
 
@@ -393,13 +383,32 @@ document.addEventListener("DOMContentLoaded", function() {
             cache: false,
         },
     }).change(function() {
-        $("#tablecover tbody tr:gt(0)").remove();
+        $("#tablecover tbody").empty();
         $("#jml").val(0);
     });
 
-    // $("#ddocument").on("change", function() {
-    //     number();
-    // });
+    $('#id_company').select2({
+        placeholder: "Cari Distributor",
+        width: "100%",
+        allowClear: true,
+        ajax: {
+            url: base_url + controller + "/get_company",
+            dataType: "json",
+            delay: 250,
+            data: function(params) {
+                var query = {
+                    q: params.term,
+                };
+                return query;
+            },
+            processResults: function(data) {
+                return {
+                    results: data,
+                };
+            },
+            cache: false,
+        },
+    });
 
     FileUpload.init();
     $('form').on('submit', function(e) { //bind event on form submit.

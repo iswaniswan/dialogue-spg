@@ -119,7 +119,7 @@
                                                     value="<?= $key->id_product ?>"
                                                     required data-fouc>
                                                     <option value="<?= $key->id_product ?>" selected>
-                                                        <?= $key->e_product_name ?>
+                                                       <?= $key->i_product ?> - <?= $key->e_product_name ?>
                                                     </option>
                                                 </select>
                                             </td>                                            

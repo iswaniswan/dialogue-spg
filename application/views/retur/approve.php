@@ -26,7 +26,7 @@
                     <div class="col-sm-6">
                         <div class="form-group">
                             <label>Nomor Dokumen :</label>
-                            <input type="hidden" class="form-control" readonly name="id_document" id="id_document" value="<?= $data->id_document; ?>">
+                            <input type="hidden" class="form-control" readonly name="id" id="id" value="<?= $data->id; ?>">
                             <input type="text" class="form-control" readonly value="<?= $data->i_document; ?>">
                         </div>
                     </div>
@@ -46,14 +46,24 @@
                     </div>
                     <div class="col-sm-6">
                         <div class="form-group">
+                            <label>Distributor :</label>
+                            <input type="text" readonly class="form-control" value="<?= $data->e_company_name; ?>">
+                        </div>
+                    </div>   
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
                             <label>Keterangan :</label>
-                            <textarea class="form-control" readonly><?= $data->e_remark; ?></textarea>
+                            <textarea class="form-control" name="eremark" rows="1" readonly><?= $data->e_remark ?></textarea>
                         </div>
                     </div>
-                </div>
-                <div class="d-flex justify-content-start align-items-center">
-                    <a href="#" onclick="sweetapprove('retur',<?= $data->id_document; ?>);" class="btn btn bg-success btn-sm ml-1"><i class="icon-check"></i>&nbsp; <?= $this->lang->line('Approve'); ?></a> &nbsp;
-                    <a href="<?= base_url($this->folder); ?>" class="btn btn bg-danger btn-sm"><i class="icon-arrow-left16"></i>&nbsp; Back</a>
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-start align-items-center">
+                            <a href="#" onclick="sweetapprove('retur',<?= $data->id; ?>);" class="btn btn bg-success btn-sm ml-1"><i class="icon-check"></i>&nbsp; <?= $this->lang->line('Approve'); ?></a> &nbsp;
+                            <a href="<?= base_url($this->folder); ?>" class="btn btn bg-danger btn-sm"><i class="icon-arrow-left16"></i>&nbsp; Back</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -70,31 +80,27 @@
                                         <th class="text-center" width="3%;">#</th>
                                         <th>Kode Barang</th>
                                         <th>Nama Barang</th>
-                                        <th>Perusahaan</th>
+                                        <th>Brand</th>
                                         <th class="text-right">Qty</th>
                                         <th>Alasan</th>
                                         <th>Foto</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php $i = 0;
-                                    if ($detail) {
-                                        foreach ($detail->result() as $key) {
-                                            $i++; ?>
-                                            <tr>
-                                                <td class="text-center">
-                                                    <spanx id="snum<?= $i; ?>"><?= $i; ?></spanx>
-                                                </td>
-                                                <td><?= $key->i_product; ?></td>
-                                                <td><?= $key->e_product_name; ?></td>
-                                                <td><?= $key->e_company_name; ?></td>
-                                                <td class="text-right"><?= $key->n_qty; ?></td>
-                                                <td><?= $key->e_alasan; ?></td>
-                                                <td><input type="hidden" class="form-control form-control-sm" id="fotosrc<?= $i; ?>" name="fotosrc<?= $i; ?>" value="<?= base_url().'./upload/images/'.$key->foto; ?>">
-                                                    <b><i title="Lihat Foto" class="icon-eye text-primary lihatfoto" data-toggle="modal" data-target="#imageModal" id="<?= $i; ?>"></i></b></td></td>
-                                            </tr>
-                                    <?php }
-                                    } ?>
+                                    <?php $i = 0; foreach ($detail->result() as $key) { $i++; ?>
+                                        <tr>
+                                            <td class="text-center">
+                                                <spanx id="snum<?= $i; ?>"><?= $i; ?></spanx>
+                                            </td>
+                                            <td><?= $key->i_product; ?></td>
+                                            <td><?= $key->e_product_name; ?></td>
+                                            <td><?= $key->e_brand_name; ?></td>
+                                            <td class="text-right"><?= $key->n_qty; ?></td>
+                                            <td><?= $key->e_alasan; ?></td>
+                                            <td><input type="hidden" class="form-control form-control-sm" id="fotosrc<?= $i; ?>" name="fotosrc<?= $i; ?>" value="<?= base_url().'./upload/images/'.$key->foto; ?>">
+                                                <b><i title="Lihat Foto" class="icon-eye text-primary lihatfoto" data-toggle="modal" data-target="#imageModal" id="<?= $i; ?>"></i></b></td></td>
+                                        </tr>
+                                    <?php } ?>
                                 </tbody>
                                 <input type="hidden" id="jml" name="jml" value="<?= $i; ?>">
                             </table>
