@@ -135,28 +135,7 @@ var Detail = $(function() {
                 cache: false,
             },
         }).change(function(event) {
-            $.ajax({
-                type: "POST",
-                url: base_url + controller + "/get_product_by_id",
-                data: {
-                    id_product: $(this).val(),
-                },
-                dataType: "json",
-                success: function(data) {
-                    console.log(data);
-                    $("#e_product" + z).val(data["detail"][0]["e_product_name"]);
-                    $("#e_company_name" + z).val(data["detail"][0]["e_company_name"]);
-                    $("#i_company" + z).val(data["detail"][0]["i_company"]);
-                    $("#qty" + z).focus();
-                },
-                error: function() {
-                    swalInit(
-                        "Maaf :(",
-                        "Ada kesalahan saat mengambil data :(",
-                        "error"
-                    );
-                },
-            });
+            return;            
             /*
             var z = $(this).data("urut");
             var ada = false;
@@ -173,7 +152,28 @@ var Detail = $(function() {
                 }
             }
             if (!ada) {
-                
+                $.ajax({
+                    type: "POST",
+                    url: base_url + controller + "/get_product_by_id",
+                    data: {
+                        id_product: $(this).val(),
+                    },
+                    dataType: "json",
+                    success: function(data) {
+                        console.log(data);
+                        $("#e_product" + z).val(data["detail"][0]["e_product_name"]);
+                        $("#e_company_name" + z).val(data["detail"][0]["e_company_name"]);
+                        $("#i_company" + z).val(data["detail"][0]["i_company"]);
+                        $("#qty" + z).focus();
+                    },
+                    error: function() {
+                        swalInit(
+                            "Maaf :(",
+                            "Ada kesalahan saat mengambil data :(",
+                            "error"
+                        );
+                    },
+                });
             } else {
                 $(this).val("");
                 $(this).html("");

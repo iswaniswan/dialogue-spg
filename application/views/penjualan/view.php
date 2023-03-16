@@ -91,23 +91,19 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php $i = 0;
-                                    if ($detail) {
-                                        foreach ($detail->result() as $key) {
-                                            $i++; ?>
-                                            <tr>
-                                                <td class="text-center">
-                                                    <spanx id="snum<?= $i; ?>"><?= $i; ?></spanx>
-                                                </td>
-                                                <td><?= $key->i_product; ?></td>
-                                                <td><?= $key->e_product_name; ?></td>
-                                                <td class="text-right"><?= $key->n_qty; ?></td>
-                                                <td class="text-right"><?= $key->v_diskon; ?></td>
-                                                <td class="text-right"><?= number_format($key->v_price); ?></td>
-                                                <td><?= $key->e_remark; ?></td>
-                                            </tr>
-                                    <?php }
-                                    } ?>
+                                <?php $i = 0; foreach ($detail->result() as $key) { $i++; ?>
+                                    <tr>
+                                        <td class="text-center">
+                                            <spanx id="snum<?= $i; ?>"><?= $i; ?></spanx>
+                                        </td>
+                                        <td><?= $key->i_product; ?></td>
+                                        <td><?= $key->e_product_name; ?></td>
+                                        <td class="text-right"><?= $key->n_qty; ?></td>
+                                        <td class="text-right"><?= $key->v_diskon; ?></td>
+                                        <td class="text-right"><?= number_format($key->v_price); ?></td>
+                                        <td><?= $key->e_remark; ?></td>
+                                    </tr>
+                                <?php } ?>
                                 </tbody>
                                 <tfoot>
                                     <tr>
@@ -127,6 +123,7 @@
                                         </th>
                                         <th colspan="2"></th>
                                     </tr>
+                                    <?php /*
                                     <tr>
                                         <th colspan="4" class="text-right">DPP</th>
                                         <th class="text-right">
@@ -143,6 +140,7 @@
                                         </th>
                                         <th colspan="2"></th>
                                     </tr>
+                                    */ ?>
                                     <tr>
                                         <th colspan="4" class="text-right">Netto</th>
                                         <th class="text-right">

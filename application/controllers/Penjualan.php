@@ -130,18 +130,11 @@ class Penjualan extends CI_Controller
 	{
 		$filter = [];
 		$cari	= str_replace("'", "", $this->input->get('q'));
-		if ($cari != '') {
-			$data = $this->mymodel->get_customer($cari);
-			foreach ($data->result() as $row) {
-				$filter[] = array(
-					'id'   => $row->id_customer,
-					'text' => strtoupper($row->e_customer_name),
-				);
-			}
-		} else {
+		$data = $this->mymodel->get_customer($cari);
+		foreach ($data->result() as $row) {
 			$filter[] = array(
-				'id'   => null,
-				'text' => 'Cari Data Berdasarkan Nama',
+				'id'   => $row->id_customer,
+				'text' => strtoupper($row->e_customer_name),
 			);
 		}
 		echo json_encode($filter);
@@ -162,25 +155,21 @@ class Penjualan extends CI_Controller
 		$filter = [];
 		$i_company = $this->input->get('i_company');
 		$cari = str_replace("'", "", $this->input->get('q'));
-		if ($cari != '') {
-			$data = $this->mymodel->get_product($cari);
-			foreach ($data->result() as $row) {
-				$filter[] = array(
-					'id'   => $row->id . ' - ' . $row->id_brand,
-					'text' => $row->id . ' - ' . ucwords(strtolower($row->e_name)) . ' - ' . $row->e_brand_name,
-				);
-			}
-		} else {
-			$filter = [];
+		$id_customer = $this->input->get('id_customer');
+		
+		$data = $this->mymodel->get_product($cari, $id_customer);
+		foreach ($data->result() as $row) {
 			$filter[] = array(
-				'id'   => null,
-				'text' => 'Pilih Perusahan / Cari Dengan Kode atau Nama Product',
+				'id'   => $row->id,
+				'text' => $row->i_product . ' - ' . ucwords(strtolower($row->e_name)) . ' - ' . $row->brand,
 			);
 		}
+
 		echo json_encode($filter);
 	}
 
 	/** Get Detail Product */
+	/*
 	public function get_detail_product()
 	{
 		header("Content-Type: application/json", true);
@@ -192,9 +181,21 @@ class Penjualan extends CI_Controller
 		);
 		echo json_encode($query);
 	}
+	*/
+
+	public function get_product_price()
+	{
+		header("Content-Type: application/json", true);
+		$id_product = $this->input->post('id_product', TRUE);
+		$id_customer = $this->input->post('id_customer', TRUE);
+		$query  = array(
+			'detail' => $this->mymodel->get_product_price($id_product, $id_customer)->result_array()
+		);
+		echo json_encode($query);
+	}
 
 	/** Simpan Data */
-	public function save()
+	public function __save()
 	{
 		/** Cek Hak Akses, Apakah User Bisa Create */
 		$data = check_role($this->id_menu, 1);
@@ -245,6 +246,71 @@ class Penjualan extends CI_Controller
 		echo json_encode($data);
 	}
 
+	public function save()
+	{
+		/** Cek Hak Akses, Apakah User Bisa Create */
+		$data = check_role($this->id_menu, 1);
+		if (!$data) {
+			redirect(base_url(), 'refresh');
+		}
+
+		$i_document = $this->input->post('idocument');
+		$d_document = $this->input->post('ddocument');
+		$id_customer = $this->input->post('idcustomer');
+		$nama = $this->input->post('nama');
+		$e_remark = $this->input->post('eremark');
+		$alamat = $this->input->post('alamat');
+		$bruto = $this->input->post('bruto');
+		$diskon = $this->input->post('diskon');
+		$diskon_persen = $this->input->post('diskonpersen');
+		$netto = $this->input->post('netto');		
+		$items = $this->input->post('items');
+		$id_user = $this->session->userdata('id_user');
+
+
+		$this->db->trans_begin();
+
+		$this->mymodel->insert_penjualan(
+			$id_customer, $i_document, $d_document, $e_customer_sell_name=$nama, $e_customer_sell_address=$alamat, 
+			$v_gross=$bruto, $n_diskon=$diskon_persen, $v_diskon=$diskon, $v_dpp=null, $v_ppn=null, 
+			$v_netto=$netto, $v_bayar=null, $e_remark, $id_user
+		);
+
+		$insert_id = $this->db->insert_id();
+
+		foreach ($items as $item) {
+			$id_product = $item['id_product'];
+			$n_qty = $item['qty'];
+			$v_diskon = $item['vdiskon'];
+			$v_price = $item['harga'];
+			$v_price = str_replace(",", "", $v_price);
+			$e_remark = $item['enote'];
+			$this->mymodel->insert_penjualan_item(
+				$id_penjualan=$insert_id, $i_company=null, $id_product, $n_qty, $v_price, $v_diskon, $e_remark
+			);
+		}
+
+		$data = [
+			'sukses' => false,
+			'ada'	 => false,
+		];
+
+		// $this->mymodel->save();
+		if ($this->db->trans_status() === FALSE) {
+			$this->db->trans_rollback();
+			echo json_encode($data);
+			return;			
+		} 
+
+		$this->db->trans_commit();
+		$this->logger->write('Simpan Data ' . $this->title . ' : ' . $i_document);
+
+		$data['sukses'] = true;
+		$data['ada'] = false;
+
+		echo json_encode($data);
+	}
+
 	/** Redirect ke Form Edit */
 	public function edit()
 	{
@@ -275,7 +341,7 @@ class Penjualan extends CI_Controller
 	}
 
 	/** Update Data */
-	public function update()
+	public function __update()
 	{
 		/** Cek Hak Akses, Apakah User Bisa Edit */
 		$data = check_role($this->id_menu, 3);
@@ -311,6 +377,73 @@ class Penjualan extends CI_Controller
 					);
 			}
 		}
+		echo json_encode($data);
+	}
+
+	public function update()
+	{
+		/** Cek Hak Akses, Apakah User Bisa Edit */
+		$data = check_role($this->id_menu, 3);
+		if (!$data) {
+			redirect(base_url(), 'refresh');
+		}
+
+		$id = $this->input->post('id', TRUE);
+		$i_document = $this->input->post('idocument');
+		$d_document = $this->input->post('ddocument');
+		$id_customer = $this->input->post('idcustomer');
+		$nama = $this->input->post('nama');
+		$e_remark = $this->input->post('eremark');
+		$alamat = $this->input->post('alamat');
+		$bruto = $this->input->post('bruto');
+		$diskon = $this->input->post('diskon');
+		$diskon_persen = $this->input->post('diskonpersen');
+		$netto = $this->input->post('netto');		
+		$items = $this->input->post('items');
+		$id_user = $this->session->userdata('id_user');
+		
+		/** Update Data */
+		$data = [
+			'sukses' => false,
+			'ada'	 => false,
+		];
+
+		$this->db->trans_begin();
+
+		$this->mymodel->update_penjualan(
+			$id_customer, $i_document, $d_document, $e_customer_sell_name=$nama, $e_customer_sell_address=$alamat, 
+			$v_gross=$bruto, $n_diskon=$diskon_persen, $v_diskon=$diskon, $v_dpp=null, $v_ppn=null, 
+			$v_netto=$netto, $v_bayar=null, $e_remark, $id_user, $id
+		);
+
+		/** delete penjualan item */
+		$this->mymodel->delete_penjualan_item_by_id_penjualan($id_penjualan=$id);
+
+		foreach ($items as $item) {
+			$id_product = $item['id_product'];
+			$n_qty = $item['qty'];
+			$v_diskon = $item['vdiskon'];
+			$v_price = $item['harga'];
+			$v_price = str_replace(",", "", $v_price);
+			$e_remark = $item['enote'];
+			$this->mymodel->insert_penjualan_item(
+				$id_penjualan=$id, $i_company=null, $id_product, $n_qty, $v_price, $v_diskon, $e_remark
+			);
+		}
+
+		// $this->mymodel->update();
+
+		if ($this->db->trans_status() === FALSE) {
+			$this->db->trans_rollback();
+			echo json_encode($data);
+			return;	
+		} 
+
+		$this->db->trans_commit();
+		$this->logger->write('Update Data ' . $this->title . ' ID : ' . $id);		
+		$data['sukses'] = true;
+		$data['ada'] = false;		
+
 		echo json_encode($data);
 	}
 

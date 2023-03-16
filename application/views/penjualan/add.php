@@ -112,6 +112,7 @@
                                         </th>
                                         <th colspan="2"></th>
                                     </tr>
+                                    <?php /*
                                     <tr>
                                         <th colspan="4" class="text-right">DPP</th>
                                         <th class="text-right">
@@ -128,6 +129,7 @@
                                         </th>
                                         <th colspan="2"></th>
                                     </tr>
+                                    */ ?>
                                     <tr>
                                         <th colspan="4" class="text-right">Netto</th>
                                         <th class="text-right">

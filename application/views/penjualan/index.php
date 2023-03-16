@@ -16,7 +16,7 @@
         </div>
         <form method="POST" action="<?= base_url($this->folder);?>">
             <div class="card-body d-md-flex align-items-md-center justify-content-md-between flex-md-wrap">
-                <div class="d-flex offset-md-4 align-items-center mb-3 mb-md-0">
+                <div class="d-flex align-items-center mb-3 mb-md-0">
                     <div class="ml-2">
                         <div class="form-group">
                             <label><?= $this->lang->line('Dari Tanggal'); ?> :</label>

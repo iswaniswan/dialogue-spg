@@ -52,18 +52,45 @@ var Detail = $(function() {
     $("#addrow").on("click", function() {
         i++;
         var no = $("#tablecover tbody tr").length;
-        $("#jml").val(i);
+        document.getElementById("jml").value = i;
         var newRow = $("<tr>");
         var cols = "";
-        cols += `<td class="text-center"><spanx id="snum${i}">${no+1}</spanx></td>`;
-        cols += `<td><select data-urut="${i}" required class="form-control form-control-sm form-control-select2" data-container-css-class="select-sm" name="i_product[]" id="i_product${i}" required data-fouc></select></td>`;
-        cols += `<td><input type="number" required class="form-control form-control-sm" min="1" id="qty${i}" onkeyup="hetang();" placeholder="Qty" name="qty[]"></td>`;
-        cols += `<td><input type="number" required class="form-control form-control-sm" onblur=\'if(this.value==""){this.value="0";}\' onfocus=\'if(this.value=="0"){this.value="";}\' value="0" id="diskon${i}" onkeyup="hetang();" placeholder="Diskon" name="vdiskon[]"></td>`;
-        cols += `<td><input type="text" required class="form-control form-control-sm text-right harga" onblur=\'if(this.value==""){this.value="0";}\' onfocus=\'if(this.value=="0"){this.value="";}\' value="0" id="harga${i}" placeholder="Harga" name="harga[]" onkeyup="hetang();"></td>`;
+        cols += `<td class="text-center"><spanx id="snum${i}">${
+			no + 1
+		}</spanx></td>`;
         cols += `<td>
-					<input type="text" class="form-control form-control-sm" placeholder="Keterangan" name="enote[]">
-					<input type="hidden" class="form-control form-control-sm" id="e_product${i}" name="e_product[]">
-					<input type="hidden" class="form-control form-control-sm" id="i_company${i}" name="i_company[]">
+                    <select data-urut="${i}" class="form-control form-control-sm form-control-select2" 
+                        data-container-css-class="select-sm" 
+                        name="items[${i}][id_product]" 
+                        id="i_product${i}" required data-fouc>
+                    </select>
+                </td>`;
+        cols += `<td>
+                    <input type="number" class="form-control form-control-sm input-qty" 
+                        min="1" id="qty${i}" onkeyup="hetang();" placeholder="Qty" name="items[${i}][qty]">
+                </td>`;
+        cols += `<td>
+                    <input type="number" required class="form-control form-control-sm" 
+                        onblur=\'if(this.value==""){this.value="0";}\' 
+                        onfocus=\'if(this.value=="0"){this.value="";}\' 
+                        onkeyup="hetang();"
+                        value="0" 
+                        id="diskon${i}"  
+                        placeholder="Diskon" 
+                        name="items[${i}][vdiskon]">
+                </td>`;
+        cols += `<td>
+                    <input type="text" class="form-control form-control-sm text-right harga input-harga" 
+                        onblur=\'if(this.value==""){this.value="0";}\' 
+                        onfocus=\'if(this.value=="0"){this.value="";}\' 
+                        onkeyup="hetang();"
+                        value="0" 
+                        id="harga${i}" 
+                        placeholder="Harga" 
+                        name="items[${i}][harga]" >
+                </td>`;
+        cols += `<td>
+					<input type="text" class="form-control form-control-sm" placeholder="Keterangan" name="items[${i}][enote]">
 				</td>`;
         cols += `<td class="text-center"><b><i title="Hapus Baris" class="icon-cancel-circle2 text-danger ibtnDel"></i></b></td>`;
         newRow.append(cols);
@@ -80,7 +107,7 @@ var Detail = $(function() {
                     data: function(params) {
                         var query = {
                             q: params.term,
-                            id_customer: $('#idcustomer').val(),
+                            id_customer: $("#idcustomer").val(),
                         };
                         return query;
                     },
@@ -93,6 +120,33 @@ var Detail = $(function() {
                 },
             })
             .change(function(event) {
+                const elQty = $(this).closest('tr').find('.input-qty');
+                const elHarga = $(this).closest('tr').find('.input-harga');
+
+                $.ajax({
+                    type: "POST",
+                    url: base_url + controller + "/get_product_price",
+                    data: {
+                        id_product: $(this).val(),
+                        id_customer: $("#idcustomer").val(),
+                    },
+                    dataType: "json",
+                    success: function(data) {
+                        elQty.val(1);
+
+                        const harga = formatcemua(data["detail"][0]["v_price"]);
+                        elHarga.val(harga);
+                    },
+                    error: function() {
+                        swalInit(
+                            "Maaf :(",
+                            "Ada kesalahan saat mengambil data :(",
+                            "error"
+                        );
+                    },
+                });
+
+                /*
                 var z = $(this).data("urut");
                 var ada = false;
                 for (var x = 1; x <= $("#jml").val(); x++) {
@@ -107,37 +161,18 @@ var Detail = $(function() {
                         }
                     }
                 }
+
                 if (!ada) {
                     var product = $(this).val();
                     produk = product.split(" - ");
                     product = produk[0];
                     brand = produk[1];
-                    $.ajax({
-                        type: "POST",
-                        url: base_url + controller + "/get_detail_product",
-                        data: {
-                            i_product: product,
-                            i_brand: brand,
-                            id_customer: $('#idcustomer').val(),
-                        },
-                        dataType: "json",
-                        success: function(data) {
-                            $("#harga" + z).val(formatcemua(data["detail"][0]["v_price"]));
-                            $("#e_product" + z).val(data["detail"][0]["e_product_name"]);
-                            $("#i_company" + z).val(data["detail"][0]["i_company"]);
-                        },
-                        error: function() {
-                            swalInit(
-                                "Maaf :(",
-                                "Ada kesalahan saat mengambil data :(",
-                                "error"
-                            );
-                        },
-                    });
+                    
                 } else {
                     $(this).val("");
                     $(this).html("");
                 }
+                */
             });
     });
 

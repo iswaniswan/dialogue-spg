@@ -58,14 +58,39 @@ var Detail = $(function() {
         cols += `<td class="text-center"><spanx id="snum${i}">${
 			no + 1
 		}</spanx></td>`;
-        cols += `<td><select data-urut="${i}" required class="form-control form-control-sm form-control-select2" data-container-css-class="select-sm" name="i_product[]" id="i_product${i}" required data-fouc></select></td>`;
-        cols += `<td><input type="number" required class="form-control form-control-sm" min="1" id="qty${i}" onkeyup="hetang();" placeholder="Qty" name="qty[]"></td>`;
-        cols += `<td><input type="number" required class="form-control form-control-sm" onblur=\'if(this.value==""){this.value="0";}\' onfocus=\'if(this.value=="0"){this.value="";}\' value="0" id="diskon${i}" onkeyup="hetang();" placeholder="Diskon" name="vdiskon[]"></td>`;
-        cols += `<td><input type="text" required class="form-control form-control-sm text-right harga" onblur=\'if(this.value==""){this.value="0";}\' onfocus=\'if(this.value=="0"){this.value="";}\' value="0" id="harga${i}" placeholder="Harga" name="harga[]" onkeyup="hetang();"></td>`;
         cols += `<td>
-					<input type="text" class="form-control form-control-sm" placeholder="Keterangan" name="enote[]">
-					<input type="hidden" class="form-control form-control-sm" id="e_product${i}" name="e_product[]" value="">
-					<input type="hidden" class="form-control form-control-sm" id="i_company${i}" name="i_company[]" value="">
+                    <select data-urut="${i}" class="form-control form-control-sm form-control-select2" 
+                        data-container-css-class="select-sm" 
+                        name="items[${i}][id_product]" 
+                        id="i_product${i}" required data-fouc>
+                    </select>
+                </td>`;
+        cols += `<td>
+                    <input type="number" class="form-control form-control-sm input-qty" 
+                        min="1" id="qty${i}" onkeyup="hetang();" placeholder="Qty" name="items[${i}][qty]">
+                </td>`;
+        cols += `<td>
+                    <input type="number" required class="form-control form-control-sm" 
+                        onblur=\'if(this.value==""){this.value="0";}\' 
+                        onfocus=\'if(this.value=="0"){this.value="";}\' 
+                        onkeyup="hetang();"
+                        value="0" 
+                        id="diskon${i}"  
+                        placeholder="Diskon" 
+                        name="items[${i}][vdiskon]">
+                </td>`;
+        cols += `<td>
+                    <input type="text" class="form-control form-control-sm text-right harga input-harga" 
+                        onblur=\'if(this.value==""){this.value="0";}\' 
+                        onfocus=\'if(this.value=="0"){this.value="";}\' 
+                        onkeyup="hetang();"
+                        value="0" 
+                        id="harga${i}" 
+                        placeholder="Harga" 
+                        name="items[${i}][harga]" >
+                </td>`;
+        cols += `<td>
+					<input type="text" class="form-control form-control-sm" placeholder="Keterangan" name="items[${i}][enote]">
 				</td>`;
         cols += `<td class="text-center"><b><i title="Hapus Baris" class="icon-cancel-circle2 text-danger ibtnDel"></i></b></td>`;
         newRow.append(cols);
@@ -95,6 +120,33 @@ var Detail = $(function() {
                 },
             })
             .change(function(event) {
+                const elQty = $(this).closest('tr').find('.input-qty');
+                const elHarga = $(this).closest('tr').find('.input-harga');
+
+                $.ajax({
+                    type: "POST",
+                    url: base_url + controller + "/get_product_price",
+                    data: {
+                        id_product: $(this).val(),
+                        id_customer: $("#idcustomer").val(),
+                    },
+                    dataType: "json",
+                    success: function(data) {
+                        elQty.val(1);
+
+                        const harga = formatcemua(data["detail"][0]["v_price"]);
+                        elHarga.val(harga);
+                    },
+                    error: function() {
+                        swalInit(
+                            "Maaf :(",
+                            "Ada kesalahan saat mengambil data :(",
+                            "error"
+                        );
+                    },
+                });
+
+                /*
                 var z = $(this).data("urut");
                 var ada = false;
                 for (var x = 1; x <= $("#jml").val(); x++) {
@@ -109,37 +161,18 @@ var Detail = $(function() {
                         }
                     }
                 }
+
                 if (!ada) {
                     var product = $(this).val();
                     produk = product.split(" - ");
                     product = produk[0];
                     brand = produk[1];
-                    $.ajax({
-                        type: "POST",
-                        url: base_url + controller + "/get_detail_product",
-                        data: {
-                            i_product: product,
-                            i_brand: brand,
-                            id_customer: $("#idcustomer").val(),
-                        },
-                        dataType: "json",
-                        success: function(data) {
-                            $("#harga" + z).val(formatcemua(data["detail"][0]["v_price"]));
-                            $("#e_product" + z).val(data["detail"][0]["e_product_name"]);
-                            $("#i_company" + z).val(data["detail"][0]["i_company"]);
-                        },
-                        error: function() {
-                            swalInit(
-                                "Maaf :(",
-                                "Ada kesalahan saat mengambil data :(",
-                                "error"
-                            );
-                        },
-                    });
+                    
                 } else {
                     $(this).val("");
                     $(this).html("");
                 }
+                */
             });
     });
 
@@ -253,52 +286,31 @@ document.addEventListener("DOMContentLoaded", function() {
 
     $(".select-search").select2();
 
-    $("#idcustomer")
-        .select2({
-            placeholder: "Cari Customer",
-            width: "100%",
-            allowClear: true,
-            ajax: {
-                url: base_url + controller + "/get_customer",
-                dataType: "json",
-                delay: 250,
-                data: function(params) {
-                    var query = {
-                        q: params.term,
-                    };
-                    return query;
-                },
-                processResults: function(data) {
-                    return {
-                        results: data,
-                    };
-                },
-                cache: false,
+    $("#idcustomer").select2({
+        placeholder: "Cari Customer",
+        width: "100%",
+        allowClear: true,
+        ajax: {
+            url: base_url + controller + "/get_customer",
+            dataType: "json",
+            delay: 250,
+            data: function(params) {
+                var query = {
+                    q: params.term,
+                };
+                return query;
             },
-        })
-        .change(function() {
-            // $("#tablecover tbody tr:gt(0)").remove();
-            // $("#jml").val(0);
-            /* $.ajax({
-        			type: "POST",
-        			url: base_url + controller + "/get_detail_customer",
-        			data: {
-        				id_customer: $(this).val(),
-        			},
-        			dataType: "json",
-        			success: function (data) {
-        				$("#alamat").val(data.e_customer_address);
-        				$("#nama").val(data.e_customer_name);
-        			},
-        			error: function () {
-        				swalInit(
-        					"Maaf :(",
-        					"Ada kesalahan saat mengambil data :(",
-        					"error"
-        				);
-        			},
-        		}); */
-        });
+            processResults: function(data) {
+                return {
+                    results: data,
+                };
+            },
+            cache: false,
+        },
+    })
+    .change(function() {
+        clearItem();
+    });
 
     $("#ddocument").on("change", function() {
         number();
@@ -328,4 +340,10 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         }
     });
+
+    function clearItem() {
+        $(".ibtnDel").each(function() {
+            $(this).trigger('click');
+        })
+    }
 });

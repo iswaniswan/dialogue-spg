@@ -7,41 +7,26 @@ class Mpenjualan extends CI_Model {
 
     /** List Datatable */
     public function serverside($dfrom,$dto){
-        $datatables = new Datatables(new CodeigniterAdapter);
-        if ($this->fallcustomer == 'f') {
-            $where = "
-                AND id_customer IN (
-                    SELECT 
-                        id_customer
-                    FROM 
-                        tm_user_customer
-                    WHERE 
-                        id_user = '$this->id_user'
-                )
-            ";
-        }else{
-            $where = "";
-        }
-        
-        $datatables->query("SELECT
-                id_document,
-                i_document,
-                d_document,
-                e_customer_sell_name,
-                e_remark,
-                f_status
-            FROM
-                tm_penjualan
-            WHERE 
-                d_document BETWEEn '$dfrom' 
-                AND '$dto' 
-                $where
-            ORDER BY 
-                d_document, i_document ASC
-            ", FALSE);
+        $datatables = new Datatables(new CodeigniterAdapter);            
+
+        $sql = "SELECT
+                    a.id,
+                    i_document,
+                    d_document,
+                    e_customer_sell_name,
+                    e_remark,
+                    f_status
+                FROM tm_penjualan a
+                INNER JOIN tm_user_customer tuc ON tuc.id_user = '$this->id_user' AND tuc.id_customer = a.id_customer
+                WHERE d_document BETWEEn '$dfrom' AND '$dto'                 
+                ORDER BY d_document, i_document ASC";
+
+        // var_dump($sql);
+
+        $datatables->query($sql, FALSE);
 
         $datatables->edit('f_status', function ($data) {
-            $id         = $data['id_document'];
+            $id = $data['id'];
             if ($data['f_status']=='t') {
                 $status = 'Aktif';
                 $color  = 'success';
@@ -55,7 +40,7 @@ class Mpenjualan extends CI_Model {
 
         /** Cek Hak Akses, Apakah User Bisa Edit */
         $datatables->add('action', function ($data) {
-            $id         = trim($data['id_document']);
+            $id         = trim($data['id']);
             $ddocument  = $data['d_document'];
             $month      = date('m', strtotime($ddocument));
             $bulan      = date('m');
@@ -135,34 +120,27 @@ class Mpenjualan extends CI_Model {
     }
 
     /** Ambil Data Customer */
-    public function get_customer($cari)
+    public function get_customer($cari='')
     {
-        if ($this->fallcustomer=='t') {
-            $where = "";
-        }else{
-            $where = "
-                AND id_customer IN (
-                    SELECT 
-                        id_customer
-                    FROM
-                        tm_user_customer
-                    WHERE id_user = '$this->id_user'                
-                )
-            ";
+        $limit = " LIMIT 5";
+        if ($cari != '') {
+            $limit = '';
         }
-        return $this->db->query("
-            SELECT
-                id_customer,
-                e_customer_name
-            FROM
-                tr_customer
-            WHERE
-                (e_customer_name ILIKE '%$cari%')
-                AND f_status = 't'
-                $where
-            ORDER BY
-                e_customer_name ASC
-        ", FALSE);
+
+        $user_cover = "SELECT id_customer FROM tm_user_customer
+                        WHERE id_user = '$this->id_user'";
+
+        $sql = "SELECT
+                    id_customer,
+                    e_customer_name 
+                FROM tr_customer
+                WHERE (e_customer_name ILIKE '%$cari%')
+                    AND f_status = 't'
+                    AND id_customer IN ($user_cover)
+                ORDER BY e_customer_name ASC
+                $limit ";
+
+        return $this->db->query($sql, FALSE);
     }
 
     /** Ambil Data Detail Customer */
@@ -180,6 +158,7 @@ class Mpenjualan extends CI_Model {
     }
 
     /** Ambil Data Product */
+    /*
     public function get_product($cari)
     {
         return $this->db->query("
@@ -199,9 +178,47 @@ class Mpenjualan extends CI_Model {
         ORDER BY 3,1
         ", FALSE);
     }
+    */
+
+    /** Get Data Product sesuai user cover */
+    public function get_product($cari='', $id_customer, $all=false)
+    {
+        $id_user = $this->session->userdata('id_user');
+
+        $limit = 'LIMIT 5';
+        if (($cari != '') or ($all)) {
+            $limit = "";
+        }
+
+        $sql_brand_cover = "SELECT tub.id_brand
+                            FROM tm_user_brand tub						
+                            WHERE id_user_customer = (
+                                            SELECT id
+                                            FROM tm_user_customer
+                                            WHERE id_user = '$id_user' AND id_customer = '$id_customer'
+                                        )";
+
+        $sql = "SELECT a.id,
+                i_product,
+                e_product_name AS e_name,
+                a.id_brand,
+                b.e_brand_name AS brand
+            FROM tr_product a
+            INNER JOIN tr_brand b ON b.id_brand = a.id_brand
+            WHERE (e_product_name ILIKE '%$cari%' OR i_product ILIKE '%$cari%')
+                AND a.f_status = 't'
+                AND a.id_brand IN ($sql_brand_cover)
+            ORDER BY 4,1
+            $limit";
+
+        // var_dump($sql); die();
+
+        return $this->db->query($sql, FALSE);
+    }
 
 
     /** Ambil Data Detail Product */
+    /*
     public function get_detail_product($i_product,$i_brand)
     {
         return $this->db->query("SELECT
@@ -224,6 +241,33 @@ class Mpenjualan extends CI_Model {
         AND a.i_product = '$i_product'
         AND a.id_brand = '$i_brand'
         ", FALSE);
+    }
+    */
+    
+    public function get_detail_product($id_product, $id_customer)
+    {
+        $sql = "SELECT
+                    initcap(a.e_product_name) AS e_product_name,
+                    a.id_brand,
+                    c.e_brand_name, 
+                    a.i_company,
+                    b.e_company_name,
+                    coalesce(d.v_price,0) as v_price
+                FROM tr_product a
+                INNER JOIN tr_company b ON (b.i_company = a.i_company)
+                INNER JOIN tr_brand c ON (c.id_brand = a.id_brand)
+                LEFT JOIN tr_customer_price d ON (d.i_product = a.i_product)
+                WHERE b.i_company = a.i_company";
+
+        return $this->db->query($sql, FALSE);
+    }
+
+    public function get_product_price($id_product, $id_customer)
+    {
+        $sql = "SELECT * FROM tr_customer_price 
+                WHERE id_product = '$id_product' AND id_customer = '$id_customer'";
+
+        return $this->db->query($sql);
     }
 
     /** Cek Apakah Data Sudah Ada Pas Simpan */
@@ -317,36 +361,33 @@ class Mpenjualan extends CI_Model {
     /** Get Data Untuk Edit */
     public function getdata($id)
     {
-        return $this->db->query("
-        SELECT 
-        DISTINCT a.*, d.e_customer_name FROM tm_penjualan a 
-        LEFT JOIN tm_penjualan_item b ON (b.id_document = a.id_document) 
-        LEFT JOIN tr_customer d ON (d.id_customer = a.id_customer) 
-        WHERE a.id_document = '$id'
-        ", FALSE);
+        $sql = "SELECT DISTINCT a.*, d.e_customer_name 
+                FROM tm_penjualan a 
+                LEFT JOIN tm_penjualan_item b ON (b.id_penjualan = a.id) 
+                LEFT JOIN tr_customer d ON (d.id_customer = a.id_customer) 
+                WHERE a.id = '$id'";
+        
+        // var_dump($sql);
+
+        return $this->db->query($sql, FALSE);
     }
 
     /** Get Data Untuk Edit */
     public function getdatadetail($id)
     {
-        return $this->db->query("
-            SELECT
-                a.*,
-                b.id_brand,
-                c.e_brand_name
-            FROM
-                tm_penjualan_item a
-            INNER JOIN
-                tr_product b ON
-                (a.i_product = b.i_product AND b.i_company = a.i_company)
-            INNER JOIN
-                tr_brand c ON
-                (c.id_brand = b.id_brand)
-            WHERE
-                a.id_document = '$id'
-            ORDER BY 
-                a.id_item
-        ", FALSE);
+        $sql = "SELECT a.*,
+                    b.id_brand,
+                    c.e_brand_name,
+                    b.i_product,
+                    b.e_product_name
+                FROM tm_penjualan_item a
+                INNER JOIN tr_product b ON b.id = a.id_product
+                INNER JOIN tr_brand c ON (c.id_brand = b.id_brand)
+                WHERE a.id_penjualan = '$id'
+                ORDER BY a.id";
+        // var_dump($sql);
+
+        return $this->db->query($sql, FALSE);
     }
 
     /** Get Data Company Edit */
@@ -442,8 +483,81 @@ class Mpenjualan extends CI_Model {
         $data = array(
             'f_status' => false, 
         );
-        $this->db->where('id_document', $id);
+        $this->db->where('id', $id);
         $this->db->update('tm_penjualan', $data);
+    }
+
+    public function insert_penjualan(
+        $id_customer, $i_document, $d_document, $e_customer_sell_name, $e_customer_sell_address, 
+        $v_gross, $n_diskon, $v_diskon, $v_dpp, $v_ppn, $v_netto, $v_bayar, $e_remark, $id_user
+    )
+    {
+        $data = [
+            'id_customer' => $id_customer, 
+            'i_document' => $i_document, 
+            'd_document' => $d_document, 
+            'e_customer_sell_name' => $e_customer_sell_name, 
+            'e_customer_sell_address' => $e_customer_sell_address, 
+            'v_gross' => $v_gross, 
+            'n_diskon' => $n_diskon, 
+            'v_diskon' => $v_diskon, 
+            'v_dpp' => $v_dpp, 
+            'v_ppn' => $v_ppn,
+            'v_netto' => $v_netto,
+            'v_bayar' => $v_bayar,
+            'e_remark' => $e_remark,
+            'id_user' => $id_user
+        ];
+
+        $this->db->insert('tm_penjualan', $data);
+    }
+
+    public function update_penjualan(
+        $id_customer, $i_document, $d_document, $e_customer_sell_name, $e_customer_sell_address, 
+        $v_gross, $n_diskon, $v_diskon, $v_dpp, $v_ppn, $v_netto, $v_bayar, $e_remark, $id_user, $id
+    )
+    {
+        $data = [
+            'id_customer' => $id_customer, 
+            'i_document' => $i_document, 
+            'd_document' => $d_document, 
+            'e_customer_sell_name' => $e_customer_sell_name, 
+            'e_customer_sell_address' => $e_customer_sell_address, 
+            'v_gross' => $v_gross, 
+            'n_diskon' => $n_diskon, 
+            'v_diskon' => $v_diskon, 
+            'v_dpp' => $v_dpp, 
+            'v_ppn' => $v_ppn,
+            'v_netto' => $v_netto,
+            'v_bayar' => $v_bayar,
+            'e_remark' => $e_remark,
+            'id_user' => $id_user,
+            'd_update' => date('Y-m-d H:i:s')
+        ];
+
+        $this->db->where('id', $id);
+        $this->db->update('tm_penjualan', $data);
+    }
+
+    public function insert_penjualan_item($id_penjualan, $i_company=null, $id_product, $n_qty, $v_price, $v_diskon, $e_remark)
+    {
+        $data = [
+            'id_penjualan' => $id_penjualan,
+            'i_company' => $i_company,
+            'id_product' => $id_product,
+            'n_qty' => $n_qty,
+            'v_price' => $v_price,
+            'v_diskon' => $v_diskon,
+            'e_remark' => $e_remark
+        ];
+
+        $this->db->insert('tm_penjualan_item', $data);        
+    }
+
+    public function delete_penjualan_item_by_id_penjualan($id_penjualan)
+    {
+        $this->db->where('id_penjualan', $id_penjualan);
+        $this->db->delete('tm_penjualan_item');
     }
 }
 

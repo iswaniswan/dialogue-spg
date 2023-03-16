@@ -5,7 +5,6 @@
 </style>
 <!-- Content area -->
 <div class="content">
-
     <form class="form-validation">
         <!-- Left and right buttons -->
         <div class="card">
@@ -26,7 +25,7 @@
                     <div class="col-sm-6">
                         <div class="form-group">
                             <label>Nomor Dokumen :</label>
-                            <input type="hidden" value="<?= $data->id_document; ?>" id="id" name="id">
+                            <input type="hidden" value="<?= $data->id; ?>" id="id" name="id">
                             <input type="text" class="form-control" readonly value="<?= $data->i_document; ?>" data-inputmask="'mask': 'BON-9999-999999'" autofocus placeholder="Entry No Document" id="idocument" name="idocument" maxlength="20" autocomplete="off" required>
                         </div>
                     </div>
@@ -41,7 +40,9 @@
                     <div class="col-sm-6">
                         <div class="form-group">
                             <label>Nama Toko :</label>
-                            <select class="form-control select-search" data-container-css-class="select-sm" data-placeholder="Select Customer" required data-fouc name="idcustomer" id="idcustomer">
+                            <select class="form-control select-search" 
+                                data-container-css-class="select-sm" data-placeholder="Select Customer" required data-fouc 
+                                name="idcustomer" id="idcustomer">
                                 <option value="<?= $data->id_customer; ?>"><?= $data->e_customer_name; ?></option>
                             </select>
                         </div>
@@ -49,7 +50,8 @@
                     <div class="col-sm-6">
                         <div class="form-group">
                             <label>Nama Pelanggan :</label>
-                            <input type="text" class="form-control text-capitalize" placeholder="Nama Pelanggan .." id="nama" name="nama" value="<?php if($data->e_customer_sell_name =='-'){ echo '-';} ?>">
+                            <input type="text" class="form-control text-capitalize" placeholder="Nama Pelanggan .." id="nama"
+                                name="nama" value="<?= $data->e_customer_sell_name ?>">
                         </div>
                     </div>
                 </div>
@@ -57,13 +59,13 @@
                     <div class="col-sm-6">
                         <div class="form-group">
                             <label>Keterangan :</label>
-                            <textarea class="form-control" name="eremark" placeholder="Isi keterangan jika ada .."><?php if($data->e_remark =='-'){ echo '-';} ?></textarea>
+                            <textarea class="form-control" name="eremark" placeholder="Isi keterangan jika ada .."><?= $data->e_remark ?></textarea>
                         </div>
                     </div>
                     <div class="col-sm-6">
                         <div class="form-group">
                             <label>Alamat Pelanggan :</label>
-                            <textarea class="form-control" name="alamat" placeholder="Isi Alamat Pelanggan .."><?php if($data->e_customer_sell_address =='-'){ echo '-';} ?></textarea>
+                            <textarea class="form-control" name="alamat" placeholder="Isi Alamat Pelanggan .."><?= $data->e_customer_sell_address ?></textarea>
                         </div>
                     </div>
                 </div>
@@ -103,17 +105,46 @@
                                                     <spanx id="snum<?= $i; ?>"><?= $i; ?></spanx>
                                                 </td>
                                                 <td>
-                                                    <select data-urut="<?= $i; ?>" required class="form-control form-control-sm form-control-select2" data-container-css-class="select-sm" name="i_product[]" id="i_product<?= $i; ?>" required data-fouc>
-                                                        <option value="<?= $key->i_product . ' - ' . $key->id_brand; ?>"><?= $key->i_product . ' - ' . $key->e_product_name . ' - ' . $key->e_brand_name; ?></option>
+                                                    <select data-urut="<?= $i; ?>" class="form-control form-control-sm form-control-select2" 
+                                                        data-container-css-class="select-sm" 
+                                                        name="items[<?= $i ?>][id_product]" id="i_product<?= $i ?>" required data-fouc>
+                                                        <option value="<?= $key->id_product ?>"><?= $key->i_product . ' - ' . $key->e_product_name . ' - ' . $key->e_brand_name; ?>
+                                                        </option>
                                                     </select>
                                                 </td>
-                                                <td><input type="number" required class="form-control form-control-sm" min="1" id="qty<?= $i; ?>" onkeyup="hetang();" value="<?= $key->n_qty;?>" placeholder="Qty" name="qty[]"></td>
-                                                <td><input type="number" required class="form-control form-control-sm" onblur="if(this.value==''){this.value='0';}" onfocus="if(this.value=='0'){this.value='';}"  value="<?= $key->v_diskon;?>" id="diskon<?= $i; ?>" onkeyup="hetang();" placeholder="Diskon" name="vdiskon[]"></td>
-                                                <td><input type="text" required class="form-control form-control-sm text-right harga" id="harga<?= $i; ?>" placeholder="Harga"  value="<?= number_format($key->v_price);?>" name="harga[]" onkeyup="hetang();"></td>
                                                 <td>
-                                                    <input type="text" class="form-control form-control-sm" placeholder="Keterangan" name="enote[]"  value="<?= $key->e_remark;?>">
-                                                    <input type="hidden" class="form-control form-control-sm" id="e_product<?= $i; ?>" name="e_product[]"  value="<?= $key->e_product_name;?>">
-                                                    <input type="hidden" class="form-control form-control-sm" id="i_company<?= $i; ?>" name="i_company[]"  value="<?= $key->i_company;?>">
+                                                    <input type="number" required 
+                                                        class="form-control form-control-sm" 
+                                                        min="1" id="qty<?= $i ?>" 
+                                                        onkeyup="hetang();" 
+                                                        value="<?= $key->n_qty ?>" 
+                                                        placeholder="Qty" 
+                                                        name="items[<?= $i ?>][qty]">
+                                                </td>
+                                                <td>
+                                                    <input type="number" required 
+                                                        class="form-control form-control-sm" 
+                                                        onblur="if(this.value==''){this.value='0';}" 
+                                                        onfocus="if(this.value=='0'){this.value='';}"  
+                                                        value="<?= $key->v_diskon;?>" 
+                                                        id="diskon<?= $i ?>" 
+                                                        onkeyup="hetang();" 
+                                                        placeholder="Diskon" 
+                                                        name="items[<?= $i ?>][vdiskon]">
+                                                </td>
+                                                <td>
+                                                    <input type="text" required 
+                                                        class="form-control form-control-sm text-right harga input-harga" 
+                                                        id="harga<?= $i; ?>" 
+                                                        placeholder="Harga"  
+                                                        value="<?= number_format($key->v_price);?>"                                                        
+                                                        onkeyup="hetang();"
+                                                        name="items[<?= $i ?>][harga]" >
+                                                </td>
+                                                <td>
+                                                    <input type="text" class="form-control form-control-sm" placeholder="Keterangan" name="items[<?= $i ?>][enote]"  value="<?= $key->e_remark;?>">
+                                                    <input type="hidden" class="form-control form-control-sm" id="e_product<?= $i; ?>" name="items[<?= $i ?>][e_product]"  value="<?= $key->e_product_name;?>">
+                                                    <input type="hidden" class="form-control form-control-sm" id="i_company<?= $i; ?>" name="items[<?= $i ?>][i_company]"  value="<?= $key->i_company;?>">
                                                 </td>
                                                 <td class="text-center"><b><i title="Hapus Baris" class="icon-cancel-circle2 text-danger ibtnDel"></i></b></td>
                                             </tr>
@@ -138,6 +169,7 @@
                                         </th>
                                         <th colspan="2"></th>
                                     </tr>
+                                    <?php /*
                                     <tr>
                                         <th colspan="4" class="text-right">DPP</th>
                                         <th class="text-right">
@@ -154,6 +186,7 @@
                                         </th>
                                         <th colspan="2"></th>
                                     </tr>
+                                    */ ?>
                                     <tr>
                                         <th colspan="4" class="text-right">Netto</th>
                                         <th class="text-right">
