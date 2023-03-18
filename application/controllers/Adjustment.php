@@ -132,18 +132,11 @@ class Adjustment extends CI_Controller
 	{
 		$filter = [];
 		$cari	= str_replace("'", "", $this->input->get('q'));
-		if ($cari != '') {
-			$data = $this->mymodel->get_customer($cari);
-			foreach ($data->result() as $row) {
-				$filter[] = array(
-					'id'   => $row->id_customer,
-					'text' => strtoupper($row->e_customer_name),
-				);
-			}
-		} else {
+		$data = $this->mymodel->get_customer($cari);
+		foreach ($data->result() as $row) {
 			$filter[] = array(
-				'id'   => null,
-				'text' => 'Cari Data Berdasarkan Nama',
+				'id'   => $row->id_customer,
+				'text' => strtoupper($row->e_customer_name),
 			);
 		}
 		echo json_encode($filter);
@@ -162,29 +155,18 @@ class Adjustment extends CI_Controller
 	public function get_product()
 	{
 		$filter = [];
-		/* $i_company = $this->input->get('i_company'); */
-		$cari	= str_replace("'", "", $this->input->get('q'));
-		/* if ($i_company != '') { */
-			if ($cari != '') {
-				$data = $this->mymodel->get_product(/* $i_company,  */$cari);
-				foreach ($data->result() as $row) {
-					$filter[] = array(
-						'id'   => $row->id . ' - ' . $row->id_brand,
-						'text' => $row->id . ' - ' . $row->e_name . ' - ' . $row->e_brand_name,
-					);
-				}
-			} else {
-				$filter[] = array(
-					'id'   => null,
-					'text' => 'Cari Berdasarkan Kode / Nama Barang!',
-				);
-			}
-		/* } else {
+		$i_company = $this->input->get('i_company');
+		$cari = str_replace("'", "", $this->input->get('q'));
+		$id_customer = $this->input->get('id_customer');
+		
+		$data = $this->mymodel->get_product($cari, $id_customer);
+		foreach ($data->result() as $row) {
 			$filter[] = array(
-				'id'   => null,
-				'text' => 'Perusahaan Harus Dipilih!',
+				'id'   => $row->id,
+				'text' => $row->i_product . ' - ' . ucwords(strtolower($row->e_name)) . ' - ' . $row->brand,
 			);
-		} */
+		}
+
 		echo json_encode($filter);
 	}
 
@@ -223,7 +205,7 @@ class Adjustment extends CI_Controller
 	}
 
 	/** Simpan Data */
-	public function save()
+	public function __save()
 	{
 		/** Cek Hak Akses, Apakah User Bisa Create */
 		$data = check_role($this->id_menu, 1);
@@ -271,6 +253,58 @@ class Adjustment extends CI_Controller
 		echo json_encode($data);
 	}
 
+	public function save()
+	{
+		/** Cek Hak Akses, Apakah User Bisa Create */
+		$data = check_role($this->id_menu, 1);
+		if (!$data) {
+			redirect(base_url(), 'refresh');
+		}
+
+		/** Simpan Data */
+		$id_customer = $this->input->post('idcustomer', TRUE);
+		// $i_document = $this->input->post('idocument', TRUE);
+		$i_document = $this->mymodel->generate_nomor_dokumen($id_customer);
+		$d_document = $this->input->post('ddocument', TRUE);
+		$e_remark = $this->input->post('eremark', TRUE);
+		$i_periode = date('Ym');
+
+		$items = $this->input->post('items', TRUE);
+
+		$data = [
+			'sukses' => false,
+			'ada'	 => false,
+		];
+
+		$this->db->trans_begin();
+
+		$this->mymodel->insert_adjustment($i_document, $d_document, $i_periode, $id_customer, $e_remark);
+
+		$insert_id = $this->db->insert_id();
+
+		foreach ($items as $item) {
+			$id_product = $item['id_product'];
+			$n_qty = $item['qty'];
+			$e_remark = $item['e_remark'];
+			$this->mymodel->insert_adjustment_item($id_adjustment=$insert_id, $id_product, $n_adjustment=$n_qty, $e_remark);
+		}
+
+		// $this->mymodel->save();
+		if ($this->db->trans_status() === FALSE) {
+			$this->db->trans_rollback();
+			echo json_encode($data);
+			return;
+		} 
+
+		$this->db->trans_commit();
+		$this->logger->write('Simpan Data ' . $this->title . ' : ' . $i_document);
+
+		$data['sukses'] = true;
+		$data['ada'] = false;
+
+		echo json_encode($data);
+	}
+
 	/** Redirect ke Form Edit */
 	public function edit()
 	{
@@ -301,7 +335,7 @@ class Adjustment extends CI_Controller
 	}
 
 	/** Update Data */
-	public function update()
+	public function __update()
 	{
 		/** Cek Hak Akses, Apakah User Bisa Edit */
 		$data = check_role($this->id_menu, 3);
@@ -337,6 +371,64 @@ class Adjustment extends CI_Controller
 				);
 			}
 		}
+		echo json_encode($data);
+	}
+
+	public function update()
+	{
+		/** Cek Hak Akses, Apakah User Bisa Edit */
+		$data = check_role($this->id_menu, 3);
+		if (!$data) {
+			redirect(base_url(), 'refresh');
+		}
+
+		$i_document = $this->input->post('idocument', TRUE);
+		$d_document = $this->input->post('ddocument', TRUE);
+		$id_customer = $this->input->post('idcustomer', TRUE);
+		$e_remark = $this->input->post('eremark', TRUE);
+
+		$i_periode = date('Ym');
+		if ($this->input->post('ddocument', TRUE) != '') {
+			$i_periode =  date('Ym', strtotime($d_document));
+		}
+
+		$items = $this->input->post('items', TRUE);
+
+		$id = $this->input->post('id', TRUE);		
+		/** Update Data */
+		$data = [
+			'sukses' => false,
+			'ada'	 => false,
+		];
+
+		$this->db->trans_begin();
+
+		$this->mymodel->update_adjustment($i_document, $d_document, $i_periode, $id_customer, $e_remark, $id);
+
+		/** delete penjualan item */
+		$this->mymodel->delete_adjustment_item_by_id_adjustment($id);
+
+		foreach ($items as $item) {
+			$id_stockopname = $id;
+			$id_product = $item['id_product'];
+			$n_qty = $item['qty'];
+			$e_remark = $item['e_remark'];
+			$this->mymodel->insert_adjustment_item($id_adjustment=$id, $id_product, $n_adjustment=$n_qty, $e_remark);
+		}
+
+		// $this->mymodel->update();
+
+		if ($this->db->trans_status() === FALSE) {
+			$this->db->trans_rollback();
+			echo json_encode($data);
+			return;	
+		} 
+
+		$this->db->trans_commit();
+		$this->logger->write('Update Data ' . $this->title . ' ID : ' . $id);		
+		$data['sukses'] = true;
+		$data['ada'] = false;		
+
 		echo json_encode($data);
 	}
 

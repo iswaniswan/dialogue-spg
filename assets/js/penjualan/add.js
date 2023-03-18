@@ -67,27 +67,60 @@ var Detail = $(function() {
                 </td>`;
         cols += `<td>
                     <input type="number" class="form-control form-control-sm input-qty" 
-                        min="1" id="qty${i}" onkeyup="hetang();" placeholder="Qty" name="items[${i}][qty]">
+                        min="1" id="qty${i}" onkeyup="getTotal(this); getAkhir(this)" placeholder="Qty" name="items[${i}][qty]">
                 </td>`;
         cols += `<td>
-                    <input type="number" required class="form-control form-control-sm" 
+                    <input type="number" required class="form-control form-control-sm input-discount" 
                         onblur=\'if(this.value==""){this.value="0";}\' 
                         onfocus=\'if(this.value=="0"){this.value="";}\' 
-                        onkeyup="hetang();"
+                        onkeyup="getAkhir(this);"
+                        onchange="getAkhir(this)";
                         value="0" 
                         id="diskon${i}"  
                         placeholder="Diskon" 
                         name="items[${i}][vdiskon]">
                 </td>`;
         cols += `<td>
-                    <input type="text" class="form-control form-control-sm text-right harga input-harga" 
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Rp.</span>
+                        </div>
+                        <input type="text" class="form-control form-control-sm text-right harga input-harga" 
                         onblur=\'if(this.value==""){this.value="0";}\' 
                         onfocus=\'if(this.value=="0"){this.value="";}\' 
-                        onkeyup="hetang();"
+                        onkeyup="getTotal(this); getAkhir(this); reformat(this)"
                         value="0" 
                         id="harga${i}" 
                         placeholder="Harga" 
-                        name="items[${i}][harga]" >
+                        name="items[${i}][harga]" required>
+                    </div>
+                </td>`;
+        cols += `<td>
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Rp.</span>
+                        </div>                        
+                        <input type="text" class="form-control form-control-sm text-right harga input-total" 
+                            name="items[${i}][total]" value="0" readonly>
+                    </div>                    
+                </td>`;
+        cols += `<td>
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Rp.</span>
+                        </div>                        
+                        <input type="text" class="form-control form-control-sm text-right harga input-harga-discount" 
+                            name="items[${i}][total]" value="0" readonly>
+                    </div>                    
+                </td>`;
+        cols += `<td>
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Rp.</span>
+                        </div>
+                        <input type="text" class="form-control form-control-sm text-right harga input-akhir" 
+                            name="items[${i}][akhir]" value="0" readonly>
+                    </div>                    
                 </td>`;
         cols += `<td>
 					<input type="text" class="form-control form-control-sm" placeholder="Keterangan" name="items[${i}][enote]">
@@ -95,85 +128,69 @@ var Detail = $(function() {
         cols += `<td class="text-center"><b><i title="Hapus Baris" class="icon-cancel-circle2 text-danger ibtnDel"></i></b></td>`;
         newRow.append(cols);
         $("#tablecover").append(newRow);
-        $("#i_product" + i)
-            .select2({
-                placeholder: "Cari Product",
-                width: "100%",
-                allowClear: true,
-                ajax: {
-                    url: base_url + controller + "/get_product",
-                    dataType: "json",
-                    delay: 250,
-                    data: function(params) {
-                        var query = {
-                            q: params.term,
-                            id_customer: $("#idcustomer").val(),
-                        };
-                        return query;
-                    },
-                    processResults: function(data) {
-                        return {
-                            results: data,
-                        };
-                    },
-                    cache: false,
-                },
-            })
-            .change(function(event) {
-                const elQty = $(this).closest('tr').find('.input-qty');
-                const elHarga = $(this).closest('tr').find('.input-harga');
-
-                $.ajax({
-                    type: "POST",
-                    url: base_url + controller + "/get_product_price",
-                    data: {
-                        id_product: $(this).val(),
+        $("#i_product" + i).select2({
+            placeholder: "Cari Product",
+            width: "100%",
+            allowClear: true,
+            ajax: {
+                url: base_url + controller + "/get_product",
+                dataType: "json",
+                delay: 250,
+                data: function(params) {
+                    var query = {
+                        q: params.term,
                         id_customer: $("#idcustomer").val(),
-                    },
-                    dataType: "json",
-                    success: function(data) {
-                        elQty.val(1);
+                    };
+                    return query;
+                },
+                processResults: function(data) {
+                    return {
+                        results: data,
+                    };
+                },
+                cache: false,
+            },
+        })
+        .change(function(event) {
+            const elQty = $(this).closest('tr').find('.input-qty');
+            const elHarga = $(this).closest('tr').find('.input-harga');
+            const elTotal = $(this).closest('tr').find('.input-total');
+            const elHargaDiscount = $(this).closest('tr').find('.input-harga-discount');
+            const elAkhir = $(this).closest('tr').find('.input-akhir');
 
-                        const harga = formatcemua(data["detail"][0]["v_price"]);
-                        elHarga.val(harga);
-                    },
-                    error: function() {
-                        swalInit(
-                            "Maaf :(",
-                            "Ada kesalahan saat mengambil data :(",
-                            "error"
-                        );
-                    },
-                });
+            $.ajax({
+                type: "POST",
+                url: base_url + controller + "/get_product_price",
+                data: {
+                    id_product: $(this).val(),
+                    id_customer: $("#idcustomer").val(),
+                },
+                dataType: "json",
+                success: function(data) {
+                    elQty.val(1);
 
-                /*
-                var z = $(this).data("urut");
-                var ada = false;
-                for (var x = 1; x <= $("#jml").val(); x++) {
-                    if ($(this).val() !== null || $(this).val() !== '') {
-                        var product = $(this).val();
-                        var productx = $("#i_product" + x).val();
-                        console.log(product + " - " + productx);
-                        if ((product == productx) && (z != x)) {
-                            swalInit("Maaf :(", "Kode Barang tersebut sudah ada :(", "error");
-                            ada = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (!ada) {
-                    var product = $(this).val();
-                    produk = product.split(" - ");
-                    product = produk[0];
-                    brand = produk[1];
-                    
-                } else {
-                    $(this).val("");
-                    $(this).html("");
-                }
-                */
+                    const harga = formatcemua(data["detail"][0]["v_price"]);
+                    elHarga.val(harga);
+                    elTotal.val(harga);
+                    elHargaDiscount.val(0);
+                    elAkhir.val(harga);                        
+                },
+                error: function() {
+                    swalInit(
+                        "Maaf :(",
+                        "Ada kesalahan saat mengambil data :(",
+                        "error"
+                    );
+                },
             });
+
+            setTimeout(() => {                
+                /** recalculate total & akhir */
+                calcGrandTotal();
+                calcGrandAkhir();
+                calcGrandDiscount();
+            }, 200);
+        });
     });
 
     /*----------  Hapus Baris Data Saudara  ----------*/
@@ -187,6 +204,10 @@ var Detail = $(function() {
             id = value.id;
             $("#" + id).html(key + 1);
         });
+
+        calcGrandTotal();
+        calcGrandAkhir();
+        calcGrandDiscount();
     });
 });
 
@@ -233,12 +254,74 @@ function hetang() {
     $("#diskon").val(diskonrp);
     $("#sdiskonpersen").text(formatcemua(diskonpersen));
     $("#diskonpersen").val(diskonpersen);
-    $("#sdpp").text(formatcemua(dpp));
-    $("#dpp").val(dpp);
-    $("#sppn").text(formatcemua(ppn));
-    $("#ppn").val(ppn);
+    // $("#sdpp").text(formatcemua(dpp));
+    // $("#dpp").val(dpp);
+    // $("#sppn").text(formatcemua(ppn));
+    // $("#ppn").val(ppn);
     $("#snetto").text(formatcemua(netto));
     $("#netto").val(netto);
+}
+
+function getTotal(e) {
+    const elTarget = $(e).closest('tr').find('.input-total');
+
+    const qty = $(e).closest('tr').find('.input-qty').val();
+    const price = $(e).closest('tr').find('.input-harga').val();
+    let val = formatulang(price);
+    let total = val * qty;
+    elTarget.val(formatcemua(total));   
+    
+    calcGrandTotal();
+}
+
+function getAkhir(e) {
+    let elHargaDiscount = $(e).closest('tr').find('.input-harga-discount');
+    let elTarget = $(e).closest('tr').find('.input-akhir');
+    
+    const discount = $(e).closest('tr').find('.input-discount').val();
+    const priceTotal = $(e).closest('tr').find('.input-total').val();
+    let val = formatulang(priceTotal);
+    let valDiscount = (val * discount) / 100;
+    let priceFinal = val - valDiscount;
+
+    elHargaDiscount.val(formatcemua(valDiscount));
+    elTarget.val(formatcemua(priceFinal));
+
+    calcGrandDiscount();
+    calcGrandAkhir();
+}
+
+function calcGrandTotal() {
+    let total = 0;
+    $('.input-total').each(function() {
+        const val = formatulang($(this).val());
+        total += parseFloat(val);
+    })    
+    console.log(total);
+
+    $('#grand_total').val(formatcemua(parseFloat(total)));
+}
+
+function calcGrandAkhir() {
+    let total = 0;
+    $('.input-akhir').each(function() {
+        const val = formatulang($(this).val());
+        total += parseFloat(val);
+    })    
+    console.log(total);
+
+    $('#grand_akhir').val(formatcemua(parseFloat(total)));
+}
+
+function calcGrandDiscount() {
+    let total = 0;
+    $('.input-harga-discount').each(function() {
+        const val = formatulang($(this).val());
+        total += parseFloat(val);
+    })    
+    console.log(total);
+
+    $('#grand_discount').val(formatcemua(parseFloat(total)));
 }
 
 function number() {
@@ -256,6 +339,24 @@ function number() {
             swalInit("Maaf :(", "Ada kesalahan :(", "error");
         },
     });
+}
+
+/* Fungsi formatRupiah */
+function formatRupiah(angka, prefix) {
+    var number_string = angka.replace(/[^,\d]/g, "").toString(),
+    split = number_string.split("."),
+    sisa = split[0].length % 3,
+    rupiah = split[0].substr(0, sisa),
+    ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+    // tambahkan titik jika yang di input sudah menjadi angka ribuan
+    if (ribuan) {
+    separator = sisa ? "," : "";
+    rupiah += separator + ribuan.join(",");
+    }
+
+    rupiah = split[1] != undefined ? rupiah + "." + split[1] : rupiah;
+    return rupiah;
 }
 
 document.addEventListener("DOMContentLoaded", function() {
@@ -313,6 +414,7 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     $("#ddocument").on("change", function() {
+        return;
         number();
     });
 
@@ -345,5 +447,6 @@ document.addEventListener("DOMContentLoaded", function() {
         $(".ibtnDel").each(function() {
             $(this).trigger('click');
         })
-    }
+    }    
+
 });

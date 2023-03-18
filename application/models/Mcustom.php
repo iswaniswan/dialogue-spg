@@ -113,8 +113,8 @@ class Mcustom extends CI_Model {
     {
         return $this->db->query("
             SELECT
-                id_adjustment,
-                i_adjustment,
+                id,
+                i_document,
                 d_entry
             FROM
                 tm_adjustment

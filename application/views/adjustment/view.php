@@ -26,13 +26,13 @@
                     <div class="col-sm-6">
                         <div class="form-group">
                             <label>Nomor Dokumen :</label>
-                            <input type="text" class="form-control" readonly value="<?= $data->i_adjustment; ?>">
+                            <input type="text" class="form-control" readonly value="<?= $data->i_document; ?>">
                         </div>
                     </div>
                     <div class="col-sm-6">
                         <div class="form-group">
                             <label>Tanggal Dokumen :</label>
-                            <input type="text" readonly class="form-control" value="<?= $data->d_adjustment; ?>">
+                            <input type="text" readonly class="form-control" value="<?= $data->d_document; ?>">
                         </div>
                     </div>
                 </div>

@@ -56,16 +56,19 @@ var Detail = $(function() {
         var newRow = $("<tr>");
         var cols = "";
         cols += `<td class="text-center"><spanx id="snum${i}">${no + 1}</spanx></td>`;
-        cols += `<td><select data-urut="${i}" required class="form-control form-control-sm form-control-select2" data-container-css-class="select-sm" name="i_product[]" id="i_product${i}" required data-fouc></select></td>`;
-        cols += `<td><input type="text" readonly class="form-control form-control-sm" id="e_company_name${i}" placeholder="Perusahaan" name="e_company_name[]"></td>`;
         cols += `<td>
-                    <input type="hidden" class="form-control form-control-sm" id="i_company${i}" name="i_company[]">
-                    <input type="number" required class="form-control form-control-sm" min="1" id="qty${i}" placeholder="Qty" name="qty[]">
-                    <input type="hidden" class="form-control form-control-sm" id="e_product${i}" name="e_product[]">
+                    <select data-urut="${i}" class="form-control form-control-sm form-control-select2" 
+                        data-container-css-class="select-sm" 
+                        name="items[${i}][id_product]" id="i_product${i}" required data-fouc>
+                    </select>
+                </td>`;
+        cols += `<td>
+                    <input type="number" required class="form-control form-control-sm" min="1" id="qty${i}" placeholder="Qty" 
+                        name="items[${i}][qty]">
                 </td>`;
         cols += `<td class="text-center"><b><i title="Hapus Baris" class="icon-cancel-circle2 text-danger ibtnDel"></i></b></td>`;
         newRow.append(cols);
-        $("#tablecover").append(newRow);
+        $("#tablecover tbody").append(newRow);
         $("#i_product" + i).select2({
             placeholder: "Cari Product",
             width: "100%",
@@ -77,6 +80,7 @@ var Detail = $(function() {
                 data: function(params) {
                     var query = {
                         q: params.term,
+                        id_customer: $("#idcustomer").val(),
                     };
                     return query;
                 },
@@ -91,7 +95,7 @@ var Detail = $(function() {
             var z = $(this).data("urut");
             var ada = false;
             for (var x = 1; x <= $("#jml").val(); x++) {
-                if ($(this).val() != null) {
+                if ($(this).val() !== null || $(this).val() !== '') {
                     var product = $(this).val();
                     var productx = $("#i_product" + x).val();
                     console.log(product + " - " + productx);
@@ -103,6 +107,7 @@ var Detail = $(function() {
                 }
             }
             if (!ada) {
+                return;
                 var product = $(this).val();
                 produk = product.split(" - ");
                 product = produk[0];

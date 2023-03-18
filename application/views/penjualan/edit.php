@@ -2,6 +2,9 @@
     .tabel td {
         padding: 7px 7px !important;
     }
+    .input-group-prepend {
+        margin-right: unset;
+    }
 </style>
 <!-- Content area -->
 <div class="content">
@@ -82,116 +85,143 @@
                 <h6 class="card-title"><i class="icon-cart-add mr-2"></i> Detail Barang</h6>
                 <div class="row">
                     <div class="col-md-12">
-                        <div class="table-responsive">
-                            <table class="table table-columned table-bordered table-xs" id="tablecover">
+                        <div class="table-responsive" style="display: block; overflow-x: auto; white-space: nowrap;">
+                            <table class="table table-columned table-bordered table-xs" id="tablecover" style="width: 1200px;">
                                 <thead>
                                     <tr class="alpha-<?= $this->color; ?> text-<?= $this->color; ?>-600">
-                                        <th class="text-center" width="3%;">#</th>
-                                        <th width="35%;">Barang</th>
-                                        <th width="15%;">Qty</th>
-                                        <th width="15%;">Disc (%)</th>
-                                        <th width="15%;" class="text-right">Harga</th>
-                                        <th width="20%;">Keterangan</th>
-                                        <th width="3%;"><i id="addrow" title="Tambah Baris" class="icon-plus-circle2"></i></th>
+                                        <th class="text-center" style="width:15px;" rowspan="2">#</th>
+                                        <th style="width:350px;" rowspan="2">Barang</th>
+                                        <th style="width:75px;" rowspan="2">Qty</th>
+                                        <th style="width:75px;" rowspan="2">Disc (%)</th>
+                                        <th style="width:auto;" class="text-center" colspan="4">Harga</th>
+                                        <th style="width:100px;" rowspan="2">Keterangan</th>
+                                        <th style="width:15px;" rowspan="2"><i id="addrow" title="Tambah Baris" class="icon-plus-circle2"></i></th>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-center">Satuan</th>
+                                        <th class="text-center">Total</th>
+                                        <th class="text-center">Diskon</th>
+                                        <th class="text-center">Akhir</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php $i = 0;
-                                    if ($detail) {
-                                        foreach ($detail->result() as $key) {
-                                            $i++; ?>
-                                            <tr>
-                                                <td class="text-center">
-                                                    <spanx id="snum<?= $i; ?>"><?= $i; ?></spanx>
-                                                </td>
-                                                <td>
-                                                    <select data-urut="<?= $i; ?>" class="form-control form-control-sm form-control-select2" 
-                                                        data-container-css-class="select-sm" 
-                                                        name="items[<?= $i ?>][id_product]" id="i_product<?= $i ?>" required data-fouc>
-                                                        <option value="<?= $key->id_product ?>"><?= $key->i_product . ' - ' . $key->e_product_name . ' - ' . $key->e_brand_name; ?>
-                                                        </option>
-                                                    </select>
-                                                </td>
-                                                <td>
-                                                    <input type="number" required 
-                                                        class="form-control form-control-sm" 
-                                                        min="1" id="qty<?= $i ?>" 
-                                                        onkeyup="hetang();" 
-                                                        value="<?= $key->n_qty ?>" 
-                                                        placeholder="Qty" 
-                                                        name="items[<?= $i ?>][qty]">
-                                                </td>
-                                                <td>
-                                                    <input type="number" required 
-                                                        class="form-control form-control-sm" 
-                                                        onblur="if(this.value==''){this.value='0';}" 
-                                                        onfocus="if(this.value=='0'){this.value='';}"  
-                                                        value="<?= $key->v_diskon;?>" 
-                                                        id="diskon<?= $i ?>" 
-                                                        onkeyup="hetang();" 
-                                                        placeholder="Diskon" 
-                                                        name="items[<?= $i ?>][vdiskon]">
-                                                </td>
-                                                <td>
-                                                    <input type="text" required 
-                                                        class="form-control form-control-sm text-right harga input-harga" 
-                                                        id="harga<?= $i; ?>" 
-                                                        placeholder="Harga"  
-                                                        value="<?= number_format($key->v_price);?>"                                                        
-                                                        onkeyup="hetang();"
-                                                        name="items[<?= $i ?>][harga]" >
-                                                </td>
-                                                <td>
-                                                    <input type="text" class="form-control form-control-sm" placeholder="Keterangan" name="items[<?= $i ?>][enote]"  value="<?= $key->e_remark;?>">
-                                                    <input type="hidden" class="form-control form-control-sm" id="e_product<?= $i; ?>" name="items[<?= $i ?>][e_product]"  value="<?= $key->e_product_name;?>">
-                                                    <input type="hidden" class="form-control form-control-sm" id="i_company<?= $i; ?>" name="items[<?= $i ?>][i_company]"  value="<?= $key->i_company;?>">
-                                                </td>
-                                                <td class="text-center"><b><i title="Hapus Baris" class="icon-cancel-circle2 text-danger ibtnDel"></i></b></td>
-                                            </tr>
-                                    <?php }
-                                    } ?>
+                                    <?php $grand_total = 0; $grand_discount = 0; $grand_akhir = 0; ?>
+                                    <?php $i = 0; foreach ($detail->result() as $key) { $i++; ?>
+                                    <tr>
+                                        <td class="text-center">
+                                            <spanx id="snum<?= $i; ?>"><?= $i; ?></spanx>
+                                        </td>
+                                        <td>
+                                            <select data-urut="<?= $i; ?>" class="form-control form-control-sm form-control-select2" 
+                                                data-container-css-class="select-sm" 
+                                                name="items[<?= $i ?>][id_product]" id="i_product<?= $i ?>" required data-fouc>
+                                                <option value="<?= $key->id_product ?>"><?= $key->i_product . ' - ' . $key->e_product_name . ' - ' . $key->e_brand_name; ?>
+                                                </option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="number" class="form-control form-control-sm input-qty" value="<?= $key->n_qty ?>"
+                                                min="1" id="qty<?= $i ?>" onkeyup="getTotal(this); getAkhir(this)" placeholder="Qty" name="items[<?= $i ?>][qty]">
+                                        </td>
+                                        <td>
+                                            <input type="number" required 
+                                                class="form-control form-control-sm input-discount" 
+                                                onblur="if(this.value==''){this.value='0';}" 
+                                                onfocus="if(this.value=='0'){this.value='';}"  
+                                                onkeyup="getAkhir(this);"
+                                                onchange="getAkhir(this)";
+                                                value="<?= $key->v_diskon;?>" 
+                                                id="diskon<?= $i ?>" 
+                                                placeholder="Diskon" 
+                                                name="items[<?= $i ?>][vdiskon]">
+                                        </td>
+                                        <td>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">Rp.</span>
+                                                </div>                        
+                                                <input type="text" value="<?= number_format($key->v_price); ?>" 
+                                                    class="form-control form-control-sm text-right input-harga"
+                                                    onblur='if(this.value==""){this.value="0";}' 
+                                                    onfocus='if(this.value=="0"){this.value="";}'
+                                                    onkeyup="getTotal(this); getAkhir(this); reformat(this)"
+                                                    name="items[<?=$i?>][harga]">
+                                            </div>  
+                                        </td>
+                                        <td class="text-right">
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">Rp.</span>
+                                                </div>   
+                                                <?php $total = $key->v_price * $key->n_qty; $grand_total += $total; ?>                     
+                                                <input type="text" value="<?= number_format($total); ?>" 
+                                                    class="form-control form-control-sm text-right input-total" readonly>
+                                            </div>                                              
+                                        </td>
+                                        <td class="text-right">
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">Rp.</span>
+                                                </div>   
+                                                <?php $discount = ($total * $key->v_diskon) / 100; 
+                                                    $grand_discount += $discount; ?>                     
+                                                <input type="text" value="<?= number_format($discount); ?>" 
+                                                    class="form-control form-control-sm text-right input-harga-discount" readonly>
+                                            </div>                                              
+                                        </td>
+                                        <td class="text-right">
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">Rp.</span>
+                                                </div>                      
+                                                <?php $akhir =  $total - $discount; 
+                                                    $grand_akhir += $akhir; ?>  
+                                                <input type="text" value="<?= number_format($akhir); ?>" 
+                                                    class="form-control form-control-sm text-right input-akhir" readonly>
+                                            </div>                                              
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm" placeholder="Keterangan" name="items[<?= $i ?>][enote]"  value="<?= $key->e_remark;?>">
+                                            <input type="hidden" class="form-control form-control-sm" id="e_product<?= $i; ?>" name="items[<?= $i ?>][e_product]"  value="<?= $key->e_product_name;?>">
+                                            <input type="hidden" class="form-control form-control-sm" id="i_company<?= $i; ?>" name="items[<?= $i ?>][i_company]"  value="<?= $key->i_company;?>">
+                                        </td>
+                                        <td class="text-center"><b><i title="Hapus Baris" class="icon-cancel-circle2 text-danger ibtnDel"></i></b></td>
+                                    </tr>
+                                <?php } ?>
                                 </tbody>
                                 <tfoot>
                                     <tr>
-                                        <th colspan="4" class="text-right">Bruto</th>
+                                        <th colspan="5" class="text-right">Grand Total</th>
                                         <th class="text-right">
-                                            <span id="sbruto"><?= number_format($data->v_gross);?></span>
-                                            <input type="hidden" name="bruto" id="bruto" value="<?= $data->v_gross;?>">
+                                            <span class="d-none" id="sbruto"></span>
+                                            <input type="hidden" name="bruto" id="bruto" value="0">
+                                            
+                                            <div class="input-group mb-3">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">Rp.</span>
+                                                </div>                        
+                                                <input type="text" name="grand_total" id="grand_total" value="<?= number_format($grand_total, 2, ".", ",") ?>" 
+                                                    class="form-control form-control-sm text-right" readonly>
+                                            </div>   
                                         </th>
-                                        <th colspan="2"></th>
-                                    </tr>
-                                    <tr>
-                                        <th colspan="4" class="text-right">Diskon (<span id="sdiskonpersen"><?= number_format($data->n_diskon);?></span>%)</th>
                                         <th class="text-right">
-                                            <span id="sdiskon"><?= number_format($data->v_diskon);?></span>
-                                            <input type="hidden" name="diskon" id="diskon" value="<?= $data->v_diskon;?>">
-                                            <input type="hidden" name="diskonpersen" id="diskonpersen" value="<?= $data->n_diskon;?>">
+                                            <span class="d-none" id="sbruto"></span>                                            
+                                            <div class="input-group mb-3">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">Rp.</span>
+                                                </div>                        
+                                                <input type="text" name="grand_discount" id="grand_discount" value="<?= number_format($grand_discount, 0, ".", ",") ?>" 
+                                                    class="form-control form-control-sm text-right" readonly>
+                                            </div>   
                                         </th>
-                                        <th colspan="2"></th>
-                                    </tr>
-                                    <?php /*
-                                    <tr>
-                                        <th colspan="4" class="text-right">DPP</th>
-                                        <th class="text-right">
-                                            <span id="sdpp"><?= number_format($data->v_dpp);?></span>
-                                            <input type="hidden" name="dpp" id="dpp" value="<?= $data->v_dpp;?>">
-                                        </th>
-                                        <th colspan="2"></th>
-                                    </tr>
-                                    <tr>
-                                        <th colspan="4" class="text-right">PPN</th>
-                                        <th class="text-right">
-                                            <span id="sppn"><?= number_format($data->v_ppn);?></span>
-                                            <input type="hidden" name="ppn" id="ppn" value="<?= $data->v_ppn;?>">
-                                        </th>
-                                        <th colspan="2"></th>
-                                    </tr>
-                                    */ ?>
-                                    <tr>
-                                        <th colspan="4" class="text-right">Netto</th>
-                                        <th class="text-right">
-                                            <span id="snetto"><?= number_format($data->v_netto);?></span>
-                                            <input type="hidden" name="netto" id="netto" value="<?= $data->v_netto;?>">
+                                        <th>
+                                            <div class="input-group mb-3">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">Rp.</span>
+                                                </div>                        
+                                                <input type="text" name="grand_akhir" id="grand_akhir" value="<?= number_format($grand_akhir, 2, ".", ",") ?>" 
+                                                    class="form-control form-control-sm text-right" readonly>
+                                            </div>                                             
                                         </th>
                                         <th colspan="2"></th>
                                     </tr>

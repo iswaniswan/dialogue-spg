@@ -106,32 +106,40 @@ class Mmutasibrand extends CI_Model
     }
 
     /** Ambil Data Customer */
-    public function get_customer($cari)
+    public function get_customer($cari='')
     {
-        if ($this->fallcustomer == 't') {
-            $where = "";
-        } else {
-            $where = "AND id_customer IN (
-                    SELECT 
-                        id_customer
-                    FROM
-                        tm_user_customer
-                    WHERE id_user = '$this->id_user'                
-                )
-            ";
+        $limit = " LIMIT 5";
+        if ($cari != '') {
+            $limit = '';
         }
-        return $this->db->query("SELECT
-                id_customer,
-                e_customer_name
-            FROM
-                tr_customer
-            WHERE
-                (e_customer_name ILIKE '%$cari%')
-                AND f_status = 't'
-                $where
-            ORDER BY
-                e_customer_name ASC
-        ", FALSE);
+
+        $user_cover = "SELECT id_customer FROM tm_user_customer
+                        WHERE id_user = '$this->id_user'";
+
+        $sql = "SELECT
+                    id_customer,
+                    e_customer_name 
+                FROM tr_customer
+                WHERE (e_customer_name ILIKE '%$cari%')
+                    AND f_status = 't'
+                    AND id_customer IN ($user_cover)
+                ORDER BY e_customer_name ASC
+                $limit ";
+
+        return $this->db->query($sql, FALSE);
+    }
+
+    public function get_user_customer_brand($cari='', $id_user, $id_customer)
+    {
+        $sql = "SELECT tb.id_brand AS id, tb.e_brand_name 
+                FROM tm_user_brand tub 
+                INNER JOIN tm_user_customer tuc ON tuc.id = tub.id_user_customer
+                INNER JOIN tr_brand tb ON tb.id_brand = tub.id_brand 
+                WHERE id_user = '$id_user' 
+                    AND id_customer = '$id_customer' 
+                    AND tb.e_brand_name ILIKE '%$cari%'";
+
+        return $this->db->query($sql);
     }
 
     /** Ambil Data Customer */

@@ -349,6 +349,8 @@ class Mpurchase extends CI_Model {
         $items = $this->input->post('items');
 
         // insert table tm_pembelian
+        $id_user = $this->session->userdata('id_user');
+
         $data = [
             'i_document' => $i_document,
             'd_receive' => $d_receive,
@@ -356,7 +358,8 @@ class Mpurchase extends CI_Model {
             'i_surat_jalan' => $i_surat_jalan,
             'd_surat_jalan' => $d_surat_jalan,
             'id_customer' => $id_customer,
-            'i_company' => $id_distributor
+            'i_company' => $id_distributor,
+            'id_user' => $id_user
         ];
         $this->db->insert('tm_pembelian', $data);
 

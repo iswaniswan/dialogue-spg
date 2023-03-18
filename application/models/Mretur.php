@@ -414,8 +414,12 @@ class Mretur extends CI_Model {
         };
     }
 
-    public function insert_header($i_document, $d_retur, $id_customer, $e_remark, $id_user, $id_company)
+    public function insert_header($i_document, $d_retur, $id_customer, $e_remark, $id_user=null, $id_company)
     {
+        if ($id_user == null) {
+            $id_user = $this->session->userdata('id_user');
+        };
+
         $data = [
             'i_document'=> $i_document,
             'd_retur' => $d_retur,

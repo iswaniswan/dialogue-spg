@@ -141,27 +141,17 @@ class Mutasibrand extends CI_Controller
 	public function get_customer()
 	{
 		$filter = [];
-		// $filter[] = array(
-		// 	'id'   => 'all',
-		// 	'text' => "SEMUA",
-		// );
 		$cari	= str_replace("'", "", $this->input->get('q'));
-		/* if ($cari != '') { */
-			$data = $this->mymodel->get_customer($cari);
-			foreach ($data->result() as $row) {
-				$filter[] = array(
-					'id'   => $row->id_customer,
-					'text' => strtoupper($row->e_customer_name),
-				);
-			}
-		/* } else {
+		$data = $this->mymodel->get_customer($cari);
+		foreach ($data->result() as $row) {
 			$filter[] = array(
-				'id'   => null,
-				'text' => 'Cari Data Berdasarkan Nama',
+				'id'   => $row->id_customer,
+				'text' => strtoupper($row->e_customer_name),
 			);
-		} */
+		}
 		echo json_encode($filter);
 	}
+
 
 	/** Get Customer */
 	public function get_brand()
@@ -186,6 +176,28 @@ class Mutasibrand extends CI_Controller
 				'text' => 'Cari Data Berdasarkan Nama',
 			);
 		} */
+		echo json_encode($filter);
+	}
+
+	public function get_user_customer_brand()
+	{
+		$cari	= str_replace("'", "", $this->input->get('q'));
+		$id_user = $this->session->userdata('id_user');
+		$id_customer = $this->input->get('id_customer');
+		
+		$filter = [];		
+
+		if ($id_customer == null) {
+			return $filter;
+		}
+
+		$data = $this->mymodel->get_user_customer_brand($cari, $id_user, $id_customer);
+		foreach ($data->result() as $row) {
+			$filter[] = array(
+				'id'   => $row->id,
+				'text' => strtoupper($row->e_brand_name),
+			);
+		}
 		echo json_encode($filter);
 	}
 

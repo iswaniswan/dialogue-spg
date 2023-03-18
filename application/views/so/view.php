@@ -26,13 +26,13 @@
                     <div class="col-sm-6">
                         <div class="form-group">
                             <label>Nomor Dokumen :</label>
-                            <input type="text" class="form-control" readonly value="<?= $data->i_stockopname; ?>">
+                            <input type="text" class="form-control" readonly value="<?= $data->i_document; ?>">
                         </div>
                     </div>
                     <div class="col-sm-6">
                         <div class="form-group">
                             <label>Tanggal Dokumen :</label>
-                            <input type="text" readonly class="form-control" value="<?= $data->d_stockopname; ?>">
+                            <input type="text" readonly class="form-control" value="<?= $data->d_document; ?>">
                         </div>
                     </div>
                 </div>
@@ -68,7 +68,7 @@
                                         <th class="text-center" width="3%;">#</th>
                                         <th>Kode Barang</th>
                                         <th>Nama Barang</th>
-                                        <th>Perusahaan</th>
+                                        <th>Brand</th>
                                         <th class="text-right">Qty</th>
                                     </tr>
                                 </thead>
@@ -83,8 +83,8 @@
                                                 </td>
                                                 <td><?= $key->i_product; ?></td>
                                                 <td><?= $key->e_product_name; ?></td>
-                                                <td><?= $key->e_company_name; ?></td>
-                                                <td class="text-right"><?= $key->n_stockopname; ?></td>
+                                                <td><?= $key->e_brand_name ?></td>
+                                                <td class="text-right"><?= $key->n_qty; ?></td>
                                             </tr>
                                     <?php }
                                     } ?>

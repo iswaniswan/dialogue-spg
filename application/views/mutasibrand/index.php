@@ -42,22 +42,27 @@
                     <div class="col-sm-3">
                         <div class="form-group">
                             <label>Toko :</label>
-                            <select class="form-control select-search" data-container-css-class="select-sm" data-placeholder="Select Customer" required data-fouc name="idcustomer" id="idcustomer" onchange=" if (this.selectedIndex) getcustomer();">
+                            <select class="form-control select-search" 
+                                    data-container-css-class="select-sm" 
+                                    data-placeholder="Select Customer" 
+                                    required data-fouc name="idcustomer" 
+                                    id="idcustomer" 
+                                    onchange="if (this.selectedIndex) getcustomer();">
                                 <!-- <option value="all" selected="selected">Semua Toko</option> -->
+                                <?php /*
                                 <option></option>
                                 <?php foreach($listcustomer as $row) { ?>
-                                    <option value="<?= $row->id_customer;?>" <?php if ($idcustomer == $row->id_customer ) { echo 'selected="selected" ';}?>><?= $row->e_customer_name;?></option>
-                                <?php } 
-                                ?>
+                                    <option value="<?= $row->id_customer;?>" <?php if ($idcustomer == $row->id_customer ) { echo 'selected="selected" ';}?>><?= strtoupper($row->e_customer_name);?></option>
+                                <?php } ?>
+                                */ ?>
                             </select>
                         </div>
                     </div>
                     <div class="col-sm-3">
                         <div class="form-group">
                             <label>Brand :</label>
-                            <select class="form-control select-search" data-container-css-class="select-sm" data-placeholder="Select Customer" required data-fouc name="idbrand" id="idbrand" onchange=" if (this.selectedIndex) getbrand();">
+                            <select class="form-control select-search" data-container-css-class="select-sm" data-placeholder="Select Customer" data-fouc name="idbrand" id="idbrand" onchange=" if (this.selectedIndex) getbrand();">
                                 <option></option>    
-                                <option value="all" selected="selected">Semua Brand</option>
                                 <?php foreach($listbrand as $row) { ?>
                                     <option value="<?= $row->id_brand;?>" <?php if ($idbrand == $row->id_brand ) { echo 'selected="selected" ';}?>><?= $row->e_brand_name;?></option>
                                 <?php } 

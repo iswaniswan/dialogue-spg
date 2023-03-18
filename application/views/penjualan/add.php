@@ -2,6 +2,9 @@
     .tabel td {
         padding: 7px 7px !important;
     }
+    .input-group-prepend {
+        margin-right: unset;
+    }
 </style>
 <!-- Content area -->
 <div class="content">
@@ -79,30 +82,64 @@
                 <h6 class="card-title"><i class="icon-cart-add mr-2"></i> Detail Barang</h6>
                 <div class="row">
                     <div class="col-md-12">
-                        <div class="table-responsive">
-                            <table class="table table-columned table-bordered table-xs" id="tablecover">
+                        <div class="table-responsive" style="display: block; overflow-x: auto; white-space: nowrap;">
+                            <table class="table table-columned table-bordered table-xs" id="tablecover" style="width: 1200px;">
                                 <thead>
                                     <tr class="alpha-<?= $this->color; ?> text-<?= $this->color; ?>-600">
-                                        <th class="text-center" width="3%;">#</th>
-                                        <th width="35%;">Barang</th>
-                                        <th width="15%;">Qty</th>
-                                        <th width="15%;">Disc (%)</th>
-                                        <th width="15%;" class="text-right">Harga</th>
-                                        <th width="20%;">Keterangan</th>
-                                        <th width="3%;"><i id="addrow" title="Tambah Baris" class="icon-plus-circle2"></i></th>
+                                        <th class="text-center" style="width:15px;" rowspan="2">#</th>
+                                        <th style="width:350px;" rowspan="2">Barang</th>
+                                        <th style="width:100px;" rowspan="2">Qty</th>
+                                        <th style="width:100px;" rowspan="2">Disc (%)</th>
+                                        <th style="width:720px;" class="text-center" colspan="4">Harga</th>
+                                        <th style="width:100px;" rowspan="2">Keterangan</th>
+                                        <th style="width:15px;" rowspan="2"><i id="addrow" title="Tambah Baris" class="icon-plus-circle2"></i></th>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-center" style="width: 180px">Satuan</th>
+                                        <th class="text-center" style="width: 180px">Total</th>
+                                        <th class="text-center" style="width: 180px">Diskon</th>
+                                        <th class="text-center" style="width: 180px">Akhir</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                 </tbody>
                                 <tfoot>
                                     <tr>
-                                        <th colspan="4" class="text-right">Bruto</th>
+                                        <th colspan="5" class="text-right">Grand Total</th>
                                         <th class="text-right">
-                                            <span id="sbruto"></span>
+                                            <span class="d-none" id="sbruto"></span>
                                             <input type="hidden" name="bruto" id="bruto" value="0">
+                                            
+                                            <div class="input-group mb-3">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">Rp.</span>
+                                                </div>                        
+                                                <input type="text" name="grand_total" id="grand_total" value="0" 
+                                                    class="form-control form-control-sm text-right" readonly>
+                                            </div>   
+                                        </th>
+                                        <th class="text-right">
+                                            <span class="d-none" id="sbruto"></span>                                            
+                                            <div class="input-group mb-3">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">Rp.</span>
+                                                </div>                        
+                                                <input type="text" name="grand_discount" id="grand_discount" value="0" 
+                                                    class="form-control form-control-sm text-right" readonly>
+                                            </div>   
+                                        </th>
+                                        <th>
+                                            <div class="input-group mb-3">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">Rp.</span>
+                                                </div>                        
+                                                <input type="text" name="grand_akhir" id="grand_akhir" value="0" 
+                                                    class="form-control form-control-sm text-right" readonly>
+                                            </div>                                             
                                         </th>
                                         <th colspan="2"></th>
                                     </tr>
+                                    <?php /*
                                     <tr>
                                         <th colspan="4" class="text-right">Diskon (<span id="sdiskonpersen">0</span>%)</th>
                                         <th class="text-right">
@@ -112,7 +149,6 @@
                                         </th>
                                         <th colspan="2"></th>
                                     </tr>
-                                    <?php /*
                                     <tr>
                                         <th colspan="4" class="text-right">DPP</th>
                                         <th class="text-right">
@@ -129,15 +165,21 @@
                                         </th>
                                         <th colspan="2"></th>
                                     </tr>
-                                    */ ?>
                                     <tr>
-                                        <th colspan="4" class="text-right">Netto</th>
+                                        <th colspan="5" class="text-right">Netto</th>
                                         <th class="text-right">
                                             <span id="snetto"></span>
                                             <input type="hidden" name="netto" id="netto" value="0">
+                                            <input type="text" name="total_netto" id="total_netto" value="0" 
+                                                class="form-control form-control-sm" readonly>
+                                        </th>
+                                        <th>
+                                            <input type="text" name="akhir_netto" id="akhir_netto" value="0" 
+                                                class="form-control form-control-sm" readonly>
                                         </th>
                                         <th colspan="2"></th>
                                     </tr>
+                                    */ ?>
                                 </tfoot>
                                 <input type="hidden" id="jml" name="jml" value="0">
                             </table>

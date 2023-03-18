@@ -161,11 +161,11 @@
                                             foreach(get_notification_adjust()->result() as $row){?>
                                 <li class="media">
                                     <div class="mr-3">
-                                        <a href="<?= base_url() . 'adjustment/approvement/' . encrypt_url($row->id_adjustment) ?>" class="btn bg-warning-400 rounded-round btn-icon"><i class="icon-pencil"></i></a>
+                                        <a href="<?= base_url() . 'adjustment/approvement/' . encrypt_url(@$row->id) ?>" class="btn bg-warning-400 rounded-round btn-icon"><i class="icon-pencil"></i></a>
                                     </div>
 
                                     <div class="media-body">
-                                        Adjustment <a href="<?= base_url() . 'adjustment/approvement/' . encrypt_url($row->id_adjustment) ?>"><?= $row->i_adjustment ?></a> Meminta Approve
+                                        Adjustment <a href="<?= base_url() . 'adjustment/approvement/' . encrypt_url(@$row->id) ?>"><?= $row->i_document ?></a> Meminta Approve
                                         <div class="font-size-sm text-muted mt-1"><?= $row->d_entry ?></div>
                                     </div>
                                 </li>

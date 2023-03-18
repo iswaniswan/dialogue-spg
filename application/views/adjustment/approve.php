@@ -26,14 +26,14 @@
                     <div class="col-sm-6">
                         <div class="form-group">
                             <label>Nomor Dokumen :</label>
-                            <input type="hidden" class="form-control" readonly name="id_adjustment" id="id_adjustment" value="<?= $data->id_adjustment; ?>">
-                            <input type="text" class="form-control" readonly value="<?= $data->i_adjustment; ?>">
+                            <input type="hidden" class="form-control" readonly name="id_adjustment" id="id_adjustment" value="<?= $data->id; ?>">
+                            <input type="text" class="form-control" readonly value="<?= $data->i_document; ?>">
                         </div>
                     </div>
                     <div class="col-sm-6">
                         <div class="form-group">
                             <label>Tanggal Dokumen :</label>
-                            <input type="text" readonly class="form-control" value="<?= $data->d_adjustment; ?>">
+                            <input type="text" readonly class="form-control" value="<?= $data->d_document; ?>">
                         </div>
                     </div>
                 </div>
@@ -52,7 +52,7 @@
                     </div>
                 </div>
                 <div class="d-flex justify-content-start align-items-center">
-                    <a href="#" onclick="sweetapprove('adjustment',<?= $data->id_adjustment; ?>);" class="btn btn bg-success btn-sm ml-1"><i class="icon-check"></i>&nbsp; <?= $this->lang->line('Approve'); ?></a>&nbsp;
+                    <a href="#" onclick="sweetapprove('adjustment',<?= $data->id; ?>);" class="btn btn bg-success btn-sm ml-1"><i class="icon-check"></i>&nbsp; <?= $this->lang->line('Approve'); ?></a>&nbsp;
                     <a href="<?= base_url($this->folder); ?>" class="btn btn bg-danger btn-sm"><i class="icon-arrow-left16"></i>&nbsp; Back</a>
                 </div>
             </div>

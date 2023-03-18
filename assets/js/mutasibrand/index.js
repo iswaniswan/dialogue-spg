@@ -69,30 +69,55 @@ document.addEventListener("DOMContentLoaded", function() {
     var right = [4, 5, 6, 7, 8];
     var color = $("#color").val();
     var order = [9, "asc"];
-    $("#idcustomer").select2({});
-    $("#idbrand").select2();
-    // $("#idcustomer").select2({
-    //     placeholder: "Cari Customer",
-    //     width: "100%",
-    //     allowClear: true,
-    //     ajax: {
-    //         url: $("#path").val() + "/get_customer",
-    //         dataType: "json",
-    //         delay: 250,
-    //         data: function(params) {
-    //             var query = {
-    //                 q: params.term,
-    //             };
-    //             return query;
-    //         },
-    //         processResults: function(data) {
-    //             return {
-    //                 results: data,
-    //             };
-    //         },
-    //         cache: false,
-    //     },
-    // });
+
+    $("#idbrand").select2({
+        placeholder: "Cari Brand",
+        width: "100%",
+        allowClear: true,
+        ajax: {
+            url: $("#path").val() + "/get_user_customer_brand",
+            dataType: "json",
+            delay: 250,
+            data: function(params) {
+                var query = {
+                    q: params.term,
+                    id_customer: $('#idcustomer').val()
+                };
+                return query;
+            },
+            processResults: function(data) {
+                return {
+                    results: data,
+                };
+            },
+            cache: false,
+        },
+    });
+
+    $("#idcustomer").select2({
+        placeholder: "Cari Customer",
+        width: "100%",
+        allowClear: true,
+        ajax: {
+            url: $("#path").val() + "/get_customer",
+            dataType: "json",
+            delay: 250,
+            data: function(params) {
+                var query = {
+                    q: params.term,
+                };
+                return query;
+            },
+            processResults: function(data) {
+                return {
+                    results: data,
+                };
+            },
+            cache: false,
+        },
+    });
+
+
     datatableparams(controller, column, params, right, order);
 
 });

@@ -56,14 +56,24 @@ var Detail = $(function() {
         var newRow = $("<tr>");
         var cols = "";
         cols += `<td class="text-center"><spanx id="snum${i}">${no + 1}</spanx></td>`;
-        cols += `<td><select data-urut="${i}" required class="form-control form-control-sm form-control-select2" data-container-css-class="select-sm" name="i_product[]" id="i_product${i}" required data-fouc></select></td>`;
-        cols += `<td><input type="text" readonly class="form-control form-control-sm" id="e_brand_name${i}" placeholder="Brand" name="e_brand_name[]" ></td>`;
         cols += `<td>
-                    <input type="hidden" class="form-control form-control-sm" id="id_brand${i}" name="id_brand[]" >
-                    <input type="hidden" class="form-control form-control-sm" id="e_product${i}" name="e_product[]" >
-                    <input type="number" required class="form-control form-control-sm" id="qty${i}" placeholder="Qty" name="qty[]" onblur=\'if(this.value==""){this.value="0";}\' onfocus=\'if(this.value=="0"){this.value="";}\'>
+                    <select data-urut="${i}" class="form-control form-control-sm form-control-select2" 
+                        data-container-css-class="select-sm" 
+                        name="items[${i}][id_product]" 
+                        id="i_product${i}" required data-fouc>
+                    </select>
+                </td>`;
+        cols += `<td>
+                    <input type="number" class="form-control form-control-sm" placeholder="Qty" 
+                        id="qty${i}"                         
+                        name="items[${i}][qty]" 
+                        onblur=\'if(this.value==""){this.value="0";}\' 
+                        onfocus=\'if(this.value=="0"){this.value="";}\'>
                  </td>`;
-        cols += `<td><input type="text" class="form-control form-control-sm" id="e_remark${i}" placeholder="Keterangan" name="e_remark[]" ></td>`;
+        cols += `<td>
+                    <input type="text" class="form-control form-control-sm" id="e_remark${i}" placeholder="Keterangan" 
+                        name="items[${i}][e_remark]" >
+                </td>`;
         cols += `<td class="text-center"><b><i title="Hapus Baris" class="icon-cancel-circle2 text-danger ibtnDel"></i></b></td>`;
         newRow.append(cols);
         $("#tablecover").append(newRow);
@@ -78,6 +88,7 @@ var Detail = $(function() {
                 data: function(params) {
                     var query = {
                         q: params.term,
+                        id_customer:$('#idcustomer').val()
                     };
                     return query;
                 },
@@ -104,6 +115,7 @@ var Detail = $(function() {
                 }
             }
             if (!ada) {
+                return;
                 var product = $(this).val();
                 produk = product.split(" - ");
                 product = produk[0];
@@ -118,6 +130,7 @@ var Detail = $(function() {
                     },
                     dataType: "json",
                     success: function(data) {
+                        console.log(data); return;
                         $("#e_product" + z).val(data["detail"][0]["e_product_name"]);
                         $("#e_brand_name" + z).val(data["detail"][0]["e_brand_name"]);
                         $("#id_brand" + z).val(data["detail"][0]["id_brand"]);
@@ -169,6 +182,7 @@ function number() {
 }
 
 function get_item() {
+    return;
     $.ajax({
         type: "post",
         data: {
@@ -177,7 +191,7 @@ function get_item() {
         },
         url: base_url + controller + "/get_item",
         dataType: "json",
-        success: function(data) {
+        success: function(data) {            
             if (data['detail_product'].length > 0) {
                 $("#tablecover tbody tr").remove();
                 $('#jml').val(data['detail_product'].length);
@@ -191,14 +205,18 @@ function get_item() {
                                 <select data-urut="${i}" required class="form-control form-control-sm form-control-select2" data-container-css-class="select-sm" name="i_product[]" id="i_product${i}" required data-fouc>
                                     <option value="${data['detail_product'][x]['i_product']}">${data['detail_product'][x]['e_product_name']}</option>
                                 </select>
-                            </td>`;
-                    cols += `<td><input type="text" readonly class="form-control form-control-sm" id="e_brand_name${i}" placeholder="Brand" name="e_brand_name[]" value="${data['detail_product'][x]['e_brand_name']}"></td>`;
+                            </td>`;                    
                     cols += `<td>
-                                <input type="hidden" class="form-control form-control-sm" id="id_brand${i}" name="id_brand[]" value="${data['detail_product'][x]['id_brand']}">
-                                <input type="hidden" class="form-control form-control-sm" id="e_product${i}" name="e_product[]" value="${data['detail_product'][x]['e_product_name']}">
-                                <input type="number" required class="form-control form-control-sm" id="qty${i}" placeholder="Qty" name="qty[]" value="${data['detail_product'][x]['n_adjustment']}" onblur=\'if(this.value==""){this.value="0";}\' onfocus=\'if(this.value=="0"){this.value="";}\'>
+                                <input type="number" required class="form-control form-control-sm" id="qty${i}" placeholder="Qty" 
+                                    name="qty[]" 
+                                    value="${data['detail_product'][x]['n_adjustment']}" 
+                                    onblur=\'if(this.value==""){this.value="0";}\' 
+                                    onfocus=\'if(this.value=="0"){this.value="";}\'>
                             </td>`;
-                    cols += `<td><input type="text" class="form-control form-control-sm" id="e_remark${i}" placeholder="Keterangan" name="e_remark[]" ></td>`;
+                    cols += `<td>
+                                <input type="text" class="form-control form-control-sm" id="e_remark${i}" placeholder="Keterangan" 
+                                    name="e_remark[]" >
+                            </td>`;
                     cols += `<td class="text-center"><b><i title="Hapus Baris" class="icon-cancel-circle2 text-danger ibtnDel"></i></b></td>`;
                     newRow.append(cols);
                     $("#tablecover tbody").append(newRow);
@@ -213,6 +231,7 @@ function get_item() {
                             data: function(params) {
                                 var query = {
                                     q: params.term,
+                                    id_customer: $('#idcustomer').val()
                                 };
                                 return query;
                             },
@@ -319,6 +338,7 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     $("#ddocument").on("change", function() {
+        return;
         number();
         get_item();
     });

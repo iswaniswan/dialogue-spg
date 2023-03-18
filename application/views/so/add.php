@@ -70,11 +70,10 @@
                             <table class="table table-columned table-bordered table-xs" id="tablecover">
                                 <thead>
                                     <tr class="alpha-<?= str_replace("-800","",$this->color); ?> text-<?= str_replace("-800","-600",$this->color); ?>">
-                                        <th class="text-center" width="3%;">#</th>
-                                        <th width="40%;">Barang</th>
-                                        <th width="30%;">Perusahaan</th>
-                                        <th width="15%;">Qty</th>
-                                        <th width="3%;"><i id="addrow" title="Tambah Baris" class="icon-plus-circle2"></i></th>
+                                        <th class="text-center" width="25px">#</th>
+                                        <th>Kode / Nama Barang / Brand</th>
+                                        <th style="width:130px">Qty</th>
+                                        <th style="width:25px"><i id="addrow" title="Tambah Baris" class="icon-plus-circle2"></i></th>
                                     </tr>
                                 </thead>
                                 <tbody>

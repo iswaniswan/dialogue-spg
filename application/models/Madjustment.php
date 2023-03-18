@@ -11,25 +11,24 @@ class Madjustment extends CI_Model
     public function serverside($dfrom, $dto)
     {
         $datatables = new Datatables(new CodeigniterAdapter);
-        $datatables->query("SELECT
-                id_adjustment,
-                i_adjustment,
-                i_periode,
-                to_char(d_adjustment, 'DD FMMonth YYYY') AS d_adjust,
-                d_adjustment,
-                b.e_customer_name,
-                e_remark,
-                a.d_approve,
-                a.f_status
-            FROM
-                tm_adjustment a, tr_customer b
-            WHERE 
-                a.id_customer = b.id_customer
-                AND d_adjustment BETWEEN '$dfrom' 
-                AND '$dto'
-            ORDER BY 
-                d_adjustment, i_adjustment ASC
-            ", FALSE);
+
+        $sql = "SELECT
+                    id,
+                    i_document,
+                    i_periode,
+                    to_char(d_document, 'DD FMMonth YYYY') AS d_adjust,
+                    d_document,
+                    b.e_customer_name,
+                    e_remark,
+                    a.d_approve,
+                    a.f_status
+                FROM tm_adjustment a, tr_customer b
+                WHERE a.id_customer = b.id_customer
+                    AND d_document BETWEEN '$dfrom' 
+                    AND '$dto'
+                ORDER BY a.i_document DESC";
+
+        $datatables->query($sql, FALSE);
 
         $datatables->edit('d_approve', function ($data) {
             $status = $data['f_status'];
@@ -50,7 +49,7 @@ class Madjustment extends CI_Model
         });
 
         $datatables->edit('f_status', function ($data) {
-            $id         = $data['id_adjustment'];
+            $id         = $data['id'];
             if ($data['f_status'] == 't') {
                 $status = 'Aktif';
                 $color  = 'success';
@@ -64,8 +63,8 @@ class Madjustment extends CI_Model
 
         /** Cek Hak Akses, Apakah User Bisa Edit */
         $datatables->add('action', function ($data) {
-            $id         = trim($data['id_adjustment']);
-            $ddocument  = $data['d_adjustment'];
+            $id         = trim($data['id']);
+            $ddocument  = $data['d_document'];
             $month      = date('m', strtotime($ddocument));
             $bulan      = date('m');
             $batas      = date('Y-m-06');
@@ -111,7 +110,7 @@ class Madjustment extends CI_Model
             }
             return $data;
         });
-        $datatables->hide('d_adjustment');
+        $datatables->hide('d_document');
         return $datatables->generate();
     }
 
@@ -120,13 +119,13 @@ class Madjustment extends CI_Model
     public function runningnumber($thbl, $tahun)
     {
         $query  = $this->db->query("SELECT
-                max(substring(i_adjustment, 9, 3)) AS max
+                max(substring(i_document, 9, 3)) AS max
             FROM
                 tm_adjustment
             WHERE 
                 f_status = 't'
-                AND substring(i_adjustment, 4, 2) = substring('$thbl',1,2)
-                AND to_char (d_adjustment, 'yyyy') >= '$tahun'
+                AND substring(i_document, 4, 2) = substring('$thbl',1,2)
+                AND to_char (d_document, 'yyyy') >= '$tahun'
         ", false);
         if ($query->num_rows() > 0) {
             foreach ($query->result() as $row) {
@@ -149,52 +148,63 @@ class Madjustment extends CI_Model
     }
 
     /** Ambil Data Customer */
-    public function get_customer($cari)
+    public function get_customer($cari='')
     {
-        if ($this->fallcustomer == 't') {
-            $where = "";
-        } else {
-            $where = "AND id_customer IN (
-                    SELECT 
-                        id_customer
-                    FROM
-                        tm_user_customer
-                    WHERE id_user = '$this->id_user'                
-                )
-            ";
+        $limit = " LIMIT 5";
+        if ($cari != '') {
+            $limit = '';
         }
-        return $this->db->query("SELECT
-                id_customer,
-                e_customer_name
-            FROM
-                tr_customer
-            WHERE
-                (e_customer_name ILIKE '%$cari%')
-                AND f_status = 't'
-                $where
-            ORDER BY
-                e_customer_name ASC
-        ", FALSE);
+
+        $user_cover = "SELECT id_customer FROM tm_user_customer
+                        WHERE id_user = '$this->id_user'";
+
+        $sql = "SELECT
+                    id_customer,
+                    e_customer_name 
+                FROM tr_customer
+                WHERE (e_customer_name ILIKE '%$cari%')
+                    AND f_status = 't'
+                    AND id_customer IN ($user_cover)
+                ORDER BY e_customer_name ASC
+                $limit ";
+
+        return $this->db->query($sql, FALSE);
     }
 
-    /** Ambil Data Product */
-    public function get_product(/* $i_company,  */$cari)
+    /** Get Data Product sesuai user cover */
+    public function get_product($cari='', $id_customer, $all=false)
     {
-        return $this->db->query("SELECT 
-            a.i_product AS id,
-            a.e_product_name AS e_name,
-            c.e_brand_name,
-            a.id_brand
-        FROM 
-            tr_product a
-        INNER JOIN tr_brand c ON
-            (c.id_brand = a.id_brand)
-        WHERE 
-            (e_product_name ILIKE '%$cari%' OR i_product ILIKE '%$cari%')
-            AND a.f_status = 't'
-            AND a.id_brand IN (SELECT id_brand FROM tm_user_brand WHERE id_user = $this->id_user)
-        ORDER BY 3,1
-        ", FALSE);
+        $id_user = $this->session->userdata('id_user');
+
+        $limit = 'LIMIT 5';
+        if (($cari != '') or ($all)) {
+            $limit = "";
+        }
+
+        $sql_brand_cover = "SELECT tub.id_brand
+                            FROM tm_user_brand tub						
+                            WHERE id_user_customer = (
+                                            SELECT id
+                                            FROM tm_user_customer
+                                            WHERE id_user = '$id_user' AND id_customer = '$id_customer'
+                                        )";
+
+        $sql = "SELECT a.id,
+                i_product,
+                e_product_name AS e_name,
+                a.id_brand,
+                b.e_brand_name AS brand
+            FROM tr_product a
+            INNER JOIN tr_brand b ON b.id_brand = a.id_brand
+            WHERE (e_product_name ILIKE '%$cari%' OR i_product ILIKE '%$cari%')
+                AND a.f_status = 't'
+                AND a.id_brand IN ($sql_brand_cover)
+            ORDER BY 4,1
+            $limit";
+
+        // var_dump($sql); die();
+
+        return $this->db->query($sql, FALSE);
     }
 
     /** Ambil Data Detail Product */
@@ -248,38 +258,35 @@ class Madjustment extends CI_Model
             $d_jangka_from = '9999-01-01';
             $d_jangka_to   = '9999-01-31';
         }
-        return $this->db->query("SELECT
-            a.id_customer,
-            i.i_company,
-            b.i_product,
-            d.e_product_name,
-            b.id_brand,
-            e.e_brand_name,
-            0 AS pembelian,
-            0 AS retur,
-            0 AS penjualan,
-            (b.n_adjustment ::DECIMAL) AS adjustment,
-            0 AS stock_opname
-        FROM
-            tm_adjustment a
-        INNER JOIN tm_adjustment_item b ON
-            (b.id_adjustment = a.id_adjustment)
-        INNER JOIN tr_product d ON 
-            (d.i_product = b.i_product)
-        INNER JOIN tr_brand e ON 
-            (e.id_brand = b.id_brand)
-        INNER JOIN tm_penjualan h ON
-            (h.id_customer = a.id_customer AND h.id_user = COALESCE($id,h.id_user))
-        INNER JOIN tm_penjualan_item i ON
-            (i.id_document = h.id_document)
-        WHERE
-            a.f_status = 't'
-            AND d.i_company = i.i_company 
-            AND a.id_customer = COALESCE($id_customer,a.id_customer)
-            AND a.d_adjustment BETWEEN '$dfrom' AND '$dto'
-        GROUP BY
-            3,2,1,4,5,6,10
-                ", FALSE);
+
+        $sql = "SELECT
+                    a.id_customer,
+                    i.i_company,
+                    b.i_product,
+                    d.e_product_name,
+                    b.id_brand,
+                    e.e_brand_name,
+                    0 AS pembelian,
+                    0 AS retur,
+                    0 AS penjualan,
+                    (b.n_adjustment ::DECIMAL) AS adjustment,
+                    0 AS stock_opname
+                FROM tm_adjustment a
+                INNER JOIN tm_adjustment_item b ON (b.id_adjustment = a.id)
+                INNER JOIN tr_product d ON (d.i_product = b.i_product)
+                INNER JOIN tr_brand e ON (e.id_brand = b.id_brand)
+                INNER JOIN tm_penjualan h ON (h.id_customer = a.id_customer AND h.id_user = COALESCE($id,h.id_user))
+                INNER JOIN tm_penjualan_item i ON (i.id_penjualan = h.id)
+                WHERE
+                    a.f_status = 't'
+                    AND a.id_customer = COALESCE($id_customer,a.id_customer)
+                    AND a.d_adjustment BETWEEN '$dfrom' AND '$dto'
+                GROUP BY
+                    3,2,1,4,5,6,10";
+
+        // var_dump($sql); die();
+
+        return $this->db->query($sql, FALSE);
     }
 
     /** Simpan Data */
@@ -344,28 +351,28 @@ class Madjustment extends CI_Model
                 tr_customer b ON 
                 (b.id_customer = a.id_customer)
             WHERE 
-                id_adjustment = '$id'
+                id = '$id'
         ", FALSE);
     }
 
     /** Get Data Untuk Edit */
     public function getdatadetail($id)
     {
-        return $this->db->query("SELECT
-                a.*,
-                b.e_brand_name,
-                c.e_product_name
-            FROM
-                tm_adjustment_item a
-            INNER JOIN tr_brand b ON 
-                (b.id_brand = a.id_brand)
-            INNER JOIN tr_product c ON 
-                (c.i_product = a.i_product AND a.id_brand = c.id_brand)
-            WHERE
-                id_adjustment = '$id'
-            ORDER BY 
-                a.id
-        ", FALSE);
+        $sql = "SELECT
+                    a.*,
+                    c.i_product,
+                    c.e_product_name,
+                    d.e_brand_name
+                FROM tm_adjustment_item a
+                INNER JOIN tm_adjustment a2 ON a2.id = a.id_adjustment
+                INNER JOIN tr_product c ON c.id = a.id_product
+                INNER JOIN tr_brand d ON d.id_brand = c.id_brand
+                WHERE a2.id = '$id'
+                ORDER BY a.id";
+
+        // var_dump($sql);
+
+        return $this->db->query($sql, FALSE);
     }
 
         /** Cek Level */
@@ -430,7 +437,7 @@ class Madjustment extends CI_Model
         $data = array(
             'f_status' => false,
         );
-        $this->db->where('id_adjustment', $id);
+        $this->db->where('id', $id);
         $this->db->update('tm_adjustment', $data);
     }
 
@@ -449,7 +456,7 @@ class Madjustment extends CI_Model
             $table = array(
                 'd_approve' => date('Y-m-d'), 
             );
-            $this->db->where('id_adjustment', $id);
+            $this->db->where('id', $id);
             $this->db->update('tm_adjustment', $table);
    
     }
@@ -460,6 +467,74 @@ class Madjustment extends CI_Model
         $this->db->delete('tm_adjustment_item');
         $this->db->where('id_adjustment', $id);
         $this->db->delete('tm_adjustment');
+    }
+
+    public function insert_adjustment($i_document, $d_document, $i_periode, $id_customer, $e_remark, $id_user=null)
+    {
+        if ($id_user == null) {
+            $id_user = $this->session->userdata('id_user');
+        };
+
+        $data = [
+            'i_document' => $i_document,
+            'd_document' => $d_document,
+            'i_periode' => $i_periode,
+            'id_customer' => $id_customer,
+            'e_remark' => $e_remark,
+            'id_user' => $id_user
+        ];
+
+        $this->db->insert('tm_adjustment', $data);
+    }
+
+    public function update_adjustment($i_document, $d_document, $i_periode, $id_customer, $e_remark, $id)
+    {
+        $data = [
+            'i_document' => $i_document,
+            'd_document' => $d_document,
+            'i_periode' => $i_periode,
+            'id_customer' => $id_customer,
+            'e_remark' => $e_remark,
+        ];
+
+        $this->db->where('id', $id);
+        $this->db->update('tm_adjustment', $data);
+    }
+
+    public function insert_adjustment_item($id_adjustment, $id_product, $n_adjustment, $e_remark)
+    {
+        $data = [
+            'id_adjustment' => $id_adjustment,
+            'id_product' => $id_product,
+            'n_adjustment' => $n_adjustment,
+            'e_remark' => $e_remark
+        ];
+
+        $this->db->insert('tm_adjustment_item', $data);
+    }
+
+    public function delete_adjustment_item_by_id_adjustment($id_adjustment)
+    {
+        $this->db->where('id_adjustment', $id_adjustment);
+        $this->db->delete('tm_adjustment_item');
+    }
+
+    public function generate_nomor_dokumen($id_customer) {
+
+        $kode = 'AD';
+
+        $sql = "SELECT count(*) 
+                FROM tm_adjustment ts
+                WHERE ts.id_customer = '$id_customer'
+                    AND to_char(d_document, 'yyyy-mm') = to_char(now(), 'yyyy-mm')
+                    AND f_status = 't'";
+
+        $query = $this->db->query($sql);
+        $result = $query->row()->count;
+        $count = intval($result) + 1;
+        $generated = $kode . '-' . date('ym') . '-' . sprintf('%04d', $count);
+
+        return $generated;
     }
 
 }

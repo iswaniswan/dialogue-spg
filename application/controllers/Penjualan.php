@@ -260,10 +260,15 @@ class Penjualan extends CI_Controller
 		$nama = $this->input->post('nama');
 		$e_remark = $this->input->post('eremark');
 		$alamat = $this->input->post('alamat');
-		$bruto = $this->input->post('bruto');
+		$bruto = $this->input->post('grand_total');
+		$bruto = str_replace(",", "", $bruto);
+
 		$diskon = $this->input->post('diskon');
 		$diskon_persen = $this->input->post('diskonpersen');
-		$netto = $this->input->post('netto');		
+		
+		$netto = $this->input->post('grand_akhir');
+		$netto = str_replace(",", "", $netto);
+
 		$items = $this->input->post('items');
 		$id_user = $this->session->userdata('id_user');
 
@@ -388,20 +393,25 @@ class Penjualan extends CI_Controller
 			redirect(base_url(), 'refresh');
 		}
 
-		$id = $this->input->post('id', TRUE);
 		$i_document = $this->input->post('idocument');
 		$d_document = $this->input->post('ddocument');
 		$id_customer = $this->input->post('idcustomer');
 		$nama = $this->input->post('nama');
 		$e_remark = $this->input->post('eremark');
 		$alamat = $this->input->post('alamat');
-		$bruto = $this->input->post('bruto');
+		$bruto = $this->input->post('grand_total');
+		$bruto = str_replace(",", "", $bruto);
+
 		$diskon = $this->input->post('diskon');
 		$diskon_persen = $this->input->post('diskonpersen');
-		$netto = $this->input->post('netto');		
+		
+		$netto = $this->input->post('grand_akhir');
+		$netto = str_replace(",", "", $netto);
+
 		$items = $this->input->post('items');
 		$id_user = $this->session->userdata('id_user');
-		
+
+		$id = $this->input->post('id', TRUE);		
 		/** Update Data */
 		$data = [
 			'sukses' => false,

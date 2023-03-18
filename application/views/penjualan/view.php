@@ -2,6 +2,9 @@
     .tabel td {
         padding: 7px 7px !important;
     }
+    .input-group-prepend {
+        margin-right: unset;
+    }
 </style>
 <!-- Content area -->
 <div class="content">
@@ -77,8 +80,9 @@
                 <h6 class="card-title"><i class="icon-cart-add mr-2"></i> Detail Barang</h6>
                 <div class="row">
                     <div class="col-md-12">
-                        <div class="table-responsive">
-                            <table class="table table-columned table-bordered table-xs" id="tablecover">
+                        <div class="table-responsive" style="display: block; overflow-x: auto; white-space: nowrap;">
+                            <table class="table table-columned table-bordered table-xs" id="tablecover" style="width: 1200px;">
+                                <?php /*
                                 <thead>
                                     <tr class="alpha-<?= $this->color; ?> text-<?= $this->color; ?>-600">
                                         <th class="text-center" width="3%;">#</th>
@@ -90,22 +94,126 @@
                                         <th>Keterangan</th>
                                     </tr>
                                 </thead>
+                                */ ?>
+                                <thead>
+                                    <tr class="alpha-<?= $this->color; ?> text-<?= $this->color; ?>-600">
+                                        <th class="text-center" style="width:15px;" rowspan="2">#</th>
+                                        <th style="width:100px;" rowspan="2">Kode Barang</th>
+                                        <th style="width:300px;" rowspan="2">Nama Barang</th>
+                                        <th style="width:100px;" rowspan="2">Qty</th>
+                                        <th style="width:100px;" rowspan="2">Disc (%)</th>
+                                        <th style="width:auto;" class="text-center" colspan="4">Harga</th>
+                                        <th style="width:100px;" rowspan="2">Keterangan</th>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-center" style="width: 180px">Satuan</th>
+                                        <th class="text-center" style="width: 180px">Total</th>
+                                        <th class="text-center" style="width: 180px">Diskon</th>
+                                        <th class="text-center" style="width: 180px">Akhir</th>
+                                    </tr>
+                                </thead>
                                 <tbody>
+                                <?php $grand_total = 0; $grand_discount = 0; $grand_akhir = 0; ?>
                                 <?php $i = 0; foreach ($detail->result() as $key) { $i++; ?>
                                     <tr>
                                         <td class="text-center">
                                             <spanx id="snum<?= $i; ?>"><?= $i; ?></spanx>
                                         </td>
-                                        <td><?= $key->i_product; ?></td>
-                                        <td><?= $key->e_product_name; ?></td>
-                                        <td class="text-right"><?= $key->n_qty; ?></td>
-                                        <td class="text-right"><?= $key->v_diskon; ?></td>
-                                        <td class="text-right"><?= number_format($key->v_price); ?></td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm" value="<?= $key->i_product; ?>" readonly>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm" value="<?= $key->e_product_name; ?>" readonly>
+                                        </td>
+                                        <td class="text-right">
+                                            <input type="text" class="form-control form-control-sm" value="<?= $key->n_qty; ?>" readonly>
+                                        </td>
+                                        <td class="text-right">
+                                            <input type="text" class="form-control form-control-sm" value="<?= $key->v_diskon; ?>" readonly>
+                                        </td>
+                                        <td class="text-right">
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">Rp.</span>
+                                                </div>                        
+                                                <input type="text" value="<?= number_format($key->v_price); ?>" 
+                                                    class="form-control form-control-sm text-right" readonly>
+                                            </div>                                              
+                                        </td>
+                                        <td class="text-right">
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">Rp.</span>
+                                                </div>   
+                                                <?php $total = $key->v_price * $key->n_qty; $grand_total += $total; ?>                     
+                                                <input type="text" value="<?= number_format($total); ?>" 
+                                                    class="form-control form-control-sm text-right" readonly>
+                                            </div>                                              
+                                        </td>
+                                        <td class="text-right">
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">Rp.</span>
+                                                </div>   
+                                                <?php $discount = ($total * $key->v_diskon) / 100; 
+                                                    $grand_discount += $discount; ?>                     
+                                                <input type="text" value="<?= number_format($discount); ?>" 
+                                                    class="form-control form-control-sm text-right" readonly>
+                                            </div>                                              
+                                        </td>
+                                        <td class="text-right">
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">Rp.</span>
+                                                </div>                      
+                                                <?php $akhir =  $total - $discount; 
+                                                    $grand_akhir += $akhir; ?>  
+                                                <input type="text" value="<?= number_format($akhir); ?>" 
+                                                    class="form-control form-control-sm text-right" readonly>
+                                            </div>                                              
+                                        </td>
                                         <td><?= $key->e_remark; ?></td>
                                     </tr>
                                 <?php } ?>
                                 </tbody>
                                 <tfoot>
+                                    <tr>
+                                        <th colspan="6" class="text-right">Grand Total</th>
+                                        <th class="text-right">
+                                            <span class="d-none" id="sbruto"></span>
+                                            <input type="hidden" name="bruto" id="bruto" value="0">
+                                            
+                                            <div class="input-group mb-3">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">Rp.</span>
+                                                </div>                        
+                                                <input type="text" name="grand_total" id="grand_total" value="<?= number_format($grand_total, 0, ".", ",") ?>" 
+                                                    class="form-control form-control-sm text-right" readonly>
+                                            </div>   
+                                        </th>
+                                        <th class="text-right">
+                                            <span class="d-none" id="sbruto"></span>                                            
+                                            <div class="input-group mb-3">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">Rp.</span>
+                                                </div>                        
+                                                <input type="text" name="grand_discount" id="grand_discount" value="<?= number_format($grand_discount, 0, ".", ",") ?>" 
+                                                    class="form-control form-control-sm text-right" readonly>
+                                            </div>   
+                                        </th>
+                                        <th>
+                                            <div class="input-group mb-3">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">Rp.</span>
+                                                </div>                        
+                                                <input type="text" name="grand_akhir" id="grand_akhir" value="<?= number_format($grand_akhir, 0, ".", ",") ?>" 
+                                                    class="form-control form-control-sm text-right" readonly>
+                                            </div>                                             
+                                        </th>
+                                        <th colspan="2"></th>
+                                    </tr>
+
+                                    <?php /*
                                     <tr>
                                         <th colspan="4" class="text-right">Bruto</th>
                                         <th class="text-right">
@@ -123,7 +231,6 @@
                                         </th>
                                         <th colspan="2"></th>
                                     </tr>
-                                    <?php /*
                                     <tr>
                                         <th colspan="4" class="text-right">DPP</th>
                                         <th class="text-right">
@@ -140,7 +247,6 @@
                                         </th>
                                         <th colspan="2"></th>
                                     </tr>
-                                    */ ?>
                                     <tr>
                                         <th colspan="4" class="text-right">Netto</th>
                                         <th class="text-right">
@@ -149,6 +255,7 @@
                                         </th>
                                         <th colspan="2"></th>
                                     </tr>
+                                    */?>
                                 </tfoot>
                                 <input type="hidden" id="jml" name="jml" value="<?= $i; ?>">
                             </table>

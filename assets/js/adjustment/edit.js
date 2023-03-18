@@ -48,22 +48,32 @@ var swalInit = swal.mixin({
 
 var controller = $("#path").val();
 var Detail = $(function() {
-    var i = $("#jml").val();
     $("#addrow").on("click", function() {
+        var i = $("#jml").val();
         i++;
         var no = $("#tablecover tbody tr").length;
         $("#jml").val(i);
         var newRow = $("<tr>");
         var cols = "";
         cols += `<td class="text-center"><spanx id="snum${i}">${no + 1}</spanx></td>`;
-        cols += `<td><select data-urut="${i}" required class="form-control form-control-sm form-control-select2" data-container-css-class="select-sm" name="i_product[]" id="i_product${i}" required data-fouc></select></td>`;
-        cols += `<td><input type="text" readonly class="form-control form-control-sm" id="e_brand_name${i}" placeholder="Brand" name="e_brand_name[]" ></td>`;
         cols += `<td>
-                    <input type="hidden" class="form-control form-control-sm" id="id_brand${i}" name="id_brand[]" >
-                    <input type="hidden" class="form-control form-control-sm" id="e_product${i}" name="e_product[]" >
-                    <input type="number" required class="form-control form-control-sm" id="qty${i}" placeholder="Qty" name="qty[]" onblur=\'if(this.value==""){this.value="0";}\' onfocus=\'if(this.value=="0"){this.value="";}\'>
+                    <select data-urut="${i}" class="form-control form-control-sm form-control-select2" 
+                        data-container-css-class="select-sm" 
+                        name="items[${i}][id_product]" 
+                        id="i_product${i}" required data-fouc>
+                    </select>
+                </td>`;
+        cols += `<td>
+                    <input type="number" class="form-control form-control-sm" placeholder="Qty" 
+                        id="qty${i}"                         
+                        name="items[${i}][qty]" 
+                        onblur=\'if(this.value==""){this.value="0";}\' 
+                        onfocus=\'if(this.value=="0"){this.value="";}\'>
                  </td>`;
-        cols += `<td><input type="text" class="form-control form-control-sm" id="e_remark${i}" placeholder="Keterangan" name="e_remark[]" ></td>`;
+        cols += `<td>
+                    <input type="text" class="form-control form-control-sm" id="e_remark${i}" placeholder="Keterangan" 
+                        name="items[${i}][e_remark]" >
+                </td>`;
         cols += `<td class="text-center"><b><i title="Hapus Baris" class="icon-cancel-circle2 text-danger ibtnDel"></i></b></td>`;
         newRow.append(cols);
         $("#tablecover").append(newRow);
@@ -78,6 +88,7 @@ var Detail = $(function() {
                 data: function(params) {
                     var query = {
                         q: params.term,
+                        id_customer:$('#idcustomer').val()
                     };
                     return query;
                 },
@@ -104,6 +115,7 @@ var Detail = $(function() {
                 }
             }
             if (!ada) {
+                return;
                 var product = $(this).val();
                 produk = product.split(" - ");
                 product = produk[0];
@@ -118,6 +130,7 @@ var Detail = $(function() {
                     },
                     dataType: "json",
                     success: function(data) {
+                        console.log(data); return;
                         $("#e_product" + z).val(data["detail"][0]["e_product_name"]);
                         $("#e_brand_name" + z).val(data["detail"][0]["e_brand_name"]);
                         $("#id_brand" + z).val(data["detail"][0]["id_brand"]);

@@ -26,14 +26,14 @@
                     <div class="col-sm-6">
                         <div class="form-group">
                             <label>Nomor Dokumen :</label>
-                            <input type="hidden" value="<?= $data->id_adjustment; ?>" id="id" name="id">
-                            <input type="text" class="form-control" readonly value="<?= $data->i_adjustment; ?>" data-inputmask="'mask': 'BON-9999-999999'" autofocus placeholder="Entry No Document" id="idocument" name="idocument" maxlength="20" autocomplete="off" required>
+                            <input type="hidden" value="<?= $data->id; ?>" id="id" name="id">
+                            <input type="text" class="form-control" readonly value="<?= $data->i_document; ?>" data-inputmask="'mask': 'BON-9999-999999'" autofocus placeholder="Entry No Document" id="idocument" name="idocument" maxlength="20" autocomplete="off" required>
                         </div>
                     </div>
                     <div class="col-sm-6">
                         <div class="form-group">
                             <label>Tanggal Dokumen :</label>
-                            <input type="text" name="ddocument" id="ddocument" readonly class="form-control date" required placeholder="Select Date" value="<?= $data->d_adjustment; ?>">
+                            <input type="text" name="ddocument" id="ddocument" readonly class="form-control date" required placeholder="Select Date" value="<?= $data->d_document; ?>">
                         </div>
                     </div>
                 </div>
@@ -71,38 +71,41 @@
                                 <thead>
                                     <tr class="alpha-<?= str_replace("-800","",$this->color); ?> text-<?= str_replace("-800","-600",$this->color); ?>">
                                         <th class="text-center" width="3%;">#</th>
-                                        <th width="30%;">Barang</th>
-                                        <th width="20%;">Brand</th>
-                                        <th width="15%;">Qty</th>
-                                        <th width="20%;">Keterangan</th>
-                                        <th width="3%;"><i id="addrow" title="Tambah Baris" class="icon-plus-circle2"></i></th>
+                                        <th style="width:auto">Kode / Nama Barang / Brand</th>
+                                        <th style="width:100px;">Qty</th>
+                                        <th style="width:350px;">Keterangan</th>
+                                        <th style="width:25px"><i id="addrow" title="Tambah Baris" class="icon-plus-circle2"></i></th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php $i = 0;
-                                    if ($detail) {
-                                        foreach ($detail->result() as $key) {
-                                            $i++; ?>
-                                            <tr>
-                                                <td class="text-center">
-                                                    <spanx id="snum<?= $i; ?>"><?= $i; ?></spanx>
-                                                </td>
-                                                <td>
-                                                    <select data-urut="<?= $i; ?>" required class="form-control form-control-sm form-control-select2" data-container-css-class="select-sm" name="i_product[]" id="i_product<?= $i; ?>" required data-fouc>
-                                                        <option value="<?= $key->i_product; ?>"><?= $key->i_product . ' - ' . $key->e_product_name; ?></option>
-                                                    </select>
-                                                </td>
-                                                <td><input type="text" readonly class="form-control form-control-sm" id="e_brand_name<?= $i; ?>" placeholder="Perusahaan" name="e_brand_name[]" value="<?= $key->e_brand_name; ?>"></td>
-                                                <td>
-                                                    <input type="number" required class="form-control form-control-sm" id="qty<?= $i; ?>" value="<?= $key->n_adjustment; ?>" placeholder="Qty" name="qty[]">
-                                                    <input type="hidden" class="form-control form-control-sm" id="e_product<?= $i; ?>" name="e_product[]" value="<?= $key->e_product_name; ?>">
-                                                    <input type="hidden" class="form-control form-control-sm" id="id_brand<?= $i; ?>" name="id_brand[]" value="<?= $key->id_brand; ?>">
-                                                </td>
-                                                <td><input type="text" class="form-control form-control-sm" id="e_remark<?= $i; ?>" placeholder="Keterangan" name="e_remark[]" value="<?= $key->e_remark; ?>"></td>
-                                                <td class="text-center"><b><i title="Hapus Baris" class="icon-cancel-circle2 text-danger ibtnDel"></i></b></td>
-                                            </tr>
-                                    <?php }
-                                    } ?>
+                                <?php $i = 0; foreach ($detail->result() as $key) { $i++; ?>
+                                    <tr>
+                                        <td class="text-center">
+                                            <spanx id="snum<?= $i; ?>"><?= $i; ?></spanx>
+                                        </td>
+                                        <td>
+                                            <select data-urut="<?= $i; ?>" class="form-control form-control-sm form-control-select2" 
+                                                data-container-css-class="select-sm" 
+                                                name="items[<?=$i?>][id_product]" 
+                                                id="i_product<?= $i; ?>" required data-fouc>
+                                                <option value="<?= $key->id_product; ?>">
+                                                    <?= $key->i_product . ' - ' . $key->e_product_name . ' - ' . $key->e_brand_name; ?>
+                                                </option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="number" class="form-control form-control-sm" 
+                                                id="qty<?= $i; ?>" 
+                                                value="<?= $key->n_adjustment; ?>" 
+                                                placeholder="Qty" 
+                                                name="items[<?=$i?>][qty]">
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm" id="e_remark<?= $i; ?>" placeholder="Keterangan" name="items[<?=$i?>][e_remark]" value="<?= $key->e_remark; ?>">
+                                        </td>
+                                        <td class="text-center"><b><i title="Hapus Baris" class="icon-cancel-circle2 text-danger ibtnDel"></i></b></td>
+                                    </tr>
+                                <?php } ?>
                                 </tbody>
                                 <input type="hidden" id="jml" name="jml" value="<?= $i; ?>">
                             </table>

@@ -489,9 +489,13 @@ class Mpenjualan extends CI_Model {
 
     public function insert_penjualan(
         $id_customer, $i_document, $d_document, $e_customer_sell_name, $e_customer_sell_address, 
-        $v_gross, $n_diskon, $v_diskon, $v_dpp, $v_ppn, $v_netto, $v_bayar, $e_remark, $id_user
+        $v_gross, $n_diskon, $v_diskon, $v_dpp, $v_ppn, $v_netto, $v_bayar, $e_remark, $id_user=null
     )
     {
+        if ($id_user == null) {
+            $id_user = $this->session->userdata('id_user');
+        };
+
         $data = [
             'id_customer' => $id_customer, 
             'i_document' => $i_document, 
