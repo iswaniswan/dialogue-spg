@@ -52,7 +52,7 @@ class LaporanKategoripenjualan extends CI_Controller
 				'global_assets/js/plugins/forms/selects/select2.min.js',
 				'global_assets/js/plugins/pickers/pickadate/picker.js',
 				'global_assets/js/plugins/pickers/pickadate/picker.date.js',
-				'assets/js/' . $this->folder . '/index.js',
+				'assets/js/' . $this->folder . '/index.js?v=1',
 			)
 		);
 
@@ -73,78 +73,126 @@ class LaporanKategoripenjualan extends CI_Controller
 	public function get_customer()
 	{
 		$filter = [];
-		$cari   = str_replace("'", "", $this->input->get('q'));
-		if ($cari != '') {
-			$data = $this->mymodel->get_customer($cari);
-			foreach ($data->result() as $row) {
-				$filter[] = array(
-					'id'   => $row->id,
-					'text' => ucwords(strtolower($row->e_name)),
-				);
-			}
-		} else {
-			$data = $this->mymodel->get_customer($cari);
-			foreach ($data->result() as $row) {
-				$filter[] = array(
-					'id'   => $row->id,
-					'text' => ucwords(strtolower($row->e_name)),
-				);
-			}
-		} 
+
+		/** SEMUA */
+		$filter[] = [
+			'id' => 'null',
+			'text' => 'SEMUA'
+		];
+
+		$cari	= str_replace("'", "", $this->input->get('q'));
+		$data = $this->mymodel->get_customer($cari);
+		foreach ($data->result() as $row) {
+			$filter[] = array(
+				'id'   => $row->id_customer,
+				'text' => strtoupper($row->e_customer_name),
+			);
+		}
+
 		echo json_encode($filter);
 	}
 
-	public function export_excel($id)
+    public function get_user_customer_brand()
 	{
-        $query = $this->mymodel->export_excel($id);
+		$cari	= str_replace("'", "", $this->input->get('q'));
+		$id_user = $this->session->userdata('id_user');
+		$id_customer = $this->input->get('id_customer');
+		
+		$filter = [];			
 
-        if ($query) {
+		/** SEMUA */
+		$filter[] = [
+			'id' => 'null',
+			'text' => 'SEMUA'
+		];	
 
-            $spreadsheet = new Spreadsheet;
-            $sharedStyle1 = new Style();
-            $sharedStyle2 = new Style();
-            $sharedStyle3 = new Style();
-            $conditional3 = new Conditional();
-            $spreadsheet->getActiveSheet()->getStyle('B2')->getAlignment()->applyFromArray(
-                [
+		if ($id_customer == null or $id_customer == 'null') {
+			return $filter;
+		}
+
+		$data = $this->mymodel->get_user_customer_brand($cari, $id_user, $id_customer);
+		foreach ($data->result() as $row) {
+			$filter[] = array(
+				'id'   => $row->id,
+				'text' => strtoupper($row->e_brand_name),
+			);
+		}
+		echo json_encode($filter);
+	}
+
+	public function export_excel()
+	{        
+        $id_customer = $this->uri->segment(3);
+        $id_brand = $this->uri->segment(4);
+
+        if ($id_customer == 'null') {
+            $id_customer = null;
+        }
+
+        if ($id_brand == 'null') {
+            $id_brand = null;
+        }
+
+        /** init date */
+        $first_date = '2022-01-01';
+        $dfrom = date('Y-m-d');
+        $dto = date('Y-m-t', strtotime($dfrom));
+
+        $last_date_before_from = strtotime('-1 day', strtotime($dfrom));
+        $last_date_before_from = date('Y-m-d', $last_date_before_from);
+
+        $title = "Laporan Kategori Penjualan";
+        if ($id_customer != null) {
+            $customer = $this->mymodel->get_customer("", $id_customer)->row();
+            $title .= " - $customer->e_customer_name";
+        }
+
+        $query = $this->mymodel->calc_product_category($first_date, $last_date_before_from, $dfrom, $dto, $id_customer, $id_brand);
+        
+        $spreadsheet = new Spreadsheet;
+        $sharedStyle1 = new Style();
+        $sharedStyle2 = new Style();
+        $sharedStyle3 = new Style();
+        $conditional3 = new Conditional();
+        $spreadsheet->getActiveSheet()->getStyle('B2')->getAlignment()->applyFromArray(
+            [
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER, 'textRotation' => 0, 'wrapText' => TRUE
+            ]
+        );
+
+        $sharedStyle1->applyFromArray(
+            [
+                'alignment' => [
+                    'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
                     'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
-                    'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER, 'textRotation' => 0, 'wrapText' => TRUE
-                ]
-            );
+                ],
+                'borders' => [
+                    'bottom' => ['borderStyle' => Border::BORDER_THIN],
+                    'right' => ['borderStyle' => Border::BORDER_THIN],
+                ],
+            ]
+        );
 
-            $sharedStyle1->applyFromArray(
-                [
-                    'alignment' => [
-                        'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
-                        'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
-                    ],
-                    'borders' => [
-                        'bottom' => ['borderStyle' => Border::BORDER_THIN],
-                        'right' => ['borderStyle' => Border::BORDER_THIN],
-                    ],
-                ]
-            );
-
-            $sharedStyle2->applyFromArray(
-                [
-                    'font' => [
-                        'name'  => 'Arial',
-                        'bold'  => false,
-                        'italic' => false,
-                        'size'  => 10
-                    ],
-                    'borders' => [
-                        'top'    => ['borderStyle' => Border::BORDER_THIN],
-                        'bottom' => ['borderStyle' => Border::BORDER_THIN],
-                        'left'   => ['borderStyle' => Border::BORDER_THIN],
-                        'right'  => ['borderStyle' => Border::BORDER_THIN]
-                    ],
-                    'alignment' => [
-                        'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
-                    ],
-                ]
-            );
-
+        $sharedStyle2->applyFromArray(
+            [
+                'font' => [
+                    'name'  => 'Arial',
+                    'bold'  => false,
+                    'italic' => false,
+                    'size'  => 10
+                ],
+                'borders' => [
+                    'top'    => ['borderStyle' => Border::BORDER_THIN],
+                    'bottom' => ['borderStyle' => Border::BORDER_THIN],
+                    'left'   => ['borderStyle' => Border::BORDER_THIN],
+                    'right'  => ['borderStyle' => Border::BORDER_THIN]
+                ],
+                'alignment' => [
+                    'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                ],
+            ]
+        );
             
         $sharedStyle3->applyFromArray(
             [
@@ -154,33 +202,39 @@ class LaporanKategoripenjualan extends CI_Controller
                 ],
             ]
         );
+
         $spreadsheet->getDefaultStyle()
-        ->getFont()
-        ->setName('Calibri')
-        ->setSize(9);
+            ->getFont()
+            ->setName('Calibri')
+            ->setSize(9);
+
         foreach(range('A','I') as $columnID) {
           $spreadsheet->getActiveSheet()->getColumnDimension($columnID)->setAutoSize(true);
         }
-            $spreadsheet->setActiveSheetIndex(0)
-                      ->setCellValue('A1', 'Laporan Kategori Penjualan');
-            $spreadsheet->getActiveSheet()->setTitle('Laporan');
-            $spreadsheet->getActiveSheet()->mergeCells("A1:G1");
-            $spreadsheet->setActiveSheetIndex(0)
-                      ->setCellValue('A2', 'No')
-                      ->setCellValue('B2', 'Toko')
-                      ->setCellValue('C2', 'Kode')
-                      ->setCellValue('D2', 'Barang')
-                      ->setCellValue('E2', 'Brand')
-                      ->setCellValue('F2', 'Tanggal Terakhir')
-                      ->setCellValue('G2', 'Qty')
-                      ->setCellValue('H2', 'Selisih')
-                      ->setCellValue('I2', 'Kategori');
-          
-          $spreadsheet->getActiveSheet()->duplicateStyle($sharedStyle1, 'A2:I2');
+        
+        $spreadsheet->setActiveSheetIndex(0)
+                    ->setCellValue('A1', "$title");
+        $spreadsheet->getActiveSheet()->setTitle('Laporan');
+        $spreadsheet->getActiveSheet()->mergeCells("A1:J1");
+        $spreadsheet->getActiveSheet()->duplicateStyle($sharedStyle1, 'A1:J1');
 
-          $kolom = 3;
-          $nomor = 1;
-          foreach($query->result() as $row) {
+        $spreadsheet->setActiveSheetIndex(0)
+                    ->setCellValue('A2', 'No')
+                    ->setCellValue('B2', 'Toko')
+                    ->setCellValue('C2', 'Kode')
+                    ->setCellValue('D2', 'Barang')
+                    ->setCellValue('E2', 'Brand')
+                    ->setCellValue('F2', 'Tanggal Terakhir')
+                    ->setCellValue('G2', 'Keterangan Tanggal')
+                    ->setCellValue('H2', 'Qty')
+                    ->setCellValue('I2', 'Selisih (Hari)')
+                    ->setCellValue('J2', 'Kategori');
+          
+        $spreadsheet->getActiveSheet()->duplicateStyle($sharedStyle1, 'A2:J2');
+
+        $kolom = 3;
+        $nomor = 1;
+        foreach($query->result() as $row) {
             $spreadsheet->setActiveSheetIndex(0)
                         ->setCellValue('A' . $kolom, $nomor)
                         ->setCellValue('B' . $kolom, $row->customer)
@@ -188,14 +242,37 @@ class LaporanKategoripenjualan extends CI_Controller
                         ->setCellValue('D' . $kolom, $row->e_product_name)
                         ->setCellValue('E' . $kolom, $row->e_brand_name)
                         ->setCellValue('F' . $kolom, $row->tanggal)
-                        ->setCellValue('G' . $kolom, $row->saldo_akhir)
-                        ->setCellValue('H' . $kolom, $row->jarak)
-                        ->setCellValue('I' . $kolom, $row->kategori);
-            $spreadsheet->getActiveSheet()->duplicateStyle($sharedStyle2, 'A'.$kolom.':I'.$kolom);
+                        ->setCellValue('G' . $kolom, $row->tanggal_keterangan)
+                        ->setCellValue('H' . $kolom, $row->saldo_akhir)
+                        ->setCellValue('I' . $kolom, $row->jarak)
+                        ->setCellValue('J' . $kolom, $row->kategori);
+            $spreadsheet->getActiveSheet()->duplicateStyle($sharedStyle2, "A$kolom:J$kolom");
 
-                 $kolom++;
-                 $nomor++;
+            $kolom++;
+            $nomor++;
         }
+
+        /** info */
+        $info_rows = [
+            '*Keterangan Kategori: ',
+            'Fast Moving = Produk terjual dalam waktu <= 30 hari',
+            'Medium = Produk terjual dalam rentang waktu 31 >= x <= 90 hari',
+            'Slow Moving = Produk terjual dalam rentang waktu 91 >= x <= 180 hari',
+            'STP = Produk terjual dalam waktu >= 181 hari',
+        ];
+
+        $kolom += 2;
+        foreach($info_rows as $row) {
+            $spreadsheet->setActiveSheetIndex(0)
+                        ->setCellValue('A' . $kolom, $row);
+
+            $kolom++;
+        }
+
+        /** re-set width column A */
+        $spreadsheet->getActiveSheet()->getColumnDimension('A')->setAutoSize(false);
+        $spreadsheet->getActiveSheet()->getColumnDimension('A')->setWidth(5);
+
         $writer = new Xls($spreadsheet);
         $nama_file = "Laporan_kategori_penjualan.xls";
         header('Content-Type: application/vnd.ms-excel');
@@ -204,7 +281,6 @@ class LaporanKategoripenjualan extends CI_Controller
         ob_end_clean();
         ob_start();
         $writer->save('php://output');
-        }
 	} 
 	
 }

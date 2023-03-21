@@ -15,9 +15,9 @@
             </div>
         </div>
         <form method="POST" action="<?= base_url($this->folder); ?>">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-sm-2">
+            <div class="card-body d-md-flex align-items-md-center justify-content-md-between flex-md-wrap">
+                <div class="d-flex align-items-center mb-3 mb-md-0">
+                    <div class="col-sm-3">
                         <div class="form-group">
                             <label><?= $this->lang->line('Dari Tanggal'); ?> :</label>
                             <div class="input-group">
@@ -28,7 +28,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-sm-2">
+                    <div class="col-sm-3">
                         <div class="form-group">
                             <label><?= $this->lang->line('Sampai Tanggal'); ?> :</label>
                             <div class="input-group">
@@ -45,10 +45,13 @@
                             <select class="form-control select-search" 
                                     data-container-css-class="select-sm" 
                                     data-placeholder="Select Customer" 
-                                    required data-fouc name="idcustomer" 
-                                    id="idcustomer" 
-                                    onchange="if (this.selectedIndex) getcustomer();">
-                                <!-- <option value="all" selected="selected">Semua Toko</option> -->
+                                    data-fouc name="idcustomer" 
+                                    id="idcustomer">
+                                    <option value='null' selected>SEMUA</option> 
+                                    <?php foreach ($listcustomer->result() as $customer) { ?>
+                                        <?php $selected = ($customer->id_customer == $idcustomer) ? 'selected' : ''; ?>
+                                        <option value="<?= $customer->id_customer ?>" <?= $selected ?>><?= $customer->e_customer_name ?></option>
+                                    <?php } ?>    
                                 <?php /*
                                 <option></option>
                                 <?php foreach($listcustomer as $row) { ?>
@@ -61,22 +64,30 @@
                     <div class="col-sm-3">
                         <div class="form-group">
                             <label>Brand :</label>
-                            <select class="form-control select-search" data-container-css-class="select-sm" data-placeholder="Select Customer" data-fouc name="idbrand" id="idbrand" onchange=" if (this.selectedIndex) getbrand();">
-                                <option></option>    
-                                <?php foreach($listbrand as $row) { ?>
-                                    <option value="<?= $row->id_brand;?>" <?php if ($idbrand == $row->id_brand ) { echo 'selected="selected" ';}?>><?= $row->e_brand_name;?></option>
+                            <select class="form-control select-search" 
+                                data-container-css-class="select-sm" 
+                                data-placeholder="Select Brand" 
+                                data-fouc name="idbrand" 
+                                id="idbrand">
+                                <option value='null' selected>SEMUA</option> 
+                                <?php foreach($listbrand->result() as $brand) { ?>
+                                    <?php $selected = ($brand->id == $idbrand) ? 'selected' : ''; ?>
+                                    <option value="<?= $brand->id;?>" <?= $selected ?>><?= $brand->e_brand_name;?></option>
                                 <?php } 
                                 ?>
                             </select>
                         </div>
-                    </div>
-                    <div class="col-sm-1 mt-3">
+                    </div>                    
+                    <div class="col-sm-3">
                         <button type="submit" class="btn btn-sm bg-<?= $this->color; ?>"><i class="icon-search4"></i></button>
-                    </div>
-                    <div class="col-sm-1 mt-3">
-                        <?php $customer = ($idcustomer != '') ? $idcustomer : $listcustomer[0]->id_customer;
-                              $brand = ($idbrand != '') ? $idbrand : "all"; ?>
-                        <a href="<?php echo base_url().$this->folder.'/export_excel/'.$customer.'/'.$brand.'/'.$dfrom.'/'.$dto; ?>" id="export"><button type="button" class="btn btn-sm bg-<?= $this->color;?>"><i class="icon-download"></i></button></a>
+                        <?php $idcustomer = ($idcustomer != null) ? $idcustomer : 'null'; ?>
+                        <?php $idbrand = ($idbrand != null) ? $idbrand : 'null'; ?>
+                        <?php $link = base_url() . $this->folder . "/export_excel/$idcustomer/$idbrand/$dfrom/$dto"; ?>
+                        <a href="<?= $link ?>" id="export">
+                            <button type="button" class="btn btn-sm bg-<?= $this->color;?>">
+                                <i class="icon-download"></i>
+                            </button>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -143,13 +154,14 @@
                         <thead>
                             <tr class="bg-<?= $this->color; ?> table-border-double">
                                 <th>#</th>
+                                <th>Toko</th>
                                 <th>Kode <br> Barang</th>
                                 <th>Nama <br> Barang</th>
                                 <th>Nama <br> Brand</th>
                                 <th>Saldo <br> Awal</th>
-                                <th>Pembelian</th>
-                                <th>Retur <br> Pembelian</th>
-                                <th>Penjualan</th>
+                                <th>Penerimaan <br>Produk</th>
+                                <th>Retur <br> Distributor</th>
+                                <th>Pengeluaran <br> Produk</th>
                                 <th>Adjustment</th>
                                 <th>Saldo <br> Akhir</th>
                                 <th>Stock <br> Opname</th>

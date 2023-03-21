@@ -132,6 +132,52 @@ class Mdashboard extends CI_Model {
                 f_status = 't'
         ", FALSE);
     }
+
+    public function clear_database()
+    {
+        $result = "error";
+
+        /** instance model */
+        $CI = &get_instance();
+
+        // /** log */
+        // $CI->load->model('Logger');
+        // $CI->Logger->delete_all();
+
+        // /** master toko */
+        // $CI->load->model('Mcustomer');
+        // $CI->Mcustomer->delete_all();
+
+        // /** master user */
+        // $CI->load->model('Muser');
+        // $CI->Muser->delete_all();
+
+        // /** customer price */
+        // $CI->load->model('Mproductprice');
+        // $CI->Mproductprice->delete_all();
+
+        // /** master product */
+        // $CI->load->model('Mproduct');
+        // $CI->Mproduct->delete_all();
+
+        // /** master brand */
+        // $CI->load->model('Mbrand');
+        // $CI->Mbrand->delete_all();
+
+        // /** master alasan */
+        // $CI->load->model('Malasan');
+        // $CI->Malasan->delete_all();
+
+        // /** retur */
+        // $CI->load->model('Mretur');
+        // $CI->Mretur->delete_all();
+
+        // /** stockopname */
+        $CI->load->model('Mso');
+        $CI->Mso->delete_all();
+
+        echo $result;
+    }
 }
 
 /* End of file Mmaster.php */

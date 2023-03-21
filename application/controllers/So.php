@@ -72,8 +72,8 @@ class So extends CI_Controller
 		$dateto 	= date('Y-m-d', strtotime($dto));
 
 		$data = array(
-			'dfrom' => $dfrom,
-			'dto'	=> $dto,
+			'dfrom' => $datefrom,
+			'dto'	=> $dateto,
 		);
 
 		$this->logger->write('Membuka Menu ' . $this->title);

@@ -10,18 +10,14 @@ var swalInit = swal.mixin({
 });
 
 function check() {
-    var cek = $("#icustomer").val();
+    var cek = $("#id_customer").val();
 
     //alert(cek);
 
     if (cek == "") {
         swalInit("Maaf :(", "Pilih toko terlebih dahulu! :(", "error");
         return false;
-    } else {
-        var url = $("#url").val() + '/' + cek;
-        window.location.href = url;
-        //alert(cek);
-    }
+    } 
 }
 
 document.addEventListener("DOMContentLoaded", function() {
@@ -44,8 +40,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     $(".select-search").select2();
 
-
-    $("#icustomer").select2({
+    $("#id_customer").select2({
         placeholder: "Cari Nama Toko",
         width: "100%",
         allowClear: true,
@@ -67,12 +62,48 @@ document.addEventListener("DOMContentLoaded", function() {
             },
             cache: false,
         },
+    }).change(function() {
+        $('#id_brand').val(null).trigger('change');
     });
 
-    $("#icustomer").on('change', function() {
-        id = $(this).val();
-        var new_href = $('#export').attr('href') + '/' + id;
-        $('#export').attr('href', new_href);
+    $("#id_brand").select2({
+        placeholder: "Cari Brand",
+        width: "100%",
+        allowClear: true,
+        maximumSelectionSize: 1,
+        ajax: {
+            url: base_url + link + "/get_user_customer_brand",
+            dataType: "json",
+            delay: 250,
+            data: function(params) {
+                var query = {
+                    q: params.term,
+                    id_customer: $('#id_customer').val()
+                };
+                return query;
+            },
+            processResults: function(data) {
+                return {
+                    results: data,
+                };
+            },
+            cache: false,
+        },
+    });
+
+    $('#btn-export').click(function() {
+        const base_url = $('#url').val();
+
+        $id_customer = $('#id_customer').val();
+        $id_brand = $('#id_brand').val();
+
+        if ($id_customer === undefined) {            
+            swalInit("Maaf :(", "Pilih toko terlebih dahulu! :(", "error");
+            return false;
+        }
+
+        let url = `${base_url}/${$id_customer}/${$id_brand}`;
+        window.location.href = url;
     })
 
 });

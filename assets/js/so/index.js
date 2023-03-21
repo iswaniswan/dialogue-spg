@@ -2,7 +2,7 @@
 // ------------------------------
 
 // custom upload function
-function dataTableUpload(link, column, linkdata, color) {
+function dataTableUpload(link, column, linkdata, color, params) {
     var t = $("#serverside").DataTable({
         buttons: [{
             text: '<i class="icon-database-upload"></i>&nbsp; ' + labelupload,
@@ -34,6 +34,7 @@ function dataTableUpload(link, column, linkdata, color) {
         ajax: {
             url: base_url + link,
             type: "post",
+            data: params,
             error: function(data, err) {
                 $(".serverside-error").html("");
                 $("#serverside tbody").empty();
@@ -173,7 +174,7 @@ document.addEventListener("DOMContentLoaded", function() {
     //     datatableparams(controller, column);
     // }
     if (id_menu != "") {
-        dataTableUpload(controller, column, link, color);
+        dataTableUpload(controller, column, link, color, params);
     } else {
         datatable(controller, column);
     }

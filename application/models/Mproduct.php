@@ -349,6 +349,13 @@ class Mproduct extends CI_Model {
         $button = "<button class='$class'".$status."</button>";
         return $button;
     }
+    
+    public function delete_all()
+	{
+		$sql = "TRUNCATE TABLE tr_product CASCADE";
+
+		return $this->db->query($sql);
+	}
 }
 
 /* End of file Mmaster.php */

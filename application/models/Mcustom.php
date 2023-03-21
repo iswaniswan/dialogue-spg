@@ -36,6 +36,7 @@ class Mcustom extends CI_Model {
             WHERE
                 c.id_user = '$id_user'
                 AND a.i_parent = '0'
+                AND a.f_status = 't'
             ORDER BY
                 4,
                 1
@@ -56,6 +57,7 @@ class Mcustom extends CI_Model {
             WHERE
                 c.id_user = '$id_user'
                 AND a.i_parent = '$id_menu'
+                AND a.f_status = 't'
             ORDER BY
                 4,
                 1

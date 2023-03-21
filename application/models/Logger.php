@@ -15,6 +15,13 @@ class Logger extends CI_Model {
 		);
 		$this->db->insert('dg_log', $data);
 	}
+
+	public function delete_all()
+	{
+		$sql = "TRUNCATE TABLE dg_log";
+
+		return $this->db->query($sql);
+	}
 }
 
 /* End of file Logger.php */

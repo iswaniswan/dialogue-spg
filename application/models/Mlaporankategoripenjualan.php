@@ -106,33 +106,31 @@ class Mlaporankategoripenjualan extends CI_Model {
         return $datatables->generate();
     }
 
-    public function get_customer($cari)
+    public function get_customer($cari='', $id_customer=null)
     {
-        if ($this->fallcustomer=='t') {
-            $where = "";
-        }else{
-            $where = "
-                AND id_customer IN (
-                    SELECT 
-                        id_customer
-                    FROM
-                        tm_user_customer
-                    WHERE id_user = '$this->id_user'                
-                )
-            ";
+        $limit = " LIMIT 5";
+        if ($cari != '') {
+            $limit = '';
         }
-        return $this->db->query("
-            SELECT 
-                id_customer AS id,
-                e_customer_name AS e_name
-            FROM 
-                tr_customer 
-            WHERE 
-                (e_customer_name ILIKE '%$cari%')
-                AND f_status = 't'
-                $where
-            ORDER BY 2
-        ", FALSE);
+
+        $user_cover = "SELECT id_customer FROM tm_user_customer
+                        WHERE id_user = '$this->id_user'";
+
+        if ($id_customer != null) {
+            $user_cover = $id_customer;
+        }
+
+        $sql = "SELECT
+                    id_customer,
+                    e_customer_name 
+                FROM tr_customer
+                WHERE (e_customer_name ILIKE '%$cari%')
+                    AND f_status = 't'
+                    AND id_customer IN ($user_cover)
+                ORDER BY e_customer_name ASC
+                $limit ";
+
+        return $this->db->query($sql, FALSE);
     }
 
     public function export_excel($id){
@@ -296,6 +294,154 @@ class Mlaporankategoripenjualan extends CI_Model {
         where
             id_customer = '$id'");
         return $query;
+    }
+
+    public function calc_product_category($first_date, $last_date_before_from, $dfrom, $dto, $id_customer=null, $id_brand=null)
+    {
+        $where = '';
+        if ($id_customer != null) {
+            $where = " WHERE id_customer='$id_customer'";
+        }        
+
+        if ($id_brand != null) {
+            $where .= " AND id_brand='$id_brand'";
+        }
+
+        $sql_penjualan = "SELECT DISTINCT aa.id_customer,
+                                ab.id_product,
+                                max(aa.d_document) AS d_document
+                            FROM tm_penjualan aa
+                            INNER JOIN tm_penjualan_item ab ON	(aa.id = ab.id_penjualan)
+                            WHERE aa.f_status = 't'
+                            GROUP BY 1,	2 ";
+
+        $sql_pembelian = "SELECT DISTINCT
+                                ba.id_customer,
+                                bb.id_product,
+                                max(ba.d_receive) AS d_receive
+                            FROM tm_pembelian ba
+                            INNER JOIN tm_pembelian_item bb ON	(ba.id = bb.id_pembelian)
+                            WHERE ba.f_status = 't'
+                            GROUP BY 1,2 ";
+
+        $sql_saldo_awal = "SELECT DISTINCT ca.id_customer,
+                                cb.id_product,
+                                max(ca.d_approve) AS d_approve
+                            FROM tm_mutasi_saldoawal ca
+                            INNER JOIN tm_mutasi_saldoawal_item cb ON (ca.id = cb.id_header)
+                            WHERE ca.f_status = 't'
+                                AND ca.d_approve IS NOT NULL
+                            GROUP BY 1, 2";
+
+        $sql_mutasi = "SELECT * FROM f_mutasi_brand_baru_new_new(
+                            '$first_date','$last_date_before_from','$dfrom','$dto'
+                        )";
+
+        $sql = "SELECT
+                    laporan.id_customer,
+                    laporan.e_customer_name AS customer,
+                    laporan.id_product,
+                    laporan.i_product,
+                    laporan.e_product_name,
+                    laporan.id_brand,
+                    laporan.e_brand_name,
+                    laporan.v_price,
+                    laporan.tanggal,
+                    laporan.saldo_akhir,
+                    laporan.jarak,
+                    laporan.tanggal_keterangan,
+                    CASE
+                        WHEN laporan.jarak <= 30 THEN 'Fast Moving'
+                        WHEN laporan.jarak >= 31 AND laporan.jarak <= 90 THEN 'Medium'
+                        WHEN laporan.jarak >= 91 THEN 'Slow Moving'
+                        WHEN laporan.jarak > 180 THEN 'STP'
+                    END kategori
+                FROM (
+                        SELECT
+                            id_customer,
+                            e_customer_name,
+                            id_product,
+                            i_product,
+                            id_brand,
+                            e_product_name,
+                            e_brand_name,
+                            v_price,
+                            saldo_akhir,
+                            CASE
+                                WHEN (d_document IS NULL
+                                AND d_receive IS NOT NULL) THEN d_receive
+                                WHEN (d_document IS NULL
+                                AND d_receive IS NULL) THEN d_approve
+                                ELSE d_document
+                            END tanggal,
+                            (current_date - (CASE
+                                WHEN (d_document IS NULL
+                                AND d_receive IS NOT NULL) THEN d_receive
+                                WHEN (d_document IS NULL
+                                AND d_receive IS NULL) THEN d_approve
+                                ELSE d_document
+                            END) 
+                            ) AS jarak,
+                            CASE
+                                WHEN (d_document IS NULL AND d_receive IS NOT NULL) 
+                                    THEN 'pembelian'
+                                WHEN (d_document IS NULL AND d_receive IS NULL) 
+                                    THEN 'saldo awal'
+                                ELSE 'penjualan'
+                            END tanggal_keterangan
+                        FROM (
+                                SELECT
+                                    a.id_customer,
+                                    c.e_customer_name,
+                                    a.id_product,
+                                    a.i_product,
+                                    initcap(a.e_product_name) AS e_product_name,
+                                    a.id_brand,
+                                    a.e_brand_name,
+                                    0 AS v_price,
+                                    a.saldo_akhir,
+                                    f.d_document,
+                                    g.d_receive,
+                                    h.d_approve
+                                FROM ($sql_mutasi) a
+                                LEFT JOIN tr_customer c ON	(c.id_customer = a.id_customer)
+                                LEFT JOIN ($sql_penjualan) AS f ON (
+                                        a.id_customer = f.id_customer AND a.id_product = f.id_product
+                                    )
+                                LEFT JOIN ($sql_pembelian) AS g ON (
+                                        g.id_customer = a.id_customer AND g.id_product = a.id_product
+                                    )
+                                LEFT JOIN ($sql_saldo_awal) AS h ON (
+                                        h.id_customer = c.id_customer AND h.id_product = a.id_product
+                                    )
+                                GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12
+                    ) AS datalaporan
+                ) AS laporan
+                $where
+                ORDER BY e_customer_name ASC, e_product_name ASC";
+
+        // var_dump($sql); die();
+
+        return $this->db->query($sql);
+    }
+
+    public function get_user_customer_brand($cari='', $id_user, $id_customer=null)
+    {
+        $where_and = '';
+
+        if ($id_customer != null) {
+            $where_and .= " AND id_customer = '$id_customer'";
+        }
+
+        $sql = "SELECT tb.id_brand AS id, tb.e_brand_name 
+                FROM tm_user_brand tub 
+                INNER JOIN tm_user_customer tuc ON tuc.id = tub.id_user_customer
+                INNER JOIN tr_brand tb ON tb.id_brand = tub.id_brand 
+                WHERE id_user = '$id_user' 
+                    $where_and 
+                    AND tb.e_brand_name ILIKE '%$cari%'";
+
+        return $this->db->query($sql);
     }
 
 }

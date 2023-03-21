@@ -427,7 +427,7 @@ document.addEventListener("DOMContentLoaded", function() {
             return false;
         }
 
-        $("#tablecover tbody tr td .harga").each(function() {
+        $("#tablecover tbody tr td .input-harga").each(function() {
             if ($(this).val() <= 0) {
                 ada = true;
             }

@@ -116,6 +116,13 @@ class Malasan extends CI_Model {
         $this->db->where('i_alasan', $ialasan);
         $this->db->update('tr_alasan_retur', $table);
     }
+
+    public function delete_all()
+	{
+		$sql = "TRUNCATE TABLE tr_alasan_retur CASCADE";
+
+		return $this->db->query($sql);
+	}
 }
 
 /* End of file Mmaster.php */

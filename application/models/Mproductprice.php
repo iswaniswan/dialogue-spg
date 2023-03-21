@@ -344,6 +344,13 @@ class Mproductprice extends CI_Model {
         $this->db->where('id_customer', $id);
         $this->db->delete('tr_customer_price');
     }
+
+    public function delete_all()
+	{
+		$sql = "TRUNCATE TABLE tr_customer_price CASCADE";
+
+		return $this->db->query($sql);
+	}
 }
 
 /* End of file Mmaster.php */

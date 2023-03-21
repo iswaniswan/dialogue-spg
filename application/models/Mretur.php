@@ -21,7 +21,7 @@ class Mretur extends CI_Model {
                 d_retur BETWEEn '$dfrom' 
                 AND '$dto'
             ORDER BY 
-                d_retur, i_document ASC
+                d_retur DESC, i_document DESC
             ", FALSE);
 
         $datatables->edit('d_approve', function ($data) {
@@ -606,6 +606,13 @@ class Mretur extends CI_Model {
         $this->db->where('id', $id);
         $this->db->delete('tm_pembelian_retur_item');
     }
+
+    public function delete_all()
+	{
+		$sql = "TRUNCATE TABLE tm_pembelian_retur CASCADE";
+
+		return $this->db->query($sql);
+	}
 }
 
 /* End of file Mmaster.php */

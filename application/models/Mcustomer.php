@@ -443,6 +443,15 @@ class Mcustomer extends CI_Model {
         return $this->db->get();
 
     }
+
+    public function delete_all()
+    {
+        $sql = "TRUNCATE TABLE tr_customer CASCADE";
+
+        return $this->db->query($sql);
+    }
+
+
 }
 
 /* End of file Mmaster.php */

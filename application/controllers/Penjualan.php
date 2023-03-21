@@ -1,6 +1,16 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xls;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+/* use PhpOffice\PhpSpreadsheet\Style\Fill; */
+use PhpOffice\PhpSpreadsheet\Style\Style;
+/* use PhpOffice\PhpSpreadsheet\Style\Alignment; */
+use PhpOffice\PhpSpreadsheet\Style\Conditional;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
 class Penjualan extends CI_Controller
 {
 	public $id_menu = '4';
@@ -524,5 +534,282 @@ class Penjualan extends CI_Controller
 			}
 		}
 		echo json_encode($data);
+	}
+
+	public function export_excel()
+	{
+		$_dfrom = $this->uri->segment(3);
+		$_dto = $this->uri->segment(4);
+
+		$dfrom = date('Y-m-d', strtotime($_dfrom));
+		$dto = date('Y-m-d', strtotime($_dto));
+
+		$query = $this->mymodel->export_excel($dfrom, $dto);
+
+		$spreadsheet = new Spreadsheet;
+		$sharedStyle1 = new Style();
+		$sharedStyle2 = new Style();
+		$sharedStyle3 = new Style();
+		$conditional3 = new Conditional();
+		$spreadsheet->getActiveSheet()->getStyle('B2')->getAlignment()->applyFromArray(
+			[
+				'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+				'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER, 'textRotation' => 0, 'wrapText' => TRUE
+			]
+		);
+
+		$sharedStyle1->applyFromArray(
+			[
+				'alignment' => [
+					'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+					'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+				],
+				'borders' => [
+					'bottom' => ['borderStyle' => Border::BORDER_THIN],
+					'right' => ['borderStyle' => Border::BORDER_THIN],
+				],
+			]
+		);
+
+		$sharedStyle2->applyFromArray(
+			[
+				'font' => [
+					'name'  => 'Arial',
+					'bold'  => false,
+					'italic' => false,
+					'size'  => 10
+				],
+				'borders' => [
+					'top'    => ['borderStyle' => Border::BORDER_THIN],
+					'bottom' => ['borderStyle' => Border::BORDER_THIN],
+					'left'   => ['borderStyle' => Border::BORDER_THIN],
+					'right'  => ['borderStyle' => Border::BORDER_THIN]
+				],
+				'alignment' => [
+					'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+				],
+			]
+		);
+            
+        $sharedStyle3->applyFromArray(
+            [
+                'alignment' => [
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                ],
+            ]
+        );
+
+        $spreadsheet->getDefaultStyle()
+			->getFont()
+			->setName('Calibri')
+			->setSize(9);
+
+        foreach(range('A','N') as $columnID) {
+          $spreadsheet->getActiveSheet()->getColumnDimension($columnID)->setAutoSize(true);
+        }
+
+		$spreadsheet->setActiveSheetIndex(0)
+					->setCellValue('A1', "Pengeluaran Produk $_dfrom - $_dto");		
+		$spreadsheet->getActiveSheet()->mergeCells("A1:E1");
+		$spreadsheet->getActiveSheet()->duplicateStyle($sharedStyle1, 'A1:E1');
+
+		$spreadsheet->setActiveSheetIndex(0)
+					->setCellValue('A2', 'No')
+					->setCellValue('B2', 'No Dokumen')
+					->setCellValue('C2', 'Tgl Dokumen')
+					->setCellValue('D2', 'Pelanggan')
+					->setCellValue('E2', 'Keterangan');
+          
+		$spreadsheet->getActiveSheet()->duplicateStyle($sharedStyle1, 'A2:E2');
+
+		$kolom = 3;
+		$nomor = 1;
+		foreach($query->result() as $row) {
+            $spreadsheet->setActiveSheetIndex(0)
+                        ->setCellValue('A' . $kolom, $nomor)
+                        ->setCellValue('B' . $kolom, $row->i_document)
+                        ->setCellValue('C' . $kolom, $row->d_document)
+                        ->setCellValue('D' . $kolom, $row->e_customer_sell_name)
+                        ->setCellValue('E' . $kolom, $row->e_remark);
+
+            $spreadsheet->getActiveSheet()->duplicateStyle($sharedStyle2, 'A'.$kolom.':E'.$kolom);
+
+			$kolom++;
+			$nomor++;
+        }
+
+        $writer = new Xls($spreadsheet);
+        $nama_file = "Pengeluaran Produk.xls";
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment;filename='.$nama_file.'');
+        header('Cache-Control: max-age=0');
+        ob_end_clean();
+        ob_start();
+        $writer->save('php://output');
+
+	}
+
+	public function export_excel_detail()
+	{
+		$_dfrom = $this->uri->segment(3);
+		$_dto = $this->uri->segment(4);
+
+		$dfrom = date('Y-m-d', strtotime($_dfrom));
+		$dto = date('Y-m-d', strtotime($_dto));
+
+		$query = $this->mymodel->export_excel_detail($dfrom, $dto);
+
+		$spreadsheet = new Spreadsheet;
+		$sharedStyle1 = new Style();
+		$sharedStyle2 = new Style();
+		$sharedStyle3 = new Style();
+		$conditional3 = new Conditional();
+		$spreadsheet->getActiveSheet()->getStyle('B2')->getAlignment()->applyFromArray(
+			[
+				'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+				'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER, 'textRotation' => 0, 'wrapText' => TRUE
+			]
+		);
+
+		$sharedStyle1->applyFromArray(
+			[
+				'alignment' => [
+					'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+					'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+				],
+				'borders' => [
+					'bottom' => ['borderStyle' => Border::BORDER_THIN],
+					'right' => ['borderStyle' => Border::BORDER_THIN],
+				],
+			]
+		);
+
+		$sharedStyle2->applyFromArray(
+			[
+				'font' => [
+					'name'  => 'Arial',
+					'bold'  => false,
+					'italic' => false,
+					'size'  => 10
+				],
+				'borders' => [
+					'top'    => ['borderStyle' => Border::BORDER_THIN],
+					'bottom' => ['borderStyle' => Border::BORDER_THIN],
+					'left'   => ['borderStyle' => Border::BORDER_THIN],
+					'right'  => ['borderStyle' => Border::BORDER_THIN]
+				],
+				'alignment' => [
+					'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+				],
+			]
+		);
+            
+        $sharedStyle3->applyFromArray(
+            [
+                'alignment' => [
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                ],
+            ]
+        );
+
+        $spreadsheet->getDefaultStyle()
+			->getFont()
+			->setName('Calibri')
+			->setSize(9);
+
+        foreach(range('A','N') as $columnID) {
+          $spreadsheet->getActiveSheet()->getColumnDimension($columnID)->setAutoSize(true);
+        }
+
+		$spreadsheet->setActiveSheetIndex(0)
+					->setCellValue('A1', "Pengeluaran Produk $_dfrom - $_dto");		
+		$spreadsheet->getActiveSheet()->getRowDimension('1')->setRowHeight(32);
+
+		$spreadsheet->getActiveSheet()->mergeCells("A1:N1");
+		$spreadsheet->getActiveSheet()->duplicateStyle($sharedStyle1, 'A1:N1');
+
+		$spreadsheet->setActiveSheetIndex(0)
+					->setCellValue('F2', "Barang")
+					->setCellValue('J2', "Harga");		
+
+		$spreadsheet->getActiveSheet()->mergeCells("F2:G2")
+					->mergeCells("J2:M2")
+					->mergeCells("A2:A3")
+					->mergeCells("B2:B3")
+					->mergeCells("C2:C3")
+					->mergeCells("D2:D3")
+					->mergeCells("E2:E3")
+					->mergeCells("H2:H3")
+					->mergeCells("I2:I3")
+					->mergeCells("N2:N3");
+
+		$spreadsheet->getActiveSheet()->duplicateStyle($sharedStyle1, 'A2:N3');
+
+		$spreadsheet->setActiveSheetIndex(0)
+					->setCellValue('A2', 'No')
+					->setCellValue('B2', 'No Dokumen')
+					->setCellValue('C2', 'Tgl Dokumen')
+					->setCellValue('D2', 'Pelanggan')
+					->setCellValue('E2', 'Toko')
+					->setCellValue('F3', 'Kode')
+					->setCellValue('G3', 'Nama')
+					->setCellValue('H2', 'Qty')
+					->setCellValue('I2', 'Discount %')
+					->setCellValue('J3', 'Satuan')
+					->setCellValue('K3', 'Total')
+					->setCellValue('L3', 'Diskon')
+					->setCellValue('M3', 'Akhir')
+					->setCellValue('N2', 'Keterangan');
+          
+		$spreadsheet->getActiveSheet()->duplicateStyle($sharedStyle1, 'A3:N3');
+
+		$kolom = 4;
+		$nomor = 1;
+		foreach($query->result() as $row) {
+
+			$total = $row->v_price * $row->n_qty;
+			$discount = ($total * $row->v_diskon) / 100;
+			$akhir =  $total - $discount; 
+
+            $spreadsheet->setActiveSheetIndex(0)
+                        ->setCellValue('A' . $kolom, $nomor)
+                        ->setCellValue('B' . $kolom, $row->i_document)
+                        ->setCellValue('C' . $kolom, $row->d_document)
+                        ->setCellValue('D' . $kolom, $row->e_customer_sell_name)
+                        ->setCellValue('E' . $kolom, strtoupper($row->e_customer_name))
+						->setCellValue('F' . $kolom, $row->i_product)
+						->setCellValue('G' . $kolom, $row->e_product_name)
+						->setCellValue('H' . $kolom, $row->n_qty)
+						->setCellValue('I' . $kolom, $row->v_diskon)
+						->setCellValue('J' . $kolom, $row->v_price)
+						->setCellValue('K' . $kolom, $total)
+						->setCellValue('L' . $kolom, $discount)
+						->setCellValue('M' . $kolom, $akhir)
+						->setCellValue('N' . $kolom, $row->e_remark);
+
+            $spreadsheet->getActiveSheet()->duplicateStyle($sharedStyle2, 'A'.$kolom.':N'.$kolom);
+
+			$kolom++;
+			$nomor++;
+        }
+
+		/** format currency */
+		$format_code = '"Rp. "#,##0';
+		$spreadsheet->getActiveSheet()
+                ->getStyle('J4:M'.$kolom)
+                ->getNumberFormat()
+                ->setFormatCode($format_code);
+
+        $writer = new Xls($spreadsheet);
+        $nama_file = "Pengeluaran Produk.xls";
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment;filename='.$nama_file.'');
+        header('Cache-Control: max-age=0');
+        ob_end_clean();
+        ob_start();
+        $writer->save('php://output');
+
 	}
 }

@@ -6,7 +6,7 @@ use Ozdemir\Datatables\DB\CodeigniterAdapter;
 class Mpenjualan extends CI_Model {
 
     /** List Datatable */
-    public function serverside($dfrom,$dto){
+    public function serverside($dfrom, $dto){
         $datatables = new Datatables(new CodeigniterAdapter);            
 
         $sql = "SELECT
@@ -562,6 +562,45 @@ class Mpenjualan extends CI_Model {
     {
         $this->db->where('id_penjualan', $id_penjualan);
         $this->db->delete('tm_penjualan_item');
+    }
+
+    public function export_excel($dfrom, $dto)
+    {
+        $sql = "SELECT
+                    a.id,
+                    i_document,
+                    d_document,
+                    e_customer_sell_name,
+                    e_remark,
+                    f_status
+                FROM tm_penjualan a
+                INNER JOIN tm_user_customer tuc ON tuc.id_user = '$this->id_user' AND tuc.id_customer = a.id_customer
+                WHERE d_document BETWEEn '$dfrom' AND '$dto'                 
+                ORDER BY d_document, i_document ASC";
+
+        return $this->db->query($sql);
+    }
+
+    public function export_excel_detail($dfrom, $dto)
+    {
+        $sql = "SELECT
+                    a.id,
+                    a.i_document,
+                    a.d_document,
+                    a.e_customer_sell_name,
+                    p.i_product,
+                    p.e_product_name,
+                    c.e_customer_name,
+                    b.*
+                FROM tm_penjualan a
+                INNER JOIN tm_penjualan_item b ON b.id_penjualan = a.id
+                INNER JOIN tr_product p ON p.id = b.id_product
+                INNER JOIN tr_customer c ON c.id_customer = a.id_customer
+                INNER JOIN tm_user_customer tuc ON tuc.id_user = '$this->id_user' AND tuc.id_customer = a.id_customer
+                WHERE d_document BETWEEn '$dfrom' AND '$dto'                 
+                ORDER BY d_document, i_document ASC";
+
+        return $this->db->query($sql);
     }
 }
 

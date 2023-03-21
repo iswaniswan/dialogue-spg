@@ -51,7 +51,6 @@ function getbrand() {
     document.getElementById("export").href = base_url + controller + "/export_excel/" + $('#idcustomer').val() + "/" + $('#idbrand').val() + "/" + $('#dfrom').val() + "/" + $('#dto').val();
 };
 
-
 document.addEventListener("DOMContentLoaded", function() {
     Kalender.init();
     $('.form-control-select2').select2({
@@ -65,8 +64,8 @@ document.addEventListener("DOMContentLoaded", function() {
         idcustomer: $("#idcustomer").val(),
         idbrand: $("#idbrand").val(),
     };
-    var column = 9;
-    var right = [4, 5, 6, 7, 8];
+    var column = 10;
+    var right = []; //[4, 5, 6, 7, 8];
     var color = $("#color").val();
     var order = [9, "asc"];
 
@@ -94,6 +93,11 @@ document.addEventListener("DOMContentLoaded", function() {
         },
     });
 
+    datatableparams(controller, column, params, right, order);
+
+});
+
+$(document).ready(function() {
     $("#idcustomer").select2({
         placeholder: "Cari Customer",
         width: "100%",
@@ -115,9 +119,7 @@ document.addEventListener("DOMContentLoaded", function() {
             },
             cache: false,
         },
-    });
-
-
-    datatableparams(controller, column, params, right, order);
-
-});
+    }).change(function() {
+        $('#idbrand').val(null).trigger('change')
+    });  
+})

@@ -55,7 +55,7 @@ class Mutasibrand extends CI_Controller
 				'global_assets/js/plugins/forms/selects/select2.min.js',
 				'global_assets/js/plugins/pickers/pickadate/picker.js',
 				'global_assets/js/plugins/pickers/pickadate/picker.date.js',
-				'assets/js/' . $this->folder . '/index.js',
+				'assets/js/' . $this->folder . '/index.js?v=1',
 			)
 		);
 
@@ -67,44 +67,57 @@ class Mutasibrand extends CI_Controller
 		if ($dto == null || $dto == "") {
 			$dto = date('d-m-Y');
 		}
-		 $idcustomer = $this->input->post('idcustomer', TRUE);
-		 $idbrand = $this->input->post('idbrand', TRUE);
+
+		$id_user = $this->session->userdata('id_user');		
+		$idcustomer = $this->input->post('idcustomer', TRUE);
+		if ($idcustomer == 'null') {
+			$idcustomer = null;
+		}
+
+		$idbrand = $this->input->post('idbrand', TRUE);
+		if ($idbrand == 'null') {
+			$idbrand = null;
+		}
+
 		// if ($idcustomer == null || $idcustomer = '') {
 		// 	$idcustomer = 'all';
 		// }
 
-		$ecustomer = '';
-		if ($idcustomer!='' && $idcustomer!='all') {
-			$ecustomer = $this->db->query("SELECT e_customer_name FROM tr_customer WHERE id_customer = '$idcustomer'", FALSE)->row()->e_customer_name;
-		}
-		else {
-			$ecustomer = '';
-		}
+		// $ecustomer = '';
+		// if ($idcustomer!='' && $idcustomer!='all') {
+		// 	$ecustomer = $this->db->query("SELECT e_customer_name FROM tr_customer WHERE id_customer = '$idcustomer'", FALSE)->row()->e_customer_name;
+		// }
+		// else {
+		// 	$ecustomer = '';
+		// }
 
 		$datefrom 	= date('Y-m-d', strtotime($dfrom));
 		$dateto 	= date('Y-m-d', strtotime($dto));
 
-		$id_user = $this->id_user;
+		// $id_user = $this->id_user;
 
-		if($id_user === '1'){
-			$id_user = 'NULL';
-		}
+		// if($id_user === '1'){
+		// 	$id_user = 'NULL';
+		// }
 
+		// if ($this->fallcustomer == 't') {
+		// 	$query2 = $this->db->query("select id_customer, e_customer_name from tr_customer;", FALSE);
+		// } else {
+		// 	$query2 = $this->db->query("SELECT id_customer, e_customer_name FROM tr_customer WHERE id_customer IN (SELECT id_customer FROM tm_user_customer WHERE id_user = '$this->id_user');", FALSE);
+		// }
 
-		if ($this->fallcustomer == 't') {
-			$query2 = $this->db->query("select id_customer, e_customer_name from tr_customer;", FALSE);
-		} else {
-			$query2 = $this->db->query("SELECT id_customer, e_customer_name FROM tr_customer WHERE id_customer IN (SELECT id_customer FROM tm_user_customer WHERE id_user = '$this->id_user');", FALSE);
-		}
+		$list_customer = $this->mymodel->get_customer();
+
 		$data = array(
-			'dfrom' 	=> $dfrom,
-			'dto'		=> $dto,
+			'dfrom' 	=> $datefrom,
+			'dto'		=> $dateto,
 			'idcustomer'=> $idcustomer,
 			'idbrand'	=> $idbrand,
-			'ecustomer'	=> $ecustomer,
+			// 'ecustomer'	=> $ecustomer,
 			'company'	=> $this->mymodel->get_company(),
-			'listcustomer'	=> $query2->result(),
+			'listcustomer'	=> $list_customer,
 			// 'listbrand'	=> $this->mymodel->get_brand($id_user)->result(),
+			'listbrand'	=> $this->mymodel->get_user_customer_brand('', $id_user, $idcustomer)
 		);
 
 		$this->logger->write('Membuka Menu ' . $this->title);
@@ -126,8 +139,16 @@ class Mutasibrand extends CI_Controller
 		} else {
 			$dto = date('Y-m-d', strtotime($dto));
 		}
-		$id_customer 	= $this->input->post('idcustomer', TRUE);
-		$id_brand 	= $this->input->post('idbrand', TRUE);
+
+		$id_customer = $this->input->post('idcustomer', TRUE);
+		if ($id_customer == 'null') {
+			$id_customer = null;
+		}
+
+		$id_brand = $this->input->post('idbrand', TRUE);
+		if ($id_brand == 'null') {
+			$id_brand = null;
+		}
 
 		// var_dump($id_customer);
 		// die();
@@ -141,6 +162,13 @@ class Mutasibrand extends CI_Controller
 	public function get_customer()
 	{
 		$filter = [];
+
+		/** SEMUA */
+		$filter[] = [
+			'id' => 'null',
+			'text' => 'SEMUA'
+		];
+
 		$cari	= str_replace("'", "", $this->input->get('q'));
 		$data = $this->mymodel->get_customer($cari);
 		foreach ($data->result() as $row) {
@@ -149,6 +177,7 @@ class Mutasibrand extends CI_Controller
 				'text' => strtoupper($row->e_customer_name),
 			);
 		}
+
 		echo json_encode($filter);
 	}
 
@@ -157,10 +186,7 @@ class Mutasibrand extends CI_Controller
 	public function get_brand()
 	{
 		$filter = [];
-		$filter[] = array(
-			'id'   => 'all',
-			'text' => "SEMUA",
-		);
+
 		$cari	= str_replace("'", "", $this->input->get('q'));
 		/* if ($cari != '') { */
 			$data = $this->mymodel->get_brand($cari);
@@ -185,7 +211,13 @@ class Mutasibrand extends CI_Controller
 		$id_user = $this->session->userdata('id_user');
 		$id_customer = $this->input->get('id_customer');
 		
-		$filter = [];		
+		$filter = [];			
+
+		/** SEMUA */
+		$filter[] = [
+			'id' => 'null',
+			'text' => 'SEMUA'
+		];	
 
 		if ($id_customer == null) {
 			return $filter;
@@ -208,11 +240,25 @@ class Mutasibrand extends CI_Controller
 		$dfrom = $this->uri->segment(5);
 		$dto = $this->uri->segment(6);
 
-		var_dump($dfrom.' '.$dto);
+		// var_dump($id.' '.$brand);die();
+		if ($id == 'null') {
+			$id = null;
+		}
 
-        $query = $this->mymodel->export_data($id,$brand,$dfrom,$dto);
+		if ($brand == 'null') {
+			$brand = null;
+		}
+	
+		$title = "MUTASI BRAND - SEMUA TOKO";
+		if ($id != null) {
+			$query = $this->mymodel->get_customer('', $id);
+			$customer = $query->row();
+			$title = "MUTASI BRAND - $customer->e_customer_name";
+		}
 
-        if ($query) {
+		$query = $this->mymodel->export_data($dfrom, $dto, $id_customer=$id, $id_brand=$brand);
+
+        if ($query->result()) {
 
             $spreadsheet = new Spreadsheet;
             $sharedStyle1 = new Style();
@@ -275,10 +321,13 @@ class Mutasibrand extends CI_Controller
         foreach(range('A','N') as $columnID) {
           $spreadsheet->getActiveSheet()->getColumnDimension($columnID)->setAutoSize(true);
         }
+
             $spreadsheet->setActiveSheetIndex(0)
-                      ->setCellValue('A1', 'Mutasi Brand');
-            $spreadsheet->getActiveSheet()->setTitle('Laporan');
-            $spreadsheet->getActiveSheet()->mergeCells("A1:G1");
+                      ->setCellValue('A1', $title);
+            $spreadsheet->getActiveSheet()->setTitle('Report Mutasi');
+            $spreadsheet->getActiveSheet()->mergeCells("A1:N1");
+			$spreadsheet->getActiveSheet()->duplicateStyle($sharedStyle1, 'A1:N1');
+
             $spreadsheet->setActiveSheetIndex(0)
                       ->setCellValue('A2', 'No')
                       ->setCellValue('B2', 'Toko')

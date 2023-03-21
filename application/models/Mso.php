@@ -519,4 +519,12 @@ class Mso extends CI_Model
         return $generated;
     }
 
+    public function delete_all()
+	{
+		$sql = "TRUNCATE TABLE tm_stockopname CASCADE; 
+                TRUNCATE TABLE tm_stockopname_item CASCADE;";
+
+		return $this->db->query($sql);
+	}
+
 }

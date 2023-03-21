@@ -14,26 +14,31 @@
                 </div>
             </div>
         </div>
-
         
-            <div class="card-body d-md-flex align-items-md-center justify-content-md-between flex-md-wrap">
-                <div class="d-flex align-items-center mb-3 mb-md-0">
-                    <div class="col-md-12">
-                        <div class="form-group">
-                            <label>Toko :</label>
-                            <select class="form-control select-search" data-container-css-class="select-sm" data-placeholder="Nama Toko" data-fouc name="icustomer" id="icustomer">
-                                <option value=""></option>
-                            </select>
-
-                        </div>
-                    </div>
-                    <div class="ml-2 mr-2">
-                        <input type="hidden" id="url" value="<?php echo base_url().$this->folder.'/export_excel'; ?>">
-                        <button class="btn btn-sm bg-<?= $this->color;?>" onclick="return check();"><i class="icon-download"></i></button>
-                        <!-- <a href="<?php echo base_url().$this->folder.'/export_excel'; ?>" id="export"><button class="btn btn-sm bg-<?= $this->color;?>"><i class="icon-download"></i></button></a> -->
+        <div class="card-body d-md-flex align-items-md-center justify-content-md-between flex-md-wrap">
+            <div class="d-flex align-items-center mb-3 mb-md-0">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Toko :</label>
+                        <select class="form-control select-search" data-container-css-class="select-sm" data-placeholder="Nama Toko" data-fouc name="id_customer" id="id_customer">
+                            <option value='null' selected>SEMUA</option> 
+                        </select>
                     </div>
                 </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Brand :</label>
+                        <select class="form-control select-search" data-container-css-class="select-sm" data-placeholder="Nama Brand" data-fouc name="id_brand" id="id_brand">
+                            <option value='null' selected>SEMUA</option> 
+                        </select>
+                    </div>
+                </div>
+                <div class="ml-2 mr-2">
+                    <input type="hidden" id="url" value="<?php echo base_url().$this->folder.'/export_excel'; ?>">
+                    <button class="btn btn-sm bg-<?= $this->color;?>" id="btn-export"><i class="icon-download"></i></button>
+                </div>
             </div>
+        </div>
         
         
 <!--

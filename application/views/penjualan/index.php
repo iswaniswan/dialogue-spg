@@ -41,6 +41,13 @@
                     </div>
                     <div class="ml-2 mr-2">
                         <button type="submit" class="btn btn-sm bg-<?= $this->color;?>"><i class="icon-search4"></i></button>
+
+                        <?php $link = base_url() . $this->folder . "/export_excel_detail/$dfrom/$dto"; ?>
+                        <a href="<?= $link ?>" id="export" alt="Download Summary">
+                            <button type="button" class="btn btn-sm bg-<?= $this->color;?>">
+                                <i class="icon-download"></i>
+                            </button>
+                        </a> 
                     </div>
                 </div>
             </div>

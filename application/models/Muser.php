@@ -564,6 +564,19 @@ class Muser extends CI_Model {
         return $this->db->get();
 
     }
+
+    /** load_default = hapus semua user kecuali admin & marketing
+     */
+    public function delete_all($load_default=true)
+    {
+        $sql = "DELETE FROM tm_user WHERE username NOT IN ('admin', 'marketing');";
+
+        if (!$load_default) {
+            $sql = "TRUNCATE TABLE tm_user CASCADE";
+        }
+
+        return $this->db->query($sql);
+    }
 }
 
 /* End of file Mmaster.php */

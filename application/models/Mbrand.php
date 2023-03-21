@@ -121,6 +121,13 @@ class Mbrand extends CI_Model {
         $this->db->where('id_brand', $ibrand);
         $this->db->update('tr_brand', $table);
     }
+
+    public function delete_all()
+	{
+		$sql = "TRUNCATE TABLE tr_brand CASCADE";
+
+		return $this->db->query($sql);
+	}
 }
 
 /* End of file Mmaster.php */
