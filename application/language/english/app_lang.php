@@ -89,3 +89,4 @@ $lang['Kehadiran']          = 'Attendance';
 $lang['Pengajuan Izin']     = 'Permit submission';
 $lang['Approval Izin']      = 'Permit Approval';
 $lang['Informasi Kehadiran']= 'Attendance Information';
+$lang['Jenis Izin']         = 'Permit Type';

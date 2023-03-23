@@ -110,3 +110,4 @@ $lang['Kehadiran']          = 'Kehadiran';
 $lang['Pengajuan Izin']     = 'Pengajuan Izin';
 $lang['Approval Izin']      = 'Approval Izin';
 $lang['Informasi Kehadiran']= 'Informasi Kehadiran';
+$lang['Jenis Izin']         = 'Jenis Izin';
