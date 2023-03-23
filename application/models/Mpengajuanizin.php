@@ -34,13 +34,13 @@ class Mpengajuanizin extends CI_Model {
 
             /** status reject */
             if ($data['d_reject'] != '') {
-                $status = 'Not Active';
+                $status = 'Rejected';
                 $color  = 'danger';    
             }            
 
             /** status approve */
             if ($data['d_approve'] != '') {
-                $status = 'Active';
+                $status = 'Approve';
                 $color  = 'success';
             }
 
@@ -59,10 +59,14 @@ class Mpengajuanizin extends CI_Model {
             $link = base_url().$this->folder. '/view/' . encrypt_url($id);
             $button = "<a href='$link' title='View Data'><i class='icon-database-check text-success-800 ml-1'></i></a>";
 
+            if ($data['d_approve'] != null or $data['d_reject'] != null) {
+                return $button;
+            }
+
             $link = base_url().$this->folder. '/Edit/' . encrypt_url($id);
             $button .= "<a href='$link' title='Edit Data'><i class='icon-database-edit2 text-warning-800 ml-1'></i></a>";
 
-            $link = base_url().$this->folder. '/Approve/' . encrypt_url($id);
+            $link = base_url().$this->folder. '/Approvement/' . encrypt_url($id);
             $button .= "<a href='$link' title='Approval Data'><i class='icon-database-check text-info-800 ml-1'></i></a>";
 
             $link = base_url().$this->folder. '/Approve/' . encrypt_url($id);
@@ -131,9 +135,12 @@ class Mpengajuanizin extends CI_Model {
 
     public function update_izin($id_user, $id_jenis_izin, $id)
     {
+        $d_update = date('Y-m-d H:i:s');
+
         $data = [
             'id_user' => $id_user,
-            'id_jenis_izin' => $id_jenis_izin
+            'id_jenis_izin' => $id_jenis_izin,
+            'd_update' => $d_update
         ];
         $this->db->where('id', $id);
         $this->db->update('tm_izin', $data);
@@ -218,7 +225,37 @@ class Mpengajuanizin extends CI_Model {
 
         return $this->db->query($sql);
     }
-    
+
+    /** Approve */
+    public function approve($id)
+    {
+        $d_approve = date('Y-m-d H:i:s');
+        $id_user_atasan = $this->session->userdata('id_user');
+
+        $data = array(
+            'd_approve' => $d_approve,
+            'id_user_atasan' => $id_user_atasan 
+        );
+        $this->db->where('id', $id);
+        $this->db->update('tm_izin', $data);
+   
+    }
+
+    /** Reject */
+    public function reject($id)
+    {
+        $d_reject = date('Y-m-d H:i:s');
+        $id_user_atasan = $this->session->userdata('id_user');
+
+        $data = array(
+            'd_reject' => $d_reject, 
+            'id_user_atasan' => $id_user_atasan
+        );
+        $this->db->where('id', $id);
+        $this->db->update('tm_izin', $data);
+   
+    }
+
 }
 
 /* End of file Mmaster.php */

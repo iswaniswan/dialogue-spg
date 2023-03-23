@@ -57,7 +57,7 @@ var _componentAnytime = function() {
 };
 
 document.addEventListener("DOMContentLoaded", function () {
-	var controller = $("#path").val() + "/update";
+	var controller = $("#path").val();
 	$("#submit").on("click", function () {
 		var form = $('.form-validation').valid();
 		if(form){
@@ -98,3 +98,4 @@ $(document).ready(function() {
     }); 
 
 })
+

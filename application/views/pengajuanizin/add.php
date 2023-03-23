@@ -68,14 +68,16 @@
                                     <label>Tanggal Berakhir Izin</label>
                                     <input type="text" class="form-control date" 
                                         id="d_pengajuan_selesai_tanggal" 
-                                        name="d_pengajuan_selesai_tanggal">
+                                        name="d_pengajuan_selesai_tanggal"
+                                        required>
                                 </div>
                             </div>
                             <div class="col-4">
                                     <label for="">&nbsp;</label>
                                     <input type="text" class="form-control text-capitalize" 
                                         id="d_pengajuan_selesai_pukul" 
-                                        name="d_pengajuan_selesai_pukul">
+                                        name="d_pengajuan_selesai_pukul"
+                                        required>
                             </div>
                         </div>                        
                     </div>
@@ -90,8 +92,9 @@
                 </div>
 
                 <div class="d-flex justify-content-start align-items-center mt-4 mb-5">
-                    <button type="button" id="submit" class="btn btn bg-<?= $this->color; ?> btn-sm"><i class="icon-paperplane"></i>&nbsp;
-                        <?= $this->lang->line('Simpan'); ?></button>
+                    <button type="button" id="submit" class="btn btn bg-<?= $this->color; ?> btn-sm">
+                        <i class="icon-paperplane"></i>&nbsp; <?= $this->lang->line('Simpan'); ?>
+                    </button>
                     <a href="<?= base_url($this->folder); ?>" class="btn btn bg-danger btn-sm ml-1"><i class="icon-arrow-left16"></i>&nbsp; <?= $this->lang->line('Kembali'); ?></a>
                 </div>                   
             </div>

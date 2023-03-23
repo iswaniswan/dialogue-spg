@@ -69,6 +69,7 @@ class PengajuanIzin extends CI_Controller
 				'global_assets/js/plugins/pickers/pickadate/picker.js',
 				'global_assets/js/plugins/pickers/pickadate/picker.date.js',
 				'global_assets/js/plugins/pickers/anytime.min.js',
+				'global_assets/js/plugins/ui/moment/moment.min.js',
 				'assets/js/' . $this->folder . '/add.js?v=1',
 			)
 		);
@@ -128,8 +129,8 @@ class PengajuanIzin extends CI_Controller
 		$d_pengajuan_mulai_pukul = $this->input->post('d_pengajuan_mulai_pukul');
 		$d_pengajuan_mulai = date_create_from_format('Y-m-d H:i:s', "$d_pengajuan_mulai_tanggal $d_pengajuan_mulai_pukul:00");		
 
-		$d_pengajuan_selesai_tanggal = $this->input->post('d_pengajuan_mulai_tanggal');
-		$d_pengajuan_selesai_pukul = $this->input->post('d_pengajuan_mulai_pukul');
+		$d_pengajuan_selesai_tanggal = $this->input->post('d_pengajuan_selesai_tanggal');
+		$d_pengajuan_selesai_pukul = $this->input->post('d_pengajuan_selesai_pukul');
 		$d_pengajuan_selesai = date_create_from_format('Y-m-d H:i:s', "$d_pengajuan_selesai_tanggal $d_pengajuan_selesai_pukul:00");		
 
 		$e_remark = $this->input->post('e_remark');
@@ -186,7 +187,7 @@ class PengajuanIzin extends CI_Controller
 				'global_assets/js/plugins/pickers/pickadate/picker.js',
 				'global_assets/js/plugins/pickers/pickadate/picker.date.js',
 				'global_assets/js/plugins/pickers/anytime.min.js',
-				'assets/js/' . $this->folder . '/add.js?v=1',
+				'assets/js/' . $this->folder . '/edit.js?v=1',
 			)
 		);
 
@@ -211,7 +212,6 @@ class PengajuanIzin extends CI_Controller
 		}
 
 		$id = $this->input->post('id');
-		die($id);
 		$id_user = $this->input->post('id_user');
 		if ($id_user == null) {
 			$id_user = $this->session->userdata('id_user');
@@ -223,9 +223,11 @@ class PengajuanIzin extends CI_Controller
 		$d_pengajuan_mulai_pukul = $this->input->post('d_pengajuan_mulai_pukul');
 		$d_pengajuan_mulai = date_create_from_format('Y-m-d H:i:s', "$d_pengajuan_mulai_tanggal $d_pengajuan_mulai_pukul:00");		
 
-		$d_pengajuan_selesai_tanggal = $this->input->post('d_pengajuan_mulai_tanggal');
-		$d_pengajuan_selesai_pukul = $this->input->post('d_pengajuan_mulai_pukul');
+		$d_pengajuan_selesai_tanggal = $this->input->post('d_pengajuan_selesai_tanggal');
+		$d_pengajuan_selesai_pukul = $this->input->post('d_pengajuan_selesai_pukul');
 		$d_pengajuan_selesai = date_create_from_format('Y-m-d H:i:s', "$d_pengajuan_selesai_tanggal $d_pengajuan_selesai_pukul:00");		
+
+		$e_remark = $this->input->post('e_remark');
 
 		$e_remark = $this->input->post('e_remark');
 
@@ -240,7 +242,12 @@ class PengajuanIzin extends CI_Controller
 
 		$this->mymodel->delete_izin_item($id_izin=$id);
 
-		$this->mymodel->insert_izin_item($id_izin, $d_pengajuan_mulai, $d_pengajuan_selesai, $e_remark);
+		$this->mymodel->insert_izin_item(
+			$id_izin=$id, 
+			$d_pengajuan_mulai=$d_pengajuan_mulai->format('Y-m-d H:i:s'), 
+			$d_pengajuan_selesai=$d_pengajuan_selesai->format('Y-m-d H:i:s'), 
+			$e_remark
+		);
 
 		if ($this->db->trans_status() === FALSE) {
 			$this->db->trans_rollback();
@@ -249,7 +256,7 @@ class PengajuanIzin extends CI_Controller
 		} 
 
 		$this->db->trans_commit();
-		$this->logger->write('Simpan Data ' . $this->title . ' : ' . $e_izin_name);
+		$this->logger->write('Simpan Data ' . $this->title . ' : ' . $id);
 
 		$data['sukses'] = true;
 		$data['ada'] = false;
@@ -305,4 +312,105 @@ class PengajuanIzin extends CI_Controller
 		}
 		echo json_encode($filter);
 	}
+
+	public function approvement()
+	{
+		/** Cek Hak Akses, Apakah User Bisa Edit */
+		$data = check_role($this->id_menu, 3);
+		if (!$data) {
+			redirect(base_url(), 'refresh');
+		}
+
+		add_js(
+			array(
+				'global_assets/js/plugins/notifications/sweet_alert.min.js',
+				'global_assets/js/plugins/forms/validation/validate.min.js',
+				'global_assets/js/plugins/forms/styling/uniform.min.js',
+				'global_assets/js/plugins/forms/selects/select2.min.js',
+				'global_assets/js/plugins/pickers/pickadate/picker.js',
+				'global_assets/js/plugins/pickers/pickadate/picker.date.js',
+				'global_assets/js/plugins/pickers/anytime.min.js',
+				'assets/js/' . $this->folder . '/approve.js?v=1',
+			)
+		);
+
+		$id = $this->uri->segment(3);
+		$id = decrypt_url($id);
+
+		$data = [
+			'data' => $this->mymodel->get_data($id)->row()
+		];
+
+		$this->logger->write('Membuka Form Edit '.$this->title);
+		$this->template->load('main', $this->folder . '/approve', $data);		
+	}
+
+	public function approve()
+	{
+		/** Cek Hak Akses, Apakah User Bisa Edit */
+		$data = check_role($this->id_menu, 5);
+		if (!$data) {
+			redirect(base_url(), 'refresh');
+		}
+
+		$this->form_validation->set_rules('id', 'id', 'trim|required|min_length[0]');
+		$id = $this->input->post('id', TRUE);
+		if ($this->form_validation->run() == false) {
+			$data = array(
+				'sukses' => false,
+			);
+		} else {
+			/** Jika Belum Ada Update Data */
+			$this->db->trans_begin();
+			$this->mymodel->approve($id);
+			if ($this->db->trans_status() === FALSE) {
+				$this->db->trans_rollback();
+				$data = array(
+					'sukses' => false,
+				);
+			} else {
+				$this->db->trans_commit();
+				$this->logger->write('Approve ' . $this->title . ' Id : ' . $id);
+				$data = array(
+					'sukses' => true,
+				);
+			}
+		}
+		echo json_encode($data);
+	}
+
+	public function reject()
+	{
+		/** Cek Hak Akses, Apakah User Bisa Edit */
+		$data = check_role($this->id_menu, 5);
+		if (!$data) {
+			redirect(base_url(), 'refresh');
+		}
+
+		$this->form_validation->set_rules('id', 'id', 'trim|required|min_length[0]');
+		$id = $this->input->post('id', TRUE);
+		if ($this->form_validation->run() == false) {
+			$data = array(
+				'sukses' => false,
+			);
+		} else {
+			/** Jika Belum Ada Update Data */
+			$this->db->trans_begin();
+			$this->mymodel->reject($id);
+			if ($this->db->trans_status() === FALSE) {
+				$this->db->trans_rollback();
+				$data = array(
+					'sukses' => false,
+				);
+			} else {
+				$this->db->trans_commit();
+				$this->logger->write('Reject ' . $this->title . ' Id : ' . $id);
+				$data = array(
+					'sukses' => true,
+				);
+			}
+		}
+		echo json_encode($data);
+	}
+
 }

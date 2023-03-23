@@ -21,7 +21,22 @@ var _componentPickadate = function() {
 		(today.getMonth() + 1) +
 		"," +
 		today.getDate();
-	$(".date").pickadate({
+
+	$("#d_pengajuan_mulai_tanggal").pickadate({
+		labelMonthNext: "Go to the next month",
+		labelMonthPrev: "Go to the previous month",
+		labelMonthSelect: "Pick a month from the dropdown",
+		labelYearSelect: "Pick a year from the dropdown",
+		selectMonths: true,
+		selectYears: true,
+		formatSubmit: "yyyy-mm-dd",
+		format: "yyyy-mm-dd",
+		min: [2022, 1, 1],
+		max: 90,
+		disable: [1]
+	});
+
+	$("#d_pengajuan_selesai_tanggal").pickadate({
 		labelMonthNext: "Go to the next month",
 		labelMonthPrev: "Go to the previous month",
 		labelMonthSelect: "Pick a month from the dropdown",
@@ -57,15 +72,45 @@ var _componentAnytime = function() {
 	});
 };
 
+var swalInit = swal.mixin({
+    buttonsStyling: false,
+    confirmButtonClass: "btn btn-sm btn-outline bg-success-800 text-success-800 border-success-800",
+    cancelButtonClass: "btn btn-sm btn-outline bg-slate-800 text-slate-800 border-slate-800",
+    confirmButtonText: '<i class="icon-thumbs-up3"></i> Ya',
+    cancelButtonText: '<i class="icon-thumbs-down3"></i> Tidak',
+});
+
 
 document.addEventListener("DOMContentLoaded", function () {
 	var controller = $("#path").val();
 	$("#submit").on("click", function () {
+		if (!isDateRangeValid()) {
+			swalInit("Error ", "Date range invalid", "error");
+			return false;
+		}
+
 		var form = $('.form-validation').valid();
 		if(form){
 			sweetadd(controller);
 		}
 	});
+
+	function isDateRangeValid() {
+		let d_pengajuan_mulai_tanggal = $('#d_pengajuan_mulai_tanggal').val();
+		let d_pengajuan_mulai_pukul = $('#d_pengajuan_mulai_pukul').val();
+		let d_pengajuan_selesai_tanggal = $('#d_pengajuan_selesai_tanggal').val();
+		let d_pengajuan_selesai_pukul = $('#d_pengajuan_selesai_pukul').val();
+
+		let d_mulai = `${d_pengajuan_mulai_tanggal} ${d_pengajuan_mulai_pukul}`;
+		let d_selesai = `${d_pengajuan_selesai_tanggal} ${d_pengajuan_selesai_pukul}` ;
+
+		/** jika lebih lama dari hari ini */
+		if (moment(d_mulai) < moment().valueOf()) {
+			return false;
+		}
+
+		return moment(d_mulai) < moment(d_selesai);
+	}
 
 });
 
@@ -98,6 +143,5 @@ $(document).ready(function() {
             },
             cache: false,
         },
-    }); 
-
+    });	
 })
