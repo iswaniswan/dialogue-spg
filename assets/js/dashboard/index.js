@@ -291,6 +291,7 @@ var EchartsAreas = (function() {
 // ------------------------------
 
 function loadhistory() {
+    return;
     var yearnow = $("#history_year").val();
     var area_stacked_element = document.getElementById("area_stacked");
     area_stacked_element.height = 10000;

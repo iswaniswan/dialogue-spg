@@ -8,7 +8,13 @@ class Mizin extends CI_Model {
     /** List Datatable */
     public function serverside(){
         $datatables = new Datatables(new CodeigniterAdapter);
-        $datatables->query("SELECT id,  e_izin_name, f_status FROM tr_jenis_izin ", FALSE);
+
+        $sql = "SELECT id, 
+                    INITCAP(e_izin_name) e_izin_name, 
+                    f_status 
+                FROM tr_jenis_izin";
+
+        $datatables->query($sql, FALSE);
 
         $datatables->edit('f_status', function ($data) {
             $status = 'Not Active';

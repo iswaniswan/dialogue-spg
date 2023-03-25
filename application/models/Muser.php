@@ -5,6 +5,11 @@ use Ozdemir\Datatables\DB\CodeigniterAdapter;
 
 class Muser extends CI_Model {
 
+    const SUPERADMIN = 1;
+    const SPG = 2;
+    const MARKETING = 4;
+    const TEAMLEADER = 5;
+
     /** List Datatable */
     public function serverside(){
         $datatables = new Datatables(new CodeigniterAdapter);
@@ -525,11 +530,38 @@ class Muser extends CI_Model {
                 ];
                 $this->db->insert('tm_user_brand', $brand);
             }
+        }        
+    }
+
+    public function get_list_atasan($params=[])
+    {
+        $i_level = $params['i_level'];
+
+        if ($i_level != static::SPG) {
+            return false;
         }
 
+        $in_atasan = static::TEAMLEADER;
 
+        // if ($i_level == static::SUPERADMIN or $i_level == static::MARKETING) {
+        //     $in_atasan = '';
+        // }
 
+        $like = '';
+        if (@$params['keyword'] != null) {
+            $like = " AND e_nama ILIKE '%$like%'";
+        }  
         
+        $where_and = '';
+        if ($in_atasan != '') {
+            $where_and = " AND i_level IN ($in_atasan)";
+        }
+
+        $sql = "SELECT * 
+                FROM tm_user 
+                WHERE f_status = 't' $like $where_and"; 
+
+        return $this->db->query($sql);
     }
 
     public function get_list_team_leader($params=[])
@@ -544,7 +576,7 @@ class Muser extends CI_Model {
 
         $sql = "SELECT * 
                 FROM tm_user 
-                WHERE i_level = '$TEAM_LEADER' AND f_status = 't' $like";        
+                WHERE i_level = '$TEAM_LEADER' AND f_status = 't' $like"; 
 
         return $this->db->query($sql);
     }

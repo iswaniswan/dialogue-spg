@@ -216,15 +216,20 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
 $(document).ready(function() {
+    $('#ilevel').change(function() {
+        $('#id_atasan').val(null).trigger('change');
+    })
+    
     $('#id_atasan').select2({
         allowClear: true,
         ajax: {
-            url: 'get_list_team_leader',
+            url: 'get_list_atasan',
             dataType: 'json',
             delay: 250,
             data: function (params) {
                 var query = {
                     q: params.term,
+                    i_level: $('#ilevel').val()
                 }
                 return query;
             },

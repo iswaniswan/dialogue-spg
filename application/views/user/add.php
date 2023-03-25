@@ -49,7 +49,11 @@
                     <div class="col-sm-4">
                         <div class="form-group">
                             <label><?= $this->lang->line('Level'); ?> :</label>
-                            <select class="form-control select-search" data-container-css-class="select-sm" data-container-css-class="text-<?= $this->color; ?>" data-placeholder="<?= $this->lang->line('Level'); ?>" required data-fouc name="ilevel">
+                            <select class="form-control select-search" 
+                                data-container-css-class="select-sm" 
+                                data-container-css-class="text-<?= $this->color; ?>"
+                                data-placeholder="<?= $this->lang->line('Level'); ?>" 
+                                required data-fouc name="ilevel" id="ilevel">
                                 <option value=""></option>
                                 <?php if ($level->num_rows() > 0) {
                                     foreach ($level->result() as $key) { ?>

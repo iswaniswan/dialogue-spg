@@ -497,4 +497,23 @@ class User extends CI_Controller
 
 		echo json_encode($result);		
 	}
+
+	public function get_list_atasan()
+	{		
+		$keyword = $this->input->get('q');
+		$i_level = $this->input->get('i_level');
+
+		$result = [];
+
+		$query = $this->mymodel->get_list_atasan(['keyword' => $keyword, 'i_level' => $i_level]);
+		
+		foreach ($query->result() as $row) {
+			$result[] = [
+				'id'   => $row->id_user,
+				'text' => strtoupper($row->e_nama)
+			];
+		}
+
+		echo json_encode($result);		
+	}
 }

@@ -178,6 +178,17 @@ class Mdashboard extends CI_Model {
 
         echo $result;
     }
+
+    public function get_notif_pending_izin()
+    {
+        /** instance model */
+        $CI = &get_instance();
+
+        $CI->load->model('MPengajuanizin');
+        $count = $CI->Mpengajuanizin->get_all_waiting_izin($count=true);
+
+        var_dump($count);
+    }
 }
 
 /* End of file Mmaster.php */

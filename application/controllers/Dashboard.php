@@ -52,9 +52,9 @@ class Dashboard extends CI_Controller
 		$year = $this->input->get('year', TRUE);
 		$data = [];
 		$data = array(
-			'bulan' 	=> $this->mymodel->get_bulan($year)->result(), 
-			'company' 	=> $this->mymodel->get_company()->result(), 
-			'query' 	=> $this->mymodel->get_chart_history($year)->result(),
+			// 'bulan' 	=> $this->mymodel->get_bulan($year)->result(), 
+			// 'company' 	=> $this->mymodel->get_company()->result(), 
+			// 'query' 	=> $this->mymodel->get_chart_history($year)->result(),
 		);
 		echo json_encode($data);
 	}

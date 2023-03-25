@@ -1,4 +1,8 @@
-<?php if (!defined('BASEPATH')) exit('No direct script access allowed');
+<?php
+
+use phpDocumentor\Reflection\DocBlock\Tags\Var_;
+
+ if (!defined('BASEPATH')) exit('No direct script access allowed');
 
 //-- check logged user
 function cek_session()
@@ -452,5 +456,13 @@ function get_notification_adjust()
 	$ci = &get_instance();
 		$ci->load->model('Mcustom');
 		$query = $ci->Mcustom->get_notif_adjust();
+	return $query;
+}
+
+function get_notification_pending_izin()
+{
+	$ci = &get_instance();
+		$ci->load->model('Mcustom');
+		$query = $ci->Mcustom->get_notification_pending_izin();
 	return $query;
 }

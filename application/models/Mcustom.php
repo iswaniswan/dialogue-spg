@@ -125,6 +125,25 @@ class Mcustom extends CI_Model {
                 f_status = 't'
         ", FALSE);
     }
+
+    public function get_notification_pending_izin()
+    {
+        $current_user = $this->session->userdata('id_user');
+
+        $sql = "SELECT 
+                    ti.id,
+                    e_izin_name,
+                    ti.d_entry
+                FROM tm_izin ti
+                INNER JOIN tr_jenis_izin tji ON tji.id = ti.id_jenis_izin
+                WHERE ti.f_status = 't' 
+                    AND d_approve IS NULL AND d_reject IS NULL 
+                    AND id_user IN (
+                                    SELECT id_user FROM tm_user WHERE id_atasan = '$current_user'
+                                    )";
+
+        return $this->db->query($sql, FALSE);
+    }
 }
 
 /* End of file Mmaster.php */

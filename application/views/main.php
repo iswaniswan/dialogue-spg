@@ -114,8 +114,14 @@
                     <a href="#" class="navbar-nav-link dropdown-toggle caret-0 notification" data-toggle="dropdown">
                         <i class="icon-bell2"></i>
                         <span class="d-md-none ml-2">Activity</span>
-                        <span class="badge"><?php $badge = get_notification_saldo()->num_rows() + get_notification_retur()->num_rows() + get_notification_adjust()->num_rows();
-                        if($badge>0 && $this->i_level == 4){ echo $badge;} ?></span>
+                        <?php $badge = get_notification_saldo()->num_rows() 
+                            + get_notification_retur()->num_rows() 
+                            + get_notification_adjust()->num_rows()
+                            + get_notification_pending_izin()->num_rows(); ?>
+
+                        <?php if ($badge > 0) { ?>
+                            <span class="badge"><?= $badge ?></span>
+                        <?php } ?>
                     </a>
 
                     <div class="dropdown-menu dropdown-menu-right dropdown-content wmin-md-350">
@@ -170,6 +176,21 @@
                                     </div>
                                 </li>
                                 <?php } } } ?>
+
+                                <?php foreach(get_notification_pending_izin()->result() as $row){ ?>
+                                    <li class="media">
+                                        <div class="mr-3">
+                                            <a href="<?= base_url() . 'pengajuanizin/approvement/' . encrypt_url(@$row->id) ?>" class="btn bg-warning-400 rounded-round btn-icon"><i class="icon-pencil"></i></a>
+                                        </div>
+
+                                        <div class="media-body">
+                                            <p><b>Ucok</b>, 
+                                            Pengajuan Izin <a href="<?= base_url() . 'pengajuanizin/approvement/' . encrypt_url(@$row->id) ?>"><?= $row->e_izin_name ?></a> Meminta Approve
+                                            </p>
+                                            <div class="font-size-sm text-muted mt-1"><?= date('Y-m-d H:i:s', strtotime($row->d_entry)) ?></div>
+                                        </div>
+                                    </li>
+                                <?php } ?>
 
                                 <!-- <li class="media">
                                     <div class="mr-3">
