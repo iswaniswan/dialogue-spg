@@ -512,4 +512,24 @@ $(document).ready(function() {
             calculateGrandTotal();
         });
     }    
+
+    // e_periode_valid_edit
+    function ePeriodeValidEdit() {
+        $.ajax({
+            url: base_url + controller + "/get_e_periode_valid_edit",
+            dataType: "json",
+            type: "GET",
+            data: {
+                id: $('#id').val(),
+            },
+            success: function(response) {
+                const minDate = response.toString();
+                $('#d_receive').pickadate('picker').set('min', minDate);
+            }
+        }) 
+
+    }
+
+    ePeriodeValidEdit();
+
 })

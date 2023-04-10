@@ -34,7 +34,8 @@
                             <th><?= $this->lang->line('Nama Barang'); ?></th>
                             <th><?= $this->lang->line('Nama Brand'); ?></th>
                             <th><?= $this->lang->line('Harga'); ?></th>
-                            <th><?= $this->lang->line('Tanggal Update');?></th>
+                            <?php /* <th><?= $this->lang->line('Tanggal Update');?></th> */ ?>
+                            <th>Periode</th>
                             <th><?= $this->lang->line('Aksi');?></th>
                         </tr>
                     </thead>

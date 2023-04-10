@@ -29,6 +29,8 @@ class Retur extends CI_Controller
 
 		/** Load Model, Nama model harus sama dengan nama folder */
 		$this->load->model('m' . $this->folder, 'mymodel');
+
+		set_current_active_menu($this->title);
 	}
 
 	/** Default Controllers */
@@ -296,8 +298,10 @@ class Retur extends CI_Controller
 		$id_user = $this->session->userdata('id_user');
 		$id_company = $this->input->post('id_company');
 		$items = $this->input->post('items');
+		// default e_periode_valid_edit
+        $e_periode_valid_edit = date('Ym', strtotime($d_retur));
 
-		$this->mymodel->insert_header($i_document, $d_retur, $id_customer, $e_remark, $id_user, $id_company);
+		$this->mymodel->insert_header($i_document, $d_retur, $id_customer, $e_remark, $id_user, $id_company, $e_periode_valid_edit);
 
 		$insert_id = $this->db->insert_id();
 
@@ -625,5 +629,20 @@ class Retur extends CI_Controller
 		if ($id != null) {
 			$this->mymodel->delete_retur_item_by_id($id);
 		}
+	}
+
+	public function get_e_periode_valid_edit()
+	{
+		$data = [];
+
+		$id = $this->input->get('id');
+
+		$query = $this->mymodel->getdata($id);
+		if ($query->row() != null) {
+			$e_periode = $query->row()->e_periode_valid_edit;
+			$data = date('Y-m-d', strtotime($e_periode.'01'));
+		}
+
+		echo json_encode($data);
 	}
 }

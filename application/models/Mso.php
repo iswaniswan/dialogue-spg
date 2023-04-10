@@ -20,7 +20,8 @@ class Mso extends CI_Model
                     d_document,
                     b.e_customer_name,
                     e_remark,
-                    a.f_status
+                    a.f_status,
+                    a.e_periode_valid_edit
                 FROM tm_stockopname a, tr_customer b
                 WHERE 
                     a.id_customer = b.id_customer
@@ -55,25 +56,44 @@ class Mso extends CI_Model
             $tgl        = date('Y-m-d');
             $cek        = $bulan-$month;
             $status     = $data['f_status'];
+            $e_periode_valid_edit = $data['e_periode_valid_edit'];
+
+            /** can edit dalam periode bulan berjalan */
+            $can_edit = false; 
+            $periode_now = date('Ym');
+            $periode_doc = date('Ym', strtotime($ddocument));
+            
+            if ($e_periode_valid_edit < $periode_doc) {
+                $can_edit = true;
+            }
+
+            if ($periode_doc == $periode_now) {
+                $can_edit = true;
+            }    
+
             $data       = '';
 
             if (check_role($this->id_menu, 2)) {
                 $data      .= "<a href='" . base_url() . $this->folder . '/view/' . encrypt_url($id) . "' title='Lihat Data'><i class='icon-database-check text-success-800'></i></a>";
             }
 
-            if (check_role($this->id_menu, 3) && $status == 't') {
+            // if (check_role($this->id_menu, 3) && $status == 't') {
                 
-                if($month == $bulan && $ddocument <= $batas && $tgl <= $batas){
-                $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";
-                }
-                //Cek tanggal dokumen > tanggal 5 bulan sekarang
-                else if($ddocument > $batas){
-                $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";    
-                }
-                //Cek jarak bulan sebelumnya tidak lebih dari 1 bulan dan tanggal sekarang < tanggal 5
-                else if($cek == 1 && $tgl <= $batas){
-                $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";    
-                }
+            //     if($month == $bulan && $ddocument <= $batas && $tgl <= $batas){
+            //     $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";
+            //     }
+            //     //Cek tanggal dokumen > tanggal 5 bulan sekarang
+            //     else if($ddocument > $batas){
+            //     $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";    
+            //     }
+            //     //Cek jarak bulan sebelumnya tidak lebih dari 1 bulan dan tanggal sekarang < tanggal 5
+            //     else if($cek == 1 && $tgl <= $batas){
+            //     $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";    
+            //     }
+            // }
+
+            if (check_role($this->id_menu, 3) && $status == 't' && $can_edit) {
+                $data .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";    
             }
 
             if (check_role($this->id_menu, 4) && $status == 't') {
@@ -90,7 +110,10 @@ class Mso extends CI_Model
             }
             return $data;
         });
+
         $datatables->hide('d_document');
+        $datatables->hide('e_periode_valid_edit');
+
         return $datatables->generate();
     }
 
@@ -384,7 +407,7 @@ class Mso extends CI_Model
         ", FALSE);
     }
 
-    public function insert_stockopname($i_document, $d_document, $id_customer, $i_periode, $e_remark, $id_user=null)
+    public function insert_stockopname($i_document, $d_document, $id_customer, $i_periode, $e_remark, $id_user=null, $e_periode_valid_edit)
     {
         if ($id_user == null) {
             $id_user = $this->session->userdata('id_user');
@@ -397,6 +420,7 @@ class Mso extends CI_Model
             'id_customer' => $id_customer,
             'e_remark' => $e_remark,
             'id_user' => $id_user,
+            'e_periode_valid_edit' => $e_periode_valid_edit
         ];
         $this->db->insert('tm_stockopname', $data);
     }

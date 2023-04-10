@@ -19,6 +19,7 @@ class Mproduct extends CI_Model {
         $sql = "SELECT a.id, a.i_product,
                     initcap(a.e_product_name) AS e_product_name,
                     initcap(c.e_brand_name) AS e_brand,
+                    initcap(c2.e_category_name) AS e_category_name,
                     a.f_status,
                     CASE 
                         WHEN d_update ISNULL THEN to_char(d_entry, 'dd-mm-yyyy HH12:MI:SS') 
@@ -26,6 +27,8 @@ class Mproduct extends CI_Model {
                     END AS d_update
                 FROM tr_product a
                 left JOIN tr_brand c ON c.id_brand = a.id_brand
+                LEFT JOIN tm_category c2 ON c2.id = a.id_category
+                LEFT JOIN tm_sub_category c3 ON c3.id = a.id_sub_category
                 ORDER BY a.e_product_name ASC";
 
         $datatables->query($sql, FALSE);
@@ -183,6 +186,8 @@ class Mproduct extends CI_Model {
             'e_product_name'      => ucwords(strtolower($this->input->post('eproduct', TRUE))),
             'e_product_group_name'=> ucwords(strtolower($this->input->post('egroup', TRUE))),
             'id_brand'            => ucwords(strtolower($this->input->post('ebrand', TRUE))),
+            'id_category' => ucwords(strtolower($this->input->post('id_category', TRUE))),
+            'id_sub_category' => ucwords(strtolower($this->input->post('id_sub_category', TRUE))),
             'd_entry'             => current_datetime(),
         );
         
@@ -192,10 +197,12 @@ class Mproduct extends CI_Model {
     /** Get Data Untuk Edit */
     public function getdata($id,$icompany=null)
     {
-        $sql = "SELECT a.*, b.e_brand_name
+        $sql = "SELECT a.*, b.e_brand_name, c.e_category_name, c2.e_sub_category_name
                 FROM tr_product a
                 INNER JOIN tr_brand b ON b.id_brand = a.id_brand
-                WHERE id = '$id'";
+                LEFT JOIN tm_category c ON c.id = a.id_category
+                LEFT JOIN tm_sub_category c2 ON c2.id = a.id_sub_category
+                WHERE a.id = '$id'";
 
         return $this->db->query($sql, FALSE);
     }
@@ -226,6 +233,8 @@ class Mproduct extends CI_Model {
             'e_product_name'      => ucwords(strtolower($this->input->post('eproduct', TRUE))),
             'e_product_group_name'=> ucwords(strtolower($this->input->post('egroup', TRUE))),
             'id_brand'             => ucwords(strtolower($this->input->post('ebrand', TRUE))),
+            'id_category' => ucwords(strtolower($this->input->post('id_category', TRUE))),
+            'id_sub_category' => ucwords(strtolower($this->input->post('id_sub_category', TRUE))),
             'd_update'            => current_datetime(),
         );
 

@@ -30,6 +30,32 @@ class Mkehadiran extends CI_Model {
         return $this->db->query($sql);
     }
 
+    public function get_kehadiran_per_user($id_user, $d_hadir=null)
+    {
+        $where_and = '';
+        if ($d_hadir != null) {
+            $where_and = " AND tk.d_hadir=$d_hadir";
+        }
+
+        $sql = "SELECT tk.*,
+                        tu.e_nama,
+                        tc.e_customer_name
+                    FROM tm_kehadiran tk
+                INNER JOIN tm_user tu ON tu.id_user = tk.id_user
+                INNER JOIN tr_customer tc ON tc.id_customer = tk.id_customer
+                WHERE tk.f_status = TRUE AND tk.id_user ='$id_user' $where_and";
+
+        // var_dump($sql); die();
+        return $this->db->query($sql);
+    }
+
+
+    /** ambil data kehadiran berdasarkan user_cover */
+    public function get_kehadiran_user_cover()
+    {
+        return;
+    }
+
 }
 
 /* End of file Mmaster.php */

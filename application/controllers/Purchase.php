@@ -29,6 +29,8 @@ class Purchase extends CI_Controller
 
 		/** Load Model, Nama model harus sama dengan nama folder */
 		$this->load->model('m' . $this->folder, 'mymodel');
+
+		set_current_active_menu($this->title);
 	}
 
 	/** Default Controllers */
@@ -388,4 +390,20 @@ class Purchase extends CI_Controller
 		}
 		echo json_encode($data);
 	}
+
+	public function get_e_periode_valid_edit()
+	{
+		$data = [];
+
+		$id = $this->input->get('id');
+
+		$query = $this->mymodel->get_data($id);
+		if ($query->row() != null) {
+			$e_periode = $query->row()->e_periode_valid_edit;
+			$data = date('Y-m-d', strtotime($e_periode.'01'));
+		}
+
+		echo json_encode($data);
+	}
+
 }

@@ -36,6 +36,8 @@ class PengajuanIzin extends CI_Controller
 
 		/** Load Model, Nama model harus sama dengan nama folder */
 		$this->load->model('m' . $this->folder, 'mymodel');
+
+		set_current_active_menu($this->title);
 	}
 
 	/** Default Controllers */
@@ -64,7 +66,7 @@ class PengajuanIzin extends CI_Controller
 				'global_assets/js/plugins/forms/selects/select2.min.js',
 				'global_assets/js/plugins/pickers/pickadate/picker.js',
 				'global_assets/js/plugins/pickers/pickadate/picker.date.js',
-				'assets/js/' . $this->folder . '/index.js?v=1',
+				'assets/js/' . $this->folder . '/index.js?v=' . strtotime(date('Y-m-d H:i:s')),
 			)
 		);
 

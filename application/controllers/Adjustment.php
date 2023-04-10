@@ -29,6 +29,8 @@ class Adjustment extends CI_Controller
 
 		/** Load Model, Nama model harus sama dengan nama folder */
 		$this->load->model('m' . $this->folder, 'mymodel');
+
+		set_current_active_menu($this->title);
 	}
 
 	/** Default Controllers */
@@ -271,6 +273,9 @@ class Adjustment extends CI_Controller
 
 		$items = $this->input->post('items', TRUE);
 
+		// default e_periode_valid_edit
+        $e_periode_valid_edit = date('Ym', strtotime($d_document));
+
 		$data = [
 			'sukses' => false,
 			'ada'	 => false,
@@ -278,7 +283,7 @@ class Adjustment extends CI_Controller
 
 		$this->db->trans_begin();
 
-		$this->mymodel->insert_adjustment($i_document, $d_document, $i_periode, $id_customer, $e_remark);
+		$this->mymodel->insert_adjustment($i_document, $d_document, $i_periode, $id_customer, $e_remark, null, $e_periode_valid_edit);
 
 		$insert_id = $this->db->insert_id();
 
@@ -559,4 +564,20 @@ class Adjustment extends CI_Controller
 		}
 		echo json_encode($data);
 	}
+
+	public function get_e_periode_valid_edit()
+	{
+		$data = [];
+
+		$id = $this->input->get('id');
+
+		$query = $this->mymodel->getdata($id);
+		if ($query->row() != null) {
+			$e_periode = $query->row()->e_periode_valid_edit;
+			$data = date('Y-m-d', strtotime($e_periode.'01'));
+		}
+
+		echo json_encode($data);
+	}
+
 }

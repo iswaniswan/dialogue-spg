@@ -39,6 +39,8 @@ class Penjualan extends CI_Controller
 
 		/** Load Model, Nama model harus sama dengan nama folder */
 		$this->load->model('m' . $this->folder, 'mymodel');
+
+		set_current_active_menu($this->title);
 	}
 
 	/** Default Controllers */
@@ -282,13 +284,15 @@ class Penjualan extends CI_Controller
 		$items = $this->input->post('items');
 		$id_user = $this->session->userdata('id_user');
 
+		// default e_periode_valid_edit
+        $e_periode_valid_edit = date('Ym', strtotime($d_document));
 
 		$this->db->trans_begin();
 
 		$this->mymodel->insert_penjualan(
 			$id_customer, $i_document, $d_document, $e_customer_sell_name=$nama, $e_customer_sell_address=$alamat, 
 			$v_gross=$bruto, $n_diskon=$diskon_persen, $v_diskon=$diskon, $v_dpp=null, $v_ppn=null, 
-			$v_netto=$netto, $v_bayar=null, $e_remark, $id_user
+			$v_netto=$netto, $v_bayar=null, $e_remark, $id_user, $e_periode_valid_edit
 		);
 
 		$insert_id = $this->db->insert_id();
@@ -719,23 +723,23 @@ class Penjualan extends CI_Controller
 			->setName('Calibri')
 			->setSize(9);
 
-        foreach(range('A','N') as $columnID) {
+        foreach(range('A','Q') as $columnID) {
           $spreadsheet->getActiveSheet()->getColumnDimension($columnID)->setAutoSize(true);
         }
 
 		$spreadsheet->setActiveSheetIndex(0)
-					->setCellValue('A1', "Pengeluaran Produk $_dfrom - $_dto");		
+					->setCellValue('A1', "Penjualan Produk $_dfrom - $_dto");		
 		$spreadsheet->getActiveSheet()->getRowDimension('1')->setRowHeight(32);
 
-		$spreadsheet->getActiveSheet()->mergeCells("A1:N1");
-		$spreadsheet->getActiveSheet()->duplicateStyle($sharedStyle1, 'A1:N1');
+		$spreadsheet->getActiveSheet()->mergeCells("A1:Q1");
+		$spreadsheet->getActiveSheet()->duplicateStyle($sharedStyle1, 'A1:Q1');
 
 		$spreadsheet->setActiveSheetIndex(0)
 					->setCellValue('F2', "Barang")
-					->setCellValue('J2', "Harga");		
+					->setCellValue('M2', "Harga");		
 
 		$spreadsheet->getActiveSheet()->mergeCells("F2:G2")
-					->mergeCells("J2:M2")
+					->mergeCells("M2:P2")
 					->mergeCells("A2:A3")
 					->mergeCells("B2:B3")
 					->mergeCells("C2:C3")
@@ -743,9 +747,12 @@ class Penjualan extends CI_Controller
 					->mergeCells("E2:E3")
 					->mergeCells("H2:H3")
 					->mergeCells("I2:I3")
-					->mergeCells("N2:N3");
+					->mergeCells("J2:J3")
+					->mergeCells("K2:K3")
+					->mergeCells("L2:L3")
+					->mergeCells("Q2:Q3");
 
-		$spreadsheet->getActiveSheet()->duplicateStyle($sharedStyle1, 'A2:N3');
+		$spreadsheet->getActiveSheet()->duplicateStyle($sharedStyle1, 'A2:Q3');
 
 		$spreadsheet->setActiveSheetIndex(0)
 					->setCellValue('A2', 'No')
@@ -755,16 +762,17 @@ class Penjualan extends CI_Controller
 					->setCellValue('E2', 'Toko')
 					->setCellValue('F3', 'Kode')
 					->setCellValue('G3', 'Nama')
-					->setCellValue('H2', 'Qty')
-					->setCellValue('I2', 'Discount %')
-					->setCellValue('J3', 'Satuan')
-					->setCellValue('K3', 'Total')
-					->setCellValue('L3', 'Diskon')
-					->setCellValue('M3', 'Akhir')
-					->setCellValue('N2', 'Keterangan');
+					->setCellValue('H2', 'Brand')
+					->setCellValue('I2', 'Kategori')
+					->setCellValue('J2', 'Sub Kategori')
+					->setCellValue('K2', 'Qty')
+					->setCellValue('L2', 'Discount %')
+					->setCellValue('M3', 'Satuan')
+					->setCellValue('N3', 'Total')
+					->setCellValue('O3', 'Diskon')
+					->setCellValue('P3', 'Akhir')
+					->setCellValue('Q2', 'Keterangan');
           
-		$spreadsheet->getActiveSheet()->duplicateStyle($sharedStyle1, 'A3:N3');
-
 		$kolom = 4;
 		$nomor = 1;
 		foreach($query->result() as $row) {
@@ -780,16 +788,19 @@ class Penjualan extends CI_Controller
                         ->setCellValue('D' . $kolom, $row->e_customer_sell_name)
                         ->setCellValue('E' . $kolom, strtoupper($row->e_customer_name))
 						->setCellValue('F' . $kolom, $row->i_product)
-						->setCellValue('G' . $kolom, $row->e_product_name)
-						->setCellValue('H' . $kolom, $row->n_qty)
-						->setCellValue('I' . $kolom, $row->v_diskon)
-						->setCellValue('J' . $kolom, $row->v_price)
-						->setCellValue('K' . $kolom, $total)
-						->setCellValue('L' . $kolom, $discount)
-						->setCellValue('M' . $kolom, $akhir)
-						->setCellValue('N' . $kolom, $row->e_remark);
+						->setCellValue('G' . $kolom, $row->e_product_name)	
+						->setCellValue('H' . $kolom, $row->e_brand_name)
+						->setCellValue('I' . $kolom, $row->e_category_name)
+						->setCellValue('J' . $kolom, $row->e_sub_category_name)
+						->setCellValue('K' . $kolom, $row->n_qty)
+						->setCellValue('L' . $kolom, $row->v_diskon)
+						->setCellValue('M' . $kolom, $row->v_price)
+						->setCellValue('N' . $kolom, $total)
+						->setCellValue('O' . $kolom, $discount)
+						->setCellValue('P' . $kolom, $akhir)
+						->setCellValue('Q' . $kolom, $row->e_remark);
 
-            $spreadsheet->getActiveSheet()->duplicateStyle($sharedStyle2, 'A'.$kolom.':N'.$kolom);
+            $spreadsheet->getActiveSheet()->duplicateStyle($sharedStyle2, 'A'.$kolom.':Q'.$kolom);
 
 			$kolom++;
 			$nomor++;
@@ -798,12 +809,12 @@ class Penjualan extends CI_Controller
 		/** format currency */
 		$format_code = '"Rp. "#,##0';
 		$spreadsheet->getActiveSheet()
-                ->getStyle('J4:M'.$kolom)
+                ->getStyle('M4:P'.$kolom)
                 ->getNumberFormat()
                 ->setFormatCode($format_code);
 
         $writer = new Xls($spreadsheet);
-        $nama_file = "Pengeluaran Produk.xls";
+        $nama_file = "Penjualan Produk.xls";
         header('Content-Type: application/vnd.ms-excel');
         header('Content-Disposition: attachment;filename='.$nama_file.'');
         header('Cache-Control: max-age=0');
@@ -812,4 +823,20 @@ class Penjualan extends CI_Controller
         $writer->save('php://output');
 
 	}
+
+	public function get_e_periode_valid_edit()
+	{
+		$data = [];
+
+		$id = $this->input->get('id');
+
+		$query = $this->mymodel->getdata($id);
+		if ($query->row() != null) {
+			$e_periode = $query->row()->e_periode_valid_edit;			
+			$data = date('Y-m-d', strtotime($e_periode.'01'));
+		}
+
+		echo json_encode($data);
+	}
+		
 }

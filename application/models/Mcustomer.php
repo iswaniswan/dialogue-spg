@@ -3,6 +3,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 use Ozdemir\Datatables\Datatables;
 use Ozdemir\Datatables\DB\CodeigniterAdapter;
 
+require_once('Role.php');
+
 class Mcustomer extends CI_Model {
 
     /** List Datatable */
@@ -14,9 +16,9 @@ class Mcustomer extends CI_Model {
         $join = " INNER JOIN tm_user_customer tuc ON tuc.id_user = '$id_user' AND tuc.id_customer = a.id_customer ";
         $where = " WHERE tuc.id_user = '$id_user' ";
 
-        /** jika level admin, maka tampilkan semua customer */
-        $i_level = $this->session->userdata('i_level');
-        if (intval($i_level) == 1) {
+        /** jika level admin atau marketing, maka tampilkan semua customer */
+        $i_level = intval($this->session->userdata('i_level'));
+        if (($i_level == Role::SUPERADMIN) or ($i_level == Role::MARKETING)) {
             $join = '';
             $where = '';
         }

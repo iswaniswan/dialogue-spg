@@ -161,7 +161,7 @@
                                 <th>Saldo <br> Awal</th>
                                 <th>Penerimaan <br>Produk</th>
                                 <th>Retur <br> Distributor</th>
-                                <th>Pengeluaran <br> Produk</th>
+                                <th>Penjualan <br> Produk</th>
                                 <th>Adjustment</th>
                                 <th>Saldo <br> Akhir</th>
                                 <th>Stock <br> Opname</th>

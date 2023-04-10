@@ -5,6 +5,9 @@ use Ozdemir\Datatables\DB\CodeigniterAdapter;
 
 class Mpengajuanizin extends CI_Model {
 
+    const ROLE_ADMIN = 1;
+    const ROLE_MARKETING = 4;
+
     /** List Datatable */
     public function serverside($dfrom, $dto){
         $current_user = $this->session->userdata('id_user');
@@ -16,8 +19,9 @@ class Mpengajuanizin extends CI_Model {
             $where_and .= " OR ti.id_user IN ($all_bawahan) ";
         }
 
-        if ($current_level == 1) {
-            $where_and = '';
+        $level_session = $this->session->userdata('i_level');
+        if ($level_session == static::ROLE_ADMIN or $level_session == static::ROLE_MARKETING) {
+            $where_and = "";
         }
 
         $datatables = new Datatables(new CodeigniterAdapter);

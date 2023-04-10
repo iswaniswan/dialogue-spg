@@ -19,7 +19,8 @@ class Mpurchase extends CI_Model {
                     UPPER(c.e_customer_name) AS e_customer_name,
                     c2.e_company_name,
                     a.e_remark, 
-                    a.f_status
+                    a.f_status,
+                    a.e_periode_valid_edit
                 FROM tm_pembelian a
                 INNER JOIN tm_user_customer tuc ON tuc.id_user = '$id_user' AND tuc.id_customer = a.id_customer
                 INNER JOIN tr_customer c ON c.id_customer = tuc.id_customer
@@ -56,23 +57,42 @@ class Mpurchase extends CI_Model {
             $tgl        = date('Y-m-d');
             $cek        = $bulan-$month;
             $status     = $data['f_status'];
-            $data       = '';
+            $e_periode_valid_edit = $data['e_periode_valid_edit'];
+
+            /** can edit dalam periode bulan berjalan */
+            $can_edit = false; 
+            $periode_now = date('Ym');
+            $periode_doc = date('Ym', strtotime($ddocument));
+            
+            if ($e_periode_valid_edit < $periode_doc) {
+                $can_edit = true;
+            }
+
+            if ($periode_doc == $periode_now) {
+                $can_edit = true;
+            }
+
+            $data = '';
 
             if (check_role($this->id_menu, 2)) {
                 $data      .= "<a href='" . base_url() . $this->folder . '/view/' . encrypt_url($id) . "' title='Lihat Data'><i class='icon-database-check text-success-800'></i></a>";
             }
 
-            if (check_role($this->id_menu, 3) && $status=='t') {
-                if($month == $bulan && $ddocument <= $batas && $tgl <= $batas){
+            if (check_role($this->id_menu, 3) && $status=='t' && $can_edit) {
                 $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";
-                }
-                else if($ddocument > $batas){
-                $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";    
-                }
-                else if($cek == 1 && $tgl <= $batas){
-                $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";    
-                }
-            }        
+            }
+
+            // if (check_role($this->id_menu, 3) && $status=='t') {
+            //     if($month == $bulan && $ddocument <= $batas && $tgl <= $batas){
+            //     $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";
+            //     }
+            //     else if($ddocument > $batas){
+            //     $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";    
+            //     }
+            //     else if($cek == 1 && $tgl <= $batas){
+            //     $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";    
+            //     }
+            // }        
             
             if (check_role($this->id_menu, 4) && $status=='t') {
                 if($month == $bulan && $ddocument <= $batas && $tgl <= $batas){
@@ -87,6 +107,9 @@ class Mpurchase extends CI_Model {
             }
             return $data;
         });
+
+        $datatables->hide('f_status');
+
         return $datatables->generate();
     }
 
@@ -351,6 +374,9 @@ class Mpurchase extends CI_Model {
         // insert table tm_pembelian
         $id_user = $this->session->userdata('id_user');
 
+        // default e_periode_valid_edit
+        $e_periode_valid_edit = date('Ym', strtotime($d_receive));
+
         $data = [
             'i_document' => $i_document,
             'd_receive' => $d_receive,
@@ -359,7 +385,8 @@ class Mpurchase extends CI_Model {
             'd_surat_jalan' => $d_surat_jalan,
             'id_customer' => $id_customer,
             'i_company' => $id_distributor,
-            'id_user' => $id_user
+            'id_user' => $id_user,
+            'e_periode_valid_edit' => $e_periode_valid_edit
         ];
         $this->db->insert('tm_pembelian', $data);
 
@@ -668,6 +695,7 @@ class Mpurchase extends CI_Model {
         $this->db->where('id_document', $id);
         $this->db->delete('tm_pembelian');
     }
+
 }
 
 /* End of file Mmaster.php */

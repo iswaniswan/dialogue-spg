@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", function () {
           console.log(info);
 
           const params = {
-            title: "Izin",
+            title: 'KEHADIRAN',
             jenis: info.event.title,
             e_remark: info.event.extendedProps.e_remark,
             time_start: info.event.extendedProps.time_start,

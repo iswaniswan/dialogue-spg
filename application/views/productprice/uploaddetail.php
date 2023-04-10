@@ -30,12 +30,40 @@
             </div>
 
             <div class="card-body">
-                <div class="form-group row">
-                    <div class="col-md-12">
+                <div class="form-group row mb-5">
+                    <div class="col-md-6">
                         <label><?= $this->lang->line('Toko'); ?> :</label>
                         <select class="form-control select" name="id_customer" id="id_customer" required data-fouc data-placeholder="<?= $this->lang->line('Toko'); ?>" readonly>
                             <option value="<?= $id_customer; ?>"><?= $e_customer_name; ?></option>
                         </select>
+                    </div>
+                    <div class="col-6">
+                        <label>Periode:</label>
+                        <div class="input-group row">
+                            <div class="col-4">
+                                <select class="form-control" title="Select a year" name="e_periode_year" id="e_periode_year">
+                                    <?php /** create last 3 years previous from current year */ 
+                                    $current_year = intval(date('Y'));
+                                    $last3 = $current_year - 3;
+                                    for ($i=$current_year; $i>$last3; $i--) {
+                                        $selected = ($e_periode_year == $i) ? 'selected' : '';
+                                        echo "<option value='$i' $selected>$i</option>";
+                                    }                                    
+                                    ?>
+                                </select>
+                            </div>
+                            <div class="col-2">
+                                <select class="form-control" title="Select a month" name="e_periode_month" id="e_periode_month">
+                                    <?php     
+                                    $months = getMonthShort();                                
+                                    foreach ($months as $month => $value) {
+                                        $selected = ($month == $e_periode_month) ? 'selected' : '';
+                                        echo "<option value='$month' $selected>$value</option>";
+                                    }   
+                                    ?>
+                                </select>
+                            </div>
+                        </div>                        
                     </div>
                 </div>
                 <div class="form-group row">
@@ -48,7 +76,7 @@
                                         <th class="d-none" style="width: 100px;">ID Barang</th>
                                         <th style="width: 100px;">Kode</th>
                                         <th style="width: auto;">Nama</th>
-                                        <th style="width: auto;">Brand</th>
+                                        <th style="width: 200px;">Brand</th>
                                         <th style="width: 200px">Harga</th>
                                     </tr>
                                 </thead>

@@ -15,7 +15,8 @@ class Mpenjualan extends CI_Model {
                     d_document,
                     e_customer_sell_name,
                     e_remark,
-                    f_status
+                    f_status,
+                    e_periode_valid_edit
                 FROM tm_penjualan a
                 INNER JOIN tm_user_customer tuc ON tuc.id_user = '$this->id_user' AND tuc.id_customer = a.id_customer
                 WHERE d_document BETWEEn '$dfrom' AND '$dto'                 
@@ -48,26 +49,45 @@ class Mpenjualan extends CI_Model {
             $tgl        = date('Y-m-d');
             $cek        = $bulan-$month;
             $status     = $data['f_status'];
+            $e_periode_valid_edit = $data['e_periode_valid_edit'];
+
+            /** can edit dalam periode bulan berjalan */
+            $can_edit = false; 
+            $periode_now = date('Ym');
+            $periode_doc = date('Ym', strtotime($ddocument));
+            
+            if ($e_periode_valid_edit < $periode_doc) {
+                $can_edit = true;
+            }
+
+            if ($periode_doc == $periode_now) {
+                $can_edit = true;
+            }
+
             $data       = '';
 
             if (check_role($this->id_menu, 2)) {
                 $data      .= "<a href='" . base_url() . $this->folder . '/view/' . encrypt_url($id) . "' title='Lihat Data'><i class='icon-database-check text-success-800'></i></a>";
             }
 
-            if (check_role($this->id_menu, 3) && $status=='t' ) {
-                //Cek Tanggal 1 - 5 di bulan yang sama
-                if($month == $bulan && $ddocument <= $batas && $tgl <= $batas){
-                $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";
-                }
-                //Cek tanggal dokumen > tanggal 5 bulan sekarang
-                else if($ddocument > $batas){
-                $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";    
-                }
-                //Cek jarak bulan sebelumnya tidak lebih dari 1 bulan dan tanggal sekarang < tanggal 5
-                else if($cek == 1 && $tgl <= $batas){
-                $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";    
-                }
-            }        
+            // if (check_role($this->id_menu, 3) && $status=='t' ) {
+            //     //Cek Tanggal 1 - 5 di bulan yang sama
+            //     if($month == $bulan && $ddocument <= $batas && $tgl <= $batas){
+            //     $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";
+            //     }
+            //     //Cek tanggal dokumen > tanggal 5 bulan sekarang
+            //     else if($ddocument > $batas){
+            //     $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";    
+            //     }
+            //     //Cek jarak bulan sebelumnya tidak lebih dari 1 bulan dan tanggal sekarang < tanggal 5
+            //     else if($cek == 1 && $tgl <= $batas){
+            //     $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";    
+            //     }
+            // }    
+            
+            if (check_role($this->id_menu, 3) && $status=='t' && $can_edit) {
+                $data .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";    
+            }
             
             if (check_role($this->id_menu, 4) && $status=='t') {
                 if($month == $bulan && $ddocument <= $batas && $tgl <= $batas){
@@ -82,6 +102,9 @@ class Mpenjualan extends CI_Model {
             }
             return $data;
         });
+
+        $datatables->hide('e_periode_valid_edit');
+        
         return $datatables->generate();
     }
 
@@ -489,7 +512,8 @@ class Mpenjualan extends CI_Model {
 
     public function insert_penjualan(
         $id_customer, $i_document, $d_document, $e_customer_sell_name, $e_customer_sell_address, 
-        $v_gross, $n_diskon, $v_diskon, $v_dpp, $v_ppn, $v_netto, $v_bayar, $e_remark, $id_user=null
+        $v_gross, $n_diskon, $v_diskon, $v_dpp, $v_ppn, $v_netto, $v_bayar, $e_remark, $id_user=null,
+        $e_periode_valid_edit
     )
     {
         if ($id_user == null) {
@@ -510,7 +534,8 @@ class Mpenjualan extends CI_Model {
             'v_netto' => $v_netto,
             'v_bayar' => $v_bayar,
             'e_remark' => $e_remark,
-            'id_user' => $id_user
+            'id_user' => $id_user,
+            'e_periode_valid_edit' => $e_periode_valid_edit
         ];
 
         $this->db->insert('tm_penjualan', $data);
@@ -590,14 +615,20 @@ class Mpenjualan extends CI_Model {
                     a.e_customer_sell_name,
                     p.i_product,
                     p.e_product_name,
+                    b2.e_brand_name,
+                    c2.e_category_name,
+                    c3.e_sub_category_name,
                     c.e_customer_name,
                     b.*
                 FROM tm_penjualan a
                 INNER JOIN tm_penjualan_item b ON b.id_penjualan = a.id
                 INNER JOIN tr_product p ON p.id = b.id_product
+                INNER JOIN tr_brand b2 ON b2.id_brand = p.id_brand
+                INNER JOIN tm_category c2 ON c2.id = p.id_category
+                INNER JOIN tm_sub_category c3 ON c3.id = p.id_sub_category
                 INNER JOIN tr_customer c ON c.id_customer = a.id_customer
                 INNER JOIN tm_user_customer tuc ON tuc.id_user = '$this->id_user' AND tuc.id_customer = a.id_customer
-                WHERE d_document BETWEEn '$dfrom' AND '$dto'                 
+                WHERE d_document BETWEEn '$dfrom' AND '$dto'
                 ORDER BY d_document, i_document ASC";
 
         return $this->db->query($sql);

@@ -33,6 +33,7 @@
                             <th><?= $this->lang->line('Kode Barang'); ?></th>
                             <th><?= $this->lang->line('Nama Barang'); ?></th>
                             <th><?= $this->lang->line('Nama Brand'); ?></th>
+                            <th>Kategori</th>
                             <th>Status</th>
                             <th><?= $this->lang->line('Tanggal Update'); ?></th>
                             <th><?= $this->lang->line('Aksi'); ?></th>

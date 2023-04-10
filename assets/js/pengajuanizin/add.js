@@ -87,6 +87,11 @@ document.addEventListener("DOMContentLoaded", function () {
 	var controller = $("#path").val();
 	$("#submit").on("click", function () {
 
+		if (!isJenisIzinValid()) {
+			swalInit("Error ", "Jenis Izin belum dipilih", "error");
+			return false;
+		}
+
 		if (!isDateRangeValid()) {
 			swalInit("Error ", "Periode tanggal salah", "error");
 			return false;
@@ -98,6 +103,11 @@ document.addEventListener("DOMContentLoaded", function () {
 		}
 	});
 
+	function isJenisIzinValid() {
+		const jenisIzin = $('#id_jenis_izin').val();
+		return jenisIzin !== undefined && jenisIzin !== '' && jenisIzin != null;
+	}
+
 	function isDateRangeValid() {
 		let d_pengajuan_mulai_tanggal = $('#d_pengajuan_mulai_tanggal').val();
 		let d_pengajuan_mulai_pukul = $('#d_pengajuan_mulai_pukul').val();
@@ -107,13 +117,15 @@ document.addEventListener("DOMContentLoaded", function () {
 		let d_mulai = `${d_pengajuan_mulai_tanggal} ${d_pengajuan_mulai_pukul}`;
 		let d_selesai = `${d_pengajuan_selesai_tanggal} ${d_pengajuan_selesai_pukul}` ;
 
+		// console.log(d_mulai, d_selesai);
+
 		/** jika lebih lama dari hari ini */
-		if (moment(d_mulai) < moment().valueOf()) {
+		// if (moment(d_mulai) < moment().valueOf()) {
+		if (moment(d_mulai) < moment().startOf('day').valueOf()) {
 			return false;
-		}
+		}		
 
 		// console.log(moment(d_mulai), moment(d_selesai));
-
 		return moment(d_mulai) < moment(d_selesai);
 	}
 

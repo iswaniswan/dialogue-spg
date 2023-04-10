@@ -21,7 +21,8 @@ class Madjustment extends CI_Model
                     b.e_customer_name,
                     e_remark,
                     a.d_approve,
-                    a.f_status
+                    a.f_status,
+                    a.e_periode_valid_edit
                 FROM tm_adjustment a, tr_customer b
                 WHERE a.id_customer = b.id_customer
                     AND d_document BETWEEN '$dfrom' 
@@ -72,6 +73,21 @@ class Madjustment extends CI_Model
             $cek        = $bulan-$month;
             $approve         = trim($data['d_approve']);
             $status     = $data['f_status'];
+            $e_periode_valid_edit = $data['e_periode_valid_edit'];
+
+            /** can edit dalam periode bulan berjalan */
+            $can_edit = false; 
+            $periode_now = date('Ym');
+            $periode_doc = date('Ym', strtotime($ddocument));
+            
+            if ($e_periode_valid_edit < $periode_doc) {
+                $can_edit = true;
+            }
+
+            if ($periode_doc == $periode_now) {
+                $can_edit = true;
+            } 
+
             $data       = '';
 
             $level = $this->mymodel->cek_level($this->id_user)->row();
@@ -85,17 +101,21 @@ class Madjustment extends CI_Model
                 $data      .= "<a href='" . base_url() . $this->folder . '/view/' . encrypt_url($id) . "' title='Lihat Data'><i class='icon-database-check text-success-800'></i></a>";
             }
 
-            if (check_role($this->id_menu, 3) && $status == 't' && $approve== '') {
-                if($month == $bulan && $ddocument <= $batas && $tgl <= $batas){
-                $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";
-                }
-                else if($cek == 1 && $tgl <= $batas){
-                $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";    
-                }
-                else if($ddocument > $batas){
-                $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";    
-                }
+            if (check_role($this->id_menu, 3) && $status == 't' && $approve== '' && $can_edit) {
+                $data .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";
             }
+
+            // if (check_role($this->id_menu, 3) && $status == 't' && $approve== '') {
+            //     if($month == $bulan && $ddocument <= $batas && $tgl <= $batas){
+            //     $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";
+            //     }
+            //     else if($cek == 1 && $tgl <= $batas){
+            //     $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";    
+            //     }
+            //     else if($ddocument > $batas){
+            //     $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";    
+            //     }
+            // }
 
             if (check_role($this->id_menu, 4) && $status == 't' && $approve== '') {
                 if($month == $bulan && $ddocument <= $batas && $tgl <= $batas){
@@ -110,7 +130,10 @@ class Madjustment extends CI_Model
             }
             return $data;
         });
+
         $datatables->hide('d_document');
+        $datatables->hide('e_periode_valid_edit');
+
         return $datatables->generate();
     }
 
@@ -469,7 +492,7 @@ class Madjustment extends CI_Model
         $this->db->delete('tm_adjustment');
     }
 
-    public function insert_adjustment($i_document, $d_document, $i_periode, $id_customer, $e_remark, $id_user=null)
+    public function insert_adjustment($i_document, $d_document, $i_periode, $id_customer, $e_remark, $id_user=null, $e_periode_valid_edit)
     {
         if ($id_user == null) {
             $id_user = $this->session->userdata('id_user');
@@ -481,7 +504,8 @@ class Madjustment extends CI_Model
             'i_periode' => $i_periode,
             'id_customer' => $id_customer,
             'e_remark' => $e_remark,
-            'id_user' => $id_user
+            'id_user' => $id_user,
+            'e_periode_valid_edit' => $e_periode_valid_edit
         ];
 
         $this->db->insert('tm_adjustment', $data);

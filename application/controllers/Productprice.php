@@ -41,6 +41,8 @@ class Productprice extends CI_Controller
 
 		/** Load Model, Nama model harus sama dengan nama folder */
 		$this->load->model('m' . $this->folder, 'mymodel');
+
+		set_current_active_menu($this->title);
 	}
 
 	/** Default Controllers */
@@ -135,7 +137,9 @@ class Productprice extends CI_Controller
 				'global_assets/js/plugins/forms/validation/validate.min.js',
 				'global_assets/js/plugins/forms/styling/uniform.min.js',
 				'global_assets/js/plugins/forms/selects/select2.min.js',
-				'assets/js/' . $this->folder . '/add.js',
+				'global_assets/js/plugins/pickers/pickadate/picker.js',
+				'global_assets/js/plugins/pickers/pickadate/picker.date.js',
+				'assets/js/' . $this->folder . '/add.js?v=' . strtotime(date('Y-m-d H:i:s')),
 			)
 		);
 
@@ -157,7 +161,11 @@ class Productprice extends CI_Controller
 
 		$id_product = $this->input->post('id_product');
 		$id_customer = $this->input->post('id_customer');
-		$is_customer_price_exist = $this->mymodel->is_customer_price_exist($id_product, $id_customer);
+		$e_periode_year = $this->input->post('e_periode_year');
+		$e_periode_month = $this->input->post('e_periode_month');
+		$e_periode = $e_periode_year . $e_periode_month;
+
+		$is_customer_price_exist = $this->mymodel->is_customer_price_exist($id_product, $id_customer, $e_periode);
 		if ($is_customer_price_exist) {
 			$response = [
 				'sukses' => false,
@@ -361,9 +369,11 @@ class Productprice extends CI_Controller
 		}
 
 		$id_customer = $this->uri->segment(3);
+		$e_periode = $this->uri->segment(4);
+
 		$customer = $this->mymodel->get_customer_by_id($id_customer)->row();
 		// $query = $this->mymodel->exportdata();
-		$query = $this->mymodel->export_data_by_user_cover($id_customer);
+		$query = $this->mymodel->export_data_by_user_cover($id_customer, $e_periode);
 
 		if ($query) {
 
@@ -464,9 +474,14 @@ class Productprice extends CI_Controller
 				->getFont()
 				->setName('Calibri')
 				->setSize(9);
+		
+			$text_periode = $this->e_periode_to_text($e_periode);
+			$title = $customer->e_customer_name . ", Periode: $text_periode";
+
 			$spreadsheet->setActiveSheetIndex(0)
 				->setCellValue('B1', $id_customer)
-				->setCellValue('C1', $customer->e_customer_name)
+				->setCellValue('B2', $e_periode)
+				->setCellValue('C1', $title)
 				->setCellValue('A3', 'No')
 				->setCellValue('B3', 'ID Barang')
 				->setCellValue('C3', 'Kode')
@@ -551,7 +566,7 @@ class Productprice extends CI_Controller
 			// \PhpOffice\PhpSpreadsheet\Shared\StringHelper::setThousandsSeparator(',');
 
 			$writer = new Xls($spreadsheet);
-			$nama_file = "Product_Price_" . $customer->e_customer_name . ".xls";
+			$nama_file = "Product_Price_$customer->e_customer_name"."_$e_periode.xls";
 
 			header('Content-Type: application/vnd.ms-excel');
 			header('Content-Disposition: attachment;filename=' . $nama_file . '');
@@ -634,6 +649,10 @@ class Productprice extends CI_Controller
 		$array 		   = [];
 
 		$_id_customer = $spreadsheet->getActiveSheet()->getCell('B1')->getValue();
+		$_e_periode = $spreadsheet->getActiveSheet()->getCell('B2')->getValue();
+		$e_periode_year = substr($_e_periode, 0, 4);
+		$e_periode_month = substr($_e_periode, 4, 2);
+
 		$customer = $this->mymodel->get_customer_by_id($id_customer)->row();
 
 		if ($id_customer != $_id_customer) {
@@ -661,6 +680,8 @@ class Productprice extends CI_Controller
 
 		$data = array(
 			'id_customer' => $customer->id_customer,
+			'e_periode_year' => $e_periode_year,
+			'e_periode_month' => $e_periode_month,
 			'e_customer_name' => $customer->e_customer_name,
 			'datadetail' => $array,
 		);
@@ -681,5 +702,16 @@ class Productprice extends CI_Controller
 		} 
 
 		echo json_encode($status);
+	}
+
+	public function e_periode_to_text($e_periode)
+	{
+		$year = substr($e_periode, 0, 4);
+		$month = substr($e_periode, 4, 2);
+		// $months = getMonthShort();
+		$months = getBulan();
+		
+		$text_month = $months[$month];
+		return ucwords($text_month) . " $year";
 	}
 }

@@ -28,6 +28,8 @@ class Product extends CI_Controller
 
 		/** Load Model, Nama model harus sama dengan nama folder */
 		$this->load->model('m' . $this->folder, 'mymodel');
+
+		set_current_active_menu($this->title);
 	}
 
 	/** Default Controllers */
@@ -317,5 +319,42 @@ class Product extends CI_Controller
 
 		$this->mymodel->update_editable($data);
 
+	}
+
+	public function get_category()
+	{
+		$filter = [];
+		$cari	= str_replace("'", "", $this->input->get('q'));
+		
+		$this->load->model('Mcategory');
+		$data = $this->Mcategory->get_category($cari);
+		foreach ($data->result() as $row) {
+			$filter[] = array(
+				'id'   => $row->id,
+				'text' => strtoupper($row->e_category_name),
+			);
+		}
+		echo json_encode($filter);
+	}
+
+	public function get_sub_category()
+	{
+		$filter = [];
+		$id_category = $this->input->get('id_category');
+		$cari	= str_replace("'", "", $this->input->get('q'));
+
+		if ($id_category != null) {
+
+			$this->load->model('Msubcategory');
+			$data = $this->Msubcategory->get_sub_category($id_category, $cari);
+			foreach ($data->result() as $row) {
+				$filter[] = array(
+					'id'   => $row->id,
+					'text' => strtoupper($row->e_sub_category_name),
+				);
+			}
+		}	
+
+		echo json_encode($filter);
 	}
 }

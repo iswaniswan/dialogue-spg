@@ -41,6 +41,8 @@ class Kehadiran extends CI_Controller
 
 		/** Load Model, Nama model harus sama dengan nama folder */
 		$this->load->model('m' . $this->folder, 'mymodel');
+
+		set_current_active_menu($this->title);
 	}
 
 	/** Default Controllers */
@@ -132,6 +134,28 @@ class Kehadiran extends CI_Controller
 				'color' => $color,
 				'status' => $status,
 				'e_remark_reject' => $e_remark_reject
+			];
+
+			$events[] = $_events;
+		}
+
+		/** data kehadiran */
+		$all_hadir = $this->mymodel->get_kehadiran_per_user($id_user);
+		foreach ($all_hadir->result() as $hadir) {
+
+			$time_start = date('H:i', strtotime($hadir->d_datang));
+			$time_end = date('H:i', strtotime($hadir->d_pulang));
+
+			$_events = [
+				'title' => 'Hadir',
+				'start' => $hadir->d_hadir,
+				'end' => $hadir->d_hadir,
+				'e_remark' => null,
+				'time_start' => $time_start,
+				'time_end' => $time_end,
+				'color' => '#2baf2b',
+				'status' => 'HADIR',
+				'e_remark_reject' => null
 			];
 
 			$events[] = $_events;

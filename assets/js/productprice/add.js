@@ -142,5 +142,41 @@ $(document).ready(function() {
         $('#id_product').val('');
         $('#id_product').trigger('change.select2');
     });
+
+    var today = new Date();
+    var date =
+        today.getFullYear() +
+        "," +
+        (today.getMonth() + 1) +
+        "," +
+        today.getDate();
+    // $(".date").pickadate({
+    //     labelMonthNext: "Go to the next month",
+    //     labelMonthPrev: "Go to the previous month",
+    //     labelMonthSelect: "Pick a month from the dropdown",
+    //     labelYearSelect: "Pick a year from the dropdown",
+    //     selectMonths: true,
+    //     selectYears: true,
+    //     formatSubmit: "yyyy-mm",
+    //     format: "yyyy-mm",
+    //     min: [2021, 1, 1],
+    //     max: [date],
+    // });
+    
+    $('.date').pickadate({
+        today: 'Ok',
+        format: 'yyyy-mm',
+        min: new Date(),
+        formatSubmit: 'yyyy-mm-dd',
+        hiddenPrefix: 'prefix__',
+        hiddenSuffix: '__suffix',
+        selectYears: true,
+        selectMonths: true,
+    })
+
+    $('.picker__select--month').change(function() {
+        console.log($(this).val());
+    })
+
 })  
 

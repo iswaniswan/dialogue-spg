@@ -184,7 +184,7 @@
                                         </div>
 
                                         <div class="media-body">
-                                            <p><b>Ucok</b>, 
+                                            <p><b><?= $row->e_nama ?></b>, 
                                             Pengajuan Izin <a href="<?= base_url() . 'pengajuanizin/approvement/' . encrypt_url(@$row->id) ?>"><?= $row->e_izin_name ?></a> Meminta Approve
                                             </p>
                                             <div class="font-size-sm text-muted mt-1"><?= date('Y-m-d H:i:s', strtotime($row->d_entry)) ?></div>
@@ -356,12 +356,23 @@
                     <div class="card-body p-0">
 
                         <ul class="nav nav-sidebar" data-nav-type="">
+
+                            <!-- active menu -->
+                            <?php $is_current_menu_active = function($menu) {
+                                if (get_current_active_menu() == $menu) {
+                                    return 'active';
+                                }
+                                return '';
+                            }; ?>
                             
                             <?php foreach (get_menu()->result() as $key) {
+
                                 if ($key->e_folder == '#') { ?>
                                     <li class="nav-item nav-item-submenu">
-                                        <a href="#" class="nav-link"><i class="<?= $key->icon; ?>"></i>
-                                            <span><?=$this->lang->line($key->e_menu);?></span></a>
+                                        <a href="#" class="nav-link a-nav <?= $is_current_menu_active($key->e_menu) ?>">
+                                            <i class="<?= $key->icon; ?>"></i>
+                                            <span><?=$this->lang->line($key->e_menu);?></span>
+                                        </a>
 
                                         <ul class="nav nav-group-sub" data-submenu-title="<?=$this->lang->line($key->e_menu);?>">
                                             <?php foreach (get_sub_menu($key->id_menu)->result() as $row) { ?>
@@ -376,13 +387,17 @@
                                                 } ?>
                                                 
 
-                                                <li class="nav-item"><a href="<?= base_url($row->e_folder); ?>" class="nav-link"><i class="icon-circle-small"></i><?=$this->lang->line($row->e_menu);?></a></li>
+                                                <li class="nav-item">
+                                                    <a href="<?= base_url($row->e_folder); ?>" class="nav-link a-nav <?= $is_current_menu_active($row->e_menu) ?>">
+                                                        <i class="icon-circle-small"></i><?= $row->e_menu ?>
+                                                    </a>
+                                                </li>
                                             <?php } ?>
                                         </ul>
                                     </li>
                                 <?php } else { ?>
                                     <li class="nav-item">
-                                        <a href="<?= base_url($key->e_folder); ?>" class="nav-link">
+                                        <a href="<?= base_url($key->e_folder); ?>" class="nav-link a-nav <?= $is_current_menu_active($key->e_menu) ?>">
                                             <i class="<?= $key->icon; ?>"></i>
                                             <span>
                                                 <?=$this->lang->line($key->e_menu);?>
@@ -466,3 +481,26 @@
 <script src="<?= base_url(); ?>assets/js/custom.js"></script>
 <?= put_footer(); ?>
 <!-- /theme JS files -->
+
+<script type="text/javascript">
+    const openUpNavigationBar = () => {
+        $('.a-nav').each(function() {
+            if ($(this).hasClass('active')) {
+                const me = $(this);
+                let parent = me.closest('ul');
+                let grandParent = parent.closest('li');
+                if (parent !== undefined) {
+                    parent.css('display', 'block');
+                }
+
+                if (grandParent !== undefined) {
+                    grandParent.addClass('nav-item-open');
+                }
+            }
+        })        
+    }
+
+    $(document).ready(function() {
+        openUpNavigationBar()
+    })
+</script>

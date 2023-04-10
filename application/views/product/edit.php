@@ -36,6 +36,23 @@
                         <option value="<?= $data->id_brand; ?>"><?= $data->e_brand_name;?></option>
                     </select>
                 </div>
+
+                <!-- kategori -->
+                <div class="form-group">
+                    <label>Kategori :</label>
+                    <select class="form-control select-search" data-container-css-class="select-sm" data-placeholder="Pilih Kategori" required data-fouc name="id_category" id="id_category">
+                        <option value="<?= $data->id_category ?>" selected><?= $data->e_category_name ?></option>
+                    </select>
+                </div>
+
+                <!-- sub kategory -->
+                <div class="form-group">
+                    <label> Sub Kategori :</label>
+                    <select class="form-control select-search" data-container-css-class="select-sm" data-placeholder="Pilih Sub Kategori" required data-fouc name="id_sub_category" id="id_sub_category">
+                        <option value="<?= $data->id_sub_category ?>" selected><?= $data->e_sub_category_name ?></option>
+                    </select>
+                </div> 
+
                 <div class="form-group">
                     <label><?= $this->lang->line('Kode Barang'); ?> :</label>
                     <input type="hidden" name="iproductold" value="<?= $data->i_product; ?>">

@@ -32,7 +32,7 @@
                         ?>
                             <tr>
                                 <td class="font-weight-bold"><i class="icon-file-pdf text-danger"></i> <?= $file->e_file_name; ?></td>
-                                <td class="text-right"><? 
+                                <td class="text-right"><?php
                                 if (file_exists($file->file_path . $file->e_file_name)) {
                                     echo formatSize($file->file_path, $file->e_file_name); 
                                 } else {

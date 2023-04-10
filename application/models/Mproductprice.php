@@ -41,6 +41,7 @@ class Mproductprice extends CI_Model {
                         initcap(b.e_product_name) AS e_product,
                         e.e_brand_name,
                         a.v_price,
+                        a.e_periode,
                     CASE
                         WHEN a.d_update ISNULL THEN to_char(a.d_entry, 'dd-mm-yyyy HH12:MI:SS')
                         ELSE to_char(a.d_update, 'dd-mm-yyyy HH12:MI:SS')
@@ -78,6 +79,7 @@ class Mproductprice extends CI_Model {
         });
                
         $datatables->hide('id_customer');
+        $datatables->hide('d_update');
         return $datatables->generate();
     }
 
@@ -205,6 +207,9 @@ class Mproductprice extends CI_Model {
         $id_customer  = $this->input->post('id_customer', TRUE);
         $id_product   = $this->input->post('id_product', TRUE);
         $vprice     = $this->input->post('vprice', TRUE);
+        $e_periode_year = $this->input->post('e_periode_year', TRUE);
+        $e_periode_month = $this->input->post('e_periode_month', TRUE);
+        $e_periode = $e_periode_year . $e_periode_month;
 
         /** sterilize formatted number */
         $vprice = str_replace(".", "", $vprice);
@@ -215,6 +220,7 @@ class Mproductprice extends CI_Model {
             'id_customer' => $id_customer,
             'v_price' => $vprice,
             'd_entry' => current_datetime(),
+            'e_periode' => $e_periode
         );
         
         $this->db->insert('tr_customer_price', $product);
@@ -225,6 +231,9 @@ class Mproductprice extends CI_Model {
         $id = $this->input->post('id');
         $id_customer = $this->input->post('id_customer', TRUE);
         $id_product = $this->input->post('id_product', TRUE);
+        $e_periode_year = $this->input->post('e_periode_year', TRUE);
+        $e_periode_month = $this->input->post('e_periode_month', TRUE);
+        $e_periode = $e_periode_year . $e_periode_month;
         
         $vprice = $this->input->post('vprice', TRUE);
         /** sterilize formatted number */
@@ -236,6 +245,7 @@ class Mproductprice extends CI_Model {
             'v_price'=> $vprice,
             'd_update' => $dupdate,
             'id_customer' => $id_customer,
+            'e_periode' => $e_periode,
             'id_product' => $id_product
         ];
 
@@ -267,7 +277,7 @@ class Mproductprice extends CI_Model {
         return $this->db->query($sql, FALSE);
     }
 
-    public function export_data_by_user_cover($id_customer)
+    public function export_data_by_user_cover($id_customer, $e_periode)
     {
         $id_user = $this->session->userdata('id_user');
 
@@ -291,9 +301,9 @@ class Mproductprice extends CI_Model {
             ORDER BY 4, 1";
 
         $sql_product_price = "WITH CTE AS ($sql_product) 
-            SELECT CTE.brand, CTE.id, CTE.i_product, CTE.e_name, v_price 
+            SELECT CTE.brand, CTE.id, CTE.i_product, CTE.e_name, v_price
             FROM tr_customer_price tcp
-            RIGHT JOIN CTE ON CTE.id = tcp.id_product AND CTE.id_customer = tcp.id_customer";
+            RIGHT JOIN CTE ON CTE.id = tcp.id_product AND CTE.id_customer = tcp.id_customer AND tcp.e_periode='$e_periode'";
 
         // var_dump($sql_product_price); die();
 
@@ -313,9 +323,11 @@ class Mproductprice extends CI_Model {
 
     }
 
-    public function is_customer_price_exist($id_product, $id_customer)
+    public function is_customer_price_exist($id_product, $id_customer, $e_periode)
     {
-        $sql = "SELECT * FROM tr_customer_price WHERE id_product = '$id_product' AND id_customer = '$id_customer'";
+        $sql = "SELECT * FROM tr_customer_price WHERE id_product = '$id_product' 
+                AND id_customer = '$id_customer'
+                AND e_periode = '$e_periode'";
         $query = $this->db->query($sql);
         return $query->num_rows() > 0;
     }

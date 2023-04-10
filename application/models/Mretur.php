@@ -14,7 +14,8 @@ class Mretur extends CI_Model {
                 d_retur,
                 e_remark,
                 d_approve,
-                f_status
+                f_status,
+                e_periode_valid_edit
             FROM
                 tm_pembelian_retur
             WHERE 
@@ -66,6 +67,21 @@ class Mretur extends CI_Model {
             $cek        = $bulan-$month;
             $approve         = trim($data['d_approve']);
             $status     = $data['f_status'];
+            $e_periode_valid_edit = $data['e_periode_valid_edit'];
+
+            /** can edit dalam periode bulan berjalan */
+            $can_edit = false; 
+            $periode_now = date('Ym');
+            $periode_doc = date('Ym', strtotime($ddocument));
+            
+            if ($e_periode_valid_edit < $periode_doc) {
+                $can_edit = true;
+            }
+
+            if ($periode_doc == $periode_now) {
+                $can_edit = true;
+            } 
+
             $data       = '';
 
             $level = $this->mymodel->cek_level($this->id_user)->row();
@@ -79,17 +95,20 @@ class Mretur extends CI_Model {
                 $data      .= "<a href='" . base_url() . $this->folder . '/view/' . encrypt_url($id) . "' title='Lihat Data'><i class='icon-database-check text-success-800'></i></a>";
             }
 
-            if (check_role($this->id_menu, 3) && $status=='t' && $approve =='') {
-                if($month == $bulan && $ddocument <= $batas && $tgl <= $batas){
-                $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";
-                }
-                else if($cek == 1 && $tgl <= $batas){
-                $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";    
-                }
-                else if($ddocument > $batas){
-                $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";    
-                }
-            }        
+            // if (check_role($this->id_menu, 3) && $status=='t' && $approve =='') {
+            //     if($month == $bulan && $ddocument <= $batas && $tgl <= $batas){
+            //     $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";
+            //     }
+            //     else if($cek == 1 && $tgl <= $batas){
+            //     $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";    
+            //     }
+            //     else if($ddocument > $batas){
+            //     $data      .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";    
+            //     }
+            // } 
+            if (check_role($this->id_menu, 3) && $status=='t' && $approve =='' && $can_edit) {
+                    $data .= "<a href='".base_url().$this->folder.'/edit/'.encrypt_url($id)."' title='Edit Data'><i class='icon-database-edit2 ml-1 text-".$this->color."-800'></i></a>";
+            }
             
             if (check_role($this->id_menu, 4) && $status=='t' && $approve == '') {
                 if($month == $bulan && $ddocument <= $batas && $tgl <= $batas){
@@ -104,6 +123,9 @@ class Mretur extends CI_Model {
             }
             return $data;
         });
+
+        $datatables->hide('e_periode_valid_edit');
+
         return $datatables->generate();
     }
 
@@ -414,7 +436,7 @@ class Mretur extends CI_Model {
         };
     }
 
-    public function insert_header($i_document, $d_retur, $id_customer, $e_remark, $id_user=null, $id_company)
+    public function insert_header($i_document, $d_retur, $id_customer, $e_remark, $id_user=null, $id_company, $e_periode_valid_edit)
     {
         if ($id_user == null) {
             $id_user = $this->session->userdata('id_user');
@@ -426,7 +448,8 @@ class Mretur extends CI_Model {
             'id_customer' => $id_customer,
             'e_remark' => $e_remark,
             'id_user' => $id_user,
-            'id_company' => $id_company
+            'id_company' => $id_company,
+            'e_periode_valid_edit' => $e_periode_valid_edit
         ];
         $this->db->insert('tm_pembelian_retur', $data);
     }

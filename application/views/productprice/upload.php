@@ -18,7 +18,7 @@
 
             <div class="card-body">
                 <div class="form-group row">
-                    <div class="col-md-12">
+                    <div class="col-md-6">
                         <label><?= $this->lang->line('Nama Toko'); ?> :</label>
                         <select class="form-control select" name="id_customer" id="id_customer" required data-fouc data-placeholder="<?= $this->lang->line('Nama Toko'); ?>">
                             <option value=""></option>
@@ -28,6 +28,35 @@
                             <?php }
                             } ?>
                         </select>
+                    </div>
+                    <div class="col-6">
+                        <label>Periode:</label>
+                        <div class="input-group row">
+                            <div class="col-4">
+                                <select class="form-control" title="Select a year" name="e_periode_year" id="e_periode_year">
+                                    <?php /** create last 3 years previous from current year */ 
+                                    $current_year = intval(date('Y'));
+                                    $last3 = $current_year - 3;
+                                    for ($i=$current_year; $i>$last3; $i--) {
+                                        echo "<option value='$i'>$i</option>";
+                                    }                                    
+                                    ?>
+                                </select>
+                            </div>
+                            <div class="col-2">
+                                <select class="form-control" title="Select a month" name="e_periode_month" id="e_periode_month">
+                                    <?php 
+                                    $current_month = intval(date('m'));
+                                    $months = getMonthShort();
+                                    
+                                    foreach ($months as $month => $value) {
+                                        $selected = (intval($month) == $current_month) ? 'selected' : '';
+                                        echo "<option value='$month' $selected>$value</option>";
+                                    }   
+                                    ?>
+                                </select>
+                            </div>
+                        </div>                        
                     </div>
                 </div>
 

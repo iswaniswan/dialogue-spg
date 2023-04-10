@@ -133,12 +133,14 @@ class Mcustom extends CI_Model {
         $sql = "SELECT 
                     ti.id,
                     e_izin_name,
-                    ti.d_entry
+                    ti.d_entry,
+                    tu.e_nama
                 FROM tm_izin ti
                 INNER JOIN tr_jenis_izin tji ON tji.id = ti.id_jenis_izin
+                INNER JOIN tm_user tu ON tu.id_user = ti.id_user
                 WHERE ti.f_status = 't' 
                     AND d_approve IS NULL AND d_reject IS NULL 
-                    AND id_user IN (
+                    AND ti.id_user IN (
                                     SELECT id_user FROM tm_user WHERE id_atasan = '$current_user'
                                     )";
 

@@ -466,3 +466,51 @@ function get_notification_pending_izin()
 		$query = $ci->Mcustom->get_notification_pending_izin();
 	return $query;
 }
+
+function set_current_active_menu($menu)
+{
+	$_SESSION['active_menu'] = $menu;
+}
+
+function get_current_active_menu()
+{
+	return $_SESSION['active_menu'] ?? '';
+}
+
+function getBulan()
+{
+	$data = array(
+		"01" => "Januari",
+		"02" => "Februari",
+		"03" => "Maret",
+		"04" => "April",
+		"05" => "Mei",
+		"06" => "Juni",
+		"07" => "Juli",
+		"08" => "Agustus",
+		"09" => "September",
+		"10" => "Oktober",
+		"11" => "November",
+		"12" => "Desember",
+	);
+	return $data;
+}
+
+function getMonthShort()
+{
+	$data = array(
+		"01" => "Jan",
+		"02" => "Feb",
+		"03" => "Mar",
+		"04" => "Apr",
+		"05" => "May",
+		"06" => "Jun",
+		"07" => "Jul",
+		"08" => "Aug",
+		"09" => "Sept",
+		"10" => "Oct",
+		"11" => "Nov",
+		"12" => "Dec",
+	);
+	return $data;
+}

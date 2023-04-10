@@ -29,19 +29,58 @@
                     <select readonly class="form-control form-control-select2" data-container-css-class="select-sm" required data-fouc id="id_product" name="id_product">
                         <option value="<?= $data->id_product ?>"><?= $data->i_product . ' - ' . $data->e_product_name; ?></option>
                     </select>
-                </div>                
-                <div class="form-group">
-                    <label><?= $this->lang->line('Harga Barang'); ?> :</label>
-                    <div class="input-group mb-3">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text">Rp.</span>
+                </div>
+                
+                <div class="form-group row">
+                    <div class="col-6">
+                        <label><?= $this->lang->line('Harga Barang'); ?> :</label>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Rp.</span>
+                            </div>
+                            <input type="text" class="form-control" placeholder="<?= $this->lang->line('Harga Barang'); ?>" 
+                                    name="vprice" id="vprice" autocomplete="off" 
+                                    value="<?= number_format($data->v_price, 2, ",", ".") ?>" 
+                                    required>
                         </div>
-                        <input type="text" class="form-control" placeholder="<?= $this->lang->line('Harga Barang'); ?>" 
-                                name="vprice" id="vprice" autocomplete="off" 
-                                value="<?= number_format($data->v_price, 2, ",", ".") ?>" 
-                                required>
+                    </div>
+
+                    <?php $e_periode = $data->e_periode;
+                        $e_periode_year = substr($e_periode, 0, 4);
+                        $e_periode_month = substr($e_periode, 4, 2);
+                    ?>
+                    <div class="col-6">
+                        <label>Periode:</label>
+                        <div class="input-group row">
+                            <div class="col-4">
+                                <select class="form-control" title="Select a year" name="e_periode_year">
+                                    <?php /** create last 3 years previous from current year */ 
+                                    $current_year = intval(date('Y'));
+                                    $last3 = $current_year - 3;
+                                    for ($i=$current_year; $i>$last3; $i--) {
+                                        $selected = ($e_periode_year == $i) ? 'selected': '';
+                                        echo "<option value='$i' $selected>$i</option>";
+                                    }                                    
+                                    ?>
+                                </select>
+                            </div>
+                            <div class="col-2">
+                                <select class="form-control" title="Select a month" name="e_periode_month">
+                                    <?php 
+                                    $current_month = intval(date('m'));
+                                    $months = getMonthShort();
+                                    
+                                    foreach ($months as $month => $value) {
+                                        $selected = ($month == $e_periode_month) ? 'selected' : '';
+                                        echo "<option value='$month' $selected>$value</option>";
+                                    }   
+                                    ?>
+                                </select>
+                            </div>
+                        </div>                        
                     </div>
                 </div>
+
                 <div class="d-flex justify-content-start align-items-center">
                     <button type="button" id="submit" class="btn btn bg-<?= $this->color; ?> btn-sm"><i class="icon-paperplane"></i>&nbsp;
                         <?= $this->lang->line('Ubah'); ?></button>

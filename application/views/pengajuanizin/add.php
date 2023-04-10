@@ -21,9 +21,8 @@
                     <div class="col-6">
                         <div class="form-group">
                             <label>Nama :</label>
+                            <input type="hidden" name="id_user" value="<?= $_SESSION['id_user'] ?>">
                             <input type="text" class="form-control text-capitalize" 
-                                id="id_user" 
-                                name="id_user" 
                                 value="<?= $_SESSION['username'] ?>"
                                 readonly>
                         </div>

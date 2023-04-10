@@ -40,6 +40,23 @@
                         <option value=""></option>
                     </select>
                 </div>
+                 
+                <!-- kategori -->
+                <div class="form-group">
+                    <label>Kategori :</label>
+                    <select class="form-control select-search" data-container-css-class="select-sm" data-placeholder="Pilih Kategori" required data-fouc name="id_category" id="id_category">
+                        <option value=""></option>
+                    </select>
+                </div>
+
+                <!-- sub kategory -->
+                <div class="form-group">
+                    <label> Sub Kategori :</label>
+                    <select class="form-control select-search" data-container-css-class="select-sm" data-placeholder="Pilih Sub Kategori" required data-fouc name="id_sub_category" id="id_sub_category">
+                        <option value=""></option>
+                    </select>
+                </div>    
+                
                 <div class="form-group">
                     <label><?= $this->lang->line('Kode Barang'); ?> :</label>
                     <input type="text" class="form-control text-uppercase" placeholder="<?= $this->lang->line('Kode Barang'); ?>" name="iproduct" maxlength="15" autocomplete="off" required autofocus>
@@ -51,8 +68,9 @@
                 <div class="form-group">
                     <label><?= $this->lang->line('Nama Grup'); ?> :</label>
                     <input type="text" class="form-control text-capitalize" placeholder="<?= $this->lang->line('Nama Grup'); ?>" name="egroup" maxlength="50" autocomplete="off" required>
-                </div>                
-                <div class="d-flex justify-content-start align-items-center">
+                </div>                 
+
+                <div class="d-flex justify-content-start align-items-center mt-5">
                     <button type="button" id="submit" class="btn btn bg-<?= $this->color; ?> btn-sm"><i class="icon-paperplane"></i>&nbsp;
                         <?= $this->lang->line('Simpan'); ?></button>
                     <a href="<?= base_url($this->folder); ?>" class="btn btn bg-danger btn-sm ml-1"><i class="icon-arrow-left16"></i>&nbsp; <?= $this->lang->line('Kembali'); ?></a>

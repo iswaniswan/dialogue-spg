@@ -193,9 +193,15 @@ document.addEventListener("DOMContentLoaded", function() {
         if ($('#id_customer').val() == '') {
             swalInit("Maaf :(", "Pilih Toko Terlebih Dahulu :)", "error");
             return false;
-        } else {
-            $('#href').attr('href', base_url + '/productprice/export/' + $('#id_customer').val());
-            return true;
         }
+
+        const idCustomer = $('#id_customer').val();
+
+        const periodeYear = $('#e_periode_year').val();
+        const periodeMonth = $('#e_periode_month').val();
+        const ePeriode = `${periodeYear}${periodeMonth}`;
+
+        $('#href').attr('href', base_url + '/productprice/export/'+idCustomer + '/' + ePeriode);
+        return;
     });
 });
