@@ -116,7 +116,10 @@ function dataTableUpload(link, column, linkdata, color) {
 }
 
 document.addEventListener("DOMContentLoaded", function() {
-    var controller = $("#path").val() + "/serverside";
+    var e_periode = $('input[name="e_periode"]').val();
+    e_periode = e_periode.replace(" ", "");
+    
+    var controller = $("#path").val() + "/serverside/" + e_periode;
     var link = $("#path").val();
     var linkadd = $("#path").val() + "/add";
     var column = 8;
@@ -128,4 +131,12 @@ document.addEventListener("DOMContentLoaded", function() {
     } else {
         datatable(controller, column);
     }
+
+    $('.month-picker').datepicker({
+        format: "yyyy mm",
+        viewMode: "months", 
+        minViewMode: "months"
+    }).change(function() {
+        console.log($(this).val())
+    });
 });

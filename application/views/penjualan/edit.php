@@ -89,19 +89,19 @@
                             <table class="table table-columned table-bordered table-xs" id="tablecover" style="width: 1200px;">
                                 <thead>
                                     <tr class="alpha-<?= $this->color; ?> text-<?= $this->color; ?>-600">
-                                        <th class="text-center" style="width:15px;" rowspan="2">#</th>
-                                        <th style="width:350px;" rowspan="2">Barang</th>
-                                        <th style="width:75px;" rowspan="2">Qty</th>
-                                        <th style="width:75px;" rowspan="2">Disc (%)</th>
-                                        <th style="width:auto;" class="text-center" colspan="4">Harga</th>
+                                    <th class="text-center" style="width:15px;" rowspan="2">#</th>
+                                        <th style="width:450px;" rowspan="2">Barang</th>
+                                        <th style="min-width:100px;" rowspan="2">Qty</th>
+                                        <th style="min-width:100px;" rowspan="2">Disc (%)</th>
+                                        <th style="background:#f1f1f1;" class="text-center" colspan="4">Harga</th>
                                         <th style="width:100px;" rowspan="2">Keterangan</th>
                                         <th style="width:15px;" rowspan="2"><i id="addrow" title="Tambah Baris" class="icon-plus-circle2"></i></th>
                                     </tr>
                                     <tr>
-                                        <th class="text-center">Satuan</th>
-                                        <th class="text-center">Total</th>
-                                        <th class="text-center">Diskon</th>
-                                        <th class="text-center">Akhir</th>
+                                        <th class="text-center" style="min-width: 150px">Satuan</th>
+                                        <th class="text-center" style="min-width: 150px">Total</th>
+                                        <th class="text-center" style="min-width: 150px">Diskon</th>
+                                        <th class="text-center" style="min-width: 150px">Akhir</th>
                                     </tr>
                                 </thead>
                                 <tbody>

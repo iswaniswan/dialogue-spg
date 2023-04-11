@@ -101,4 +101,12 @@ $(document).ready(function() {
         $('#id_product').val('');
         $('#id_product').trigger('change.select2');
     });
+
+    $('.month-picker').datepicker({
+        format: "yyyy mm",
+        viewMode: "months", 
+        minViewMode: "months"
+    }).change(function() {
+        console.log($(this).val())
+    });
 })  

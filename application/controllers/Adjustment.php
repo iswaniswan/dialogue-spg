@@ -45,7 +45,7 @@ class Adjustment extends CI_Controller
 				'global_assets/js/plugins/forms/selects/select2.min.js',
 				'global_assets/js/plugins/pickers/pickadate/picker.js',
 				'global_assets/js/plugins/pickers/pickadate/picker.date.js',
-				'assets/js/' . $this->folder . '/index.js',
+				'assets/js/' . $this->folder . '/index.js?v=' . strtotime(date('Y-m-d H:i:s')),
 			)
 		);
 
@@ -106,7 +106,7 @@ class Adjustment extends CI_Controller
 				'global_assets/js/plugins/forms/selects/select2.min.js',
 				'global_assets/js/plugins/pickers/pickadate/picker.js',
 				'global_assets/js/plugins/pickers/pickadate/picker.date.js',
-				'assets/js/' . $this->folder . '/add.js',
+				'assets/js/' . $this->folder . '/add.js?v=' . strtotime(date('Y-m-d H:i:s')),
 			)
 		);
 
@@ -327,7 +327,7 @@ class Adjustment extends CI_Controller
 				'global_assets/js/plugins/forms/selects/select2.min.js',
 				'global_assets/js/plugins/pickers/pickadate/picker.js',
 				'global_assets/js/plugins/pickers/pickadate/picker.date.js',
-				'assets/js/' . $this->folder . '/edit.js',
+				'assets/js/' . $this->folder . '/edit.js?v=' . strtotime(date('Y-m-d H:i:s')),
 			)
 		);
 
@@ -454,7 +454,7 @@ class Adjustment extends CI_Controller
 				'global_assets/js/plugins/forms/selects/select2.min.js',
 				'global_assets/js/plugins/pickers/pickadate/picker.js',
 				'global_assets/js/plugins/pickers/pickadate/picker.date.js',
-				'assets/js/' . $this->folder . '/edit.js',
+				'assets/js/' . $this->folder . '/edit.js?v=' . strtotime(date('Y-m-d H:i:s')),
 			)
 		);
 
@@ -483,7 +483,7 @@ class Adjustment extends CI_Controller
 				'global_assets/js/plugins/forms/selects/select2.min.js',
 				'global_assets/js/plugins/pickers/pickadate/picker.js',
 				'global_assets/js/plugins/pickers/pickadate/picker.date.js',
-				'assets/js/' . $this->folder . '/edit.js',
+				'assets/js/' . $this->folder . '/edit.js?v=' . strtotime(date('Y-m-d H:i:s')),
 			)
 		);
 

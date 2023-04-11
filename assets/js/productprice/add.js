@@ -178,5 +178,13 @@ $(document).ready(function() {
         console.log($(this).val());
     })
 
+    $('.month-picker').datepicker({
+        format: "yyyy mm",
+        viewMode: "months", 
+        minViewMode: "months"
+    }).change(function() {
+        console.log($(this).val())
+    });
+
 })  
 

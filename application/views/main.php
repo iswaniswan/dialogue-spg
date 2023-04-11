@@ -16,7 +16,8 @@
     <link href="<?= base_url(); ?>assets/css/components.min.css" rel="stylesheet" type="text/css">
     <link href="<?= base_url(); ?>assets/css/colors.min.css" rel="stylesheet" type="text/css">
     <link href="<?= base_url(); ?>assets/css/global.css" rel="stylesheet" type="text/css">
-    <link href="<?= base_url(); ?>global_assets/css/bootstrap4-editable/bootstrap-editable.css" rel="stylesheet" type="text/css">
+    <?php /* <link href="<?= base_url(); ?>global_assets/css/bootstrap4-editable/bootstrap-editable.css" rel="stylesheet" type="text/css"> */ ?>
+    <link href="<?= base_url(); ?>global_assets/js/plugins/datepicker/css/datepicker.css" rel="stylesheet" type="text/css">
     <!-- /global stylesheets -->
 
     <!-- assets css -->

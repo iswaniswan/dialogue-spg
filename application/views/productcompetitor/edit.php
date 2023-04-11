@@ -18,16 +18,16 @@
             <form class="form-validation">
                 <input type="hidden" name="id" value="<?= $data->id ?>" />
                 <div class="form-group">
-                    <label><?= $this->lang->line('Nama Barang'); ?> :</label>
+                    <label>Customer :</label>
                     <select class="form-control select-search" 
                             data-container-css-class="select-sm" 
                             data-container-css-class="text-<?= $this->color; ?>" 
-                            data-placeholder="<?= $this->lang->line('Product'); ?>" 
-                            data-fouc name="id_product" id="id_product" required>
-                        <option value="<?= $data->id_product ?>" selected><?= $data->e_product_name ?></option>
+                            data-placeholder="customer" 
+                            data-fouc name="id_customer" id="id_customer" required>
+                        <option value="<?= $data->id_customer ?>" selected><?= $data->e_customer_name ?></option>
                     </select>                    
                 </div>
-
+                
                 <div class="form-group">
                     <label><?= $this->lang->line('Nama Brand'); ?> :</label>
                     <select class="form-control select-search" 
@@ -40,15 +40,37 @@
                 </div>
 
                 <div class="form-group">
-                    <label><?= $this->lang->line('Harga Barang'); ?> :</label>
-                    <div class="input-group mb-3">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text">Rp.</span>
+                    <label><?= $this->lang->line('Nama Barang'); ?> :</label>
+                    <select class="form-control select-search" 
+                            data-container-css-class="select-sm" 
+                            data-container-css-class="text-<?= $this->color; ?>" 
+                            data-placeholder="<?= $this->lang->line('Product'); ?>" 
+                            data-fouc name="id_product" id="id_product" required>
+                        <option value="<?= $data->id_product ?>" selected><?= $data->e_product_name ?></option>
+                    </select>                    
+                </div>
+
+                <div class="form-group row">
+                    <div class="col-6">
+                        <label><?= $this->lang->line('Harga Barang'); ?> :</label>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Rp.</span>
+                            </div>
+                            <input type="text" class="form-control" placeholder="<?= $this->lang->line('Harga Barang'); ?>" 
+                                name="vprice" id="vprice" autocomplete="off" 
+                                value="<?= number_format($data->v_price, 0, ",", ".") ?>"
+                                required>
                         </div>
-                        <input type="text" class="form-control" placeholder="<?= $this->lang->line('Harga Barang'); ?>" 
-                            name="vprice" id="vprice" autocomplete="off" 
-                            value="<?= $data->v_price ?>"
-                            required>
+                    </div>
+                    <div class="col-6">
+                        <label>Periode :</label>
+                        <?php $e_periode = $data->e_periode; 
+                            $year = substr($e_periode, 0, 4);
+                            $month = substr($e_periode, 4, 2);
+                            $e_periode_value = "$year $month";
+                        ?>
+                        <input class="form-control datepicker month-picker" name="e_periode" value="<?= $e_periode_value ?>"></input>
                     </div>
                 </div>
 

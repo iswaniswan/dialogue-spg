@@ -7,12 +7,14 @@ var adjustment = (function() {
 
         // Accessibility labels
         var today = new Date();
-        var date =
-            today.getFullYear() +
-            "," +
-            (today.getMonth() + 1) +
-            "," +
-            today.getDate();
+        var _year = today.getFullYear();
+        var _month = today.getMonth();
+        var _date = today.getDate();
+
+        var currentDate = [_year, _month, _date];
+
+        const minDate = [_year, _month, 01];
+
         $(".date").pickadate({
             labelMonthNext: "Go to the next month",
             labelMonthPrev: "Go to the previous month",
@@ -22,8 +24,8 @@ var adjustment = (function() {
             selectYears: true,
             formatSubmit: "yyyy-mm-dd",
             format: "yyyy-mm-dd",
-            min: [2022, 1, 1],
-            max: [date],
+            min: minDate,
+            max: currentDate,
         });
     };
 

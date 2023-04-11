@@ -73,13 +73,22 @@ class ProductCompetitor extends CI_Controller
 	public function get_brand()
 	{
 		$filter = [];
-		$data = $this->mymodel->get_brand(str_replace("'", "", $this->input->get('q')));
-		foreach ($data->result() as $row) {
-			$filter[] = array(
-				'id'   => $row->id,
-				'text' => ucwords(strtolower($row->e_name)),
-			);
+		$cari = str_replace("'", "", $this->input->get('q'));
+		$id_customer = $this->input->get('id_customer');
+		
+		if ($id_customer != null) {
+
+			$id_user_customer = $this->mymodel->get_id_user_customer($id_customer);
+
+			$data = $this->mymodel->get_brand($cari, $id_user_customer);
+			foreach ($data->result() as $row) {
+				$filter[] = array(
+					'id'   => $row->id,
+					'text' => ucwords(strtolower($row->e_name)),
+				);
+			}
 		}
+
 		echo json_encode($filter);
 	}
 
@@ -98,7 +107,9 @@ class ProductCompetitor extends CI_Controller
 				'global_assets/js/plugins/forms/validation/validate.min.js',
 				'global_assets/js/plugins/forms/styling/uniform.min.js',
 				'global_assets/js/plugins/forms/selects/select2.min.js',
-				'assets/js/' . $this->folder . '/add.js',
+				'global_assets/js/plugins/forms/selects/select2.min.js',
+				'global_assets/js/plugins/datepicker/js/bootstrap-datepicker.js',
+				'assets/js/' . $this->folder . '/add.js?v=' . strtotime(date('Y-m-d H:i:s')),
 			)
 		);
 
@@ -360,12 +371,14 @@ class ProductCompetitor extends CI_Controller
 		echo json_encode($filter);
 	}
 
-	public function get_all_product_list()
+	public function get_product()
 	{
 		$filter = [];
 		$cari	= str_replace("'", "", $this->input->get('q'));
+		$id_customer = $this->input->get('id_customer');
+		$id_brand = $this->input->get('id_brand');
 		
-		$data = $this->mymodel->get_all_product_list($cari);
+		$data = $this->mymodel->get_product($cari, $id_customer, $id_brand);
 
 		foreach ($data->result() as $row) {
 			$filter[] = array(

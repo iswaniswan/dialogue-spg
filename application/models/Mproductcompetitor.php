@@ -2,6 +2,7 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 use Ozdemir\Datatables\Datatables;
 use Ozdemir\Datatables\DB\CodeigniterAdapter;
+use phpDocumentor\Reflection\Types\Null_;
 
 class Mproductcompetitor extends CI_Model {
 
@@ -17,24 +18,26 @@ class Mproductcompetitor extends CI_Model {
         $datatables = new Datatables(new CodeigniterAdapter);
 
         $sql = "SELECT a.id, 
+                    initcap(c2.e_customer_name) AS e_customer_name,
                     initcap(b.e_product_name) AS e_product_name,
                     initcap(c.e_brand_name) AS e_brand_name,
-                    a.f_status,
                     a.v_price,
+                    a.f_status,
                     CASE 
                         WHEN a.d_update ISNULL THEN to_char(a.d_entry, 'dd-mm-yyyy HH12:MI:SS') 
                         ELSE to_char(a.d_update, 'dd-mm-yyyy HH12:MI:SS') 
                     END AS d_update
                 FROM tm_product_competitor a
                 INNER JOIN tr_product b on b.id = a.id_product
-                left JOIN tr_brand c ON c.id_brand = a.id_brand
+                INNER JOIN tr_customer c2 ON c2.id_customer = a.id_customer
+                LEFT JOIN tr_brand c ON c.id_brand = a.id_brand
                 ORDER BY b.e_product_name ASC";
 
         $datatables->query($sql, FALSE);
 
         $datatables->edit('v_price', function ($data) {
             $prefix = 'Rp. ';
-            return $prefix . number_format($data['v_price'], 2, ".", ",");
+            return $prefix . number_format($data['v_price'], 0, ".", ",");
         });
 
         $datatables->edit('f_status', function ($data) {
@@ -60,7 +63,7 @@ class Mproductcompetitor extends CI_Model {
             return $data;
         });
 
-        $datatables->hide('f_status');
+        // $datatables->hide('f_status');
 
         return $datatables->generate();
     }
@@ -110,19 +113,19 @@ class Mproductcompetitor extends CI_Model {
     }
 
     /** Get Data Brand */
-    public function get_brand($cari)
+    public function get_brand($cari, $id_user_customer)
     {
-        return $this->db->query("
-            SELECT 
-                id_brand AS id,
-                e_brand_name AS e_name
-            FROM 
-                tr_brand 
-            WHERE 
-                (e_brand_name ILIKE '%$cari%')
-                AND f_status = 't'
-            ORDER BY 2
-        ", FALSE);
+        $sql_cover = "SELECT id_brand FROM tm_user_brand tub WHERE id_user_customer='$id_user_customer'";
+
+        $sql ="SELECT id_brand AS id,
+                    e_brand_name AS e_name
+                FROM tr_brand 
+                WHERE id_brand IN ($sql_cover)
+                    AND (e_brand_name ILIKE '%$cari%')
+                    AND f_status = 't'
+                ORDER BY 2";
+
+        return $this->db->query($sql);
     }
 
     /** Get Data Company */
@@ -169,11 +172,20 @@ class Mproductcompetitor extends CI_Model {
     /** Simpan Data */
     public function save()
     {
+        $v_price = $this->input->post('vprice', TRUE);
+        $v_price = str_replace(".", "", $v_price);
+        $v_price = str_replace(",", "", $v_price);
+
+        $e_periode = $this->input->post('e_periode') ?? null;
+        $e_periode = str_replace(" ", "", $e_periode);        
+
         $table = array(
+            'id_customer' => $this->input->post('id_customer'),
             'id_product' => $this->input->post('id_product', TRUE),
             'id_brand' => $this->input->post('id_brand', TRUE),
-            'v_price' => $this->input->post('vprice', TRUE),
+            'v_price' => $v_price,
             'e_remark' => $this->input->post('e_remark', TRUE),
+            'e_periode' => $e_periode
         );
         
         $this->db->insert('tm_product_competitor', $table);
@@ -182,10 +194,13 @@ class Mproductcompetitor extends CI_Model {
     /** Get Data Untuk Edit */
     public function getdata($id,$icompany=null)
     {
-        $sql = "SELECT a.*, a1.id_product, a1.id_brand, a1.v_price, a1.e_remark, b.e_brand_name
+        $sql = "SELECT a1.id, a1.id_product, a1.id_brand, a1.v_price, a1.e_remark, b.e_brand_name,
+                        a1.e_periode, c.id_customer, c.e_customer_name,
+                        a.e_product_name
                 FROM tm_product_competitor a1
                 INNER JOIN tr_product a ON a.id = a1.id_product
                 INNER JOIN tr_brand b ON b.id_brand = a.id_brand
+                INNER JOIN tr_customer c ON c.id_customer = a1.id_customer
                 WHERE a1.id = '$id'";
 
         return $this->db->query($sql, FALSE);
@@ -211,12 +226,21 @@ class Mproductcompetitor extends CI_Model {
     public function update()
     {
         $id = $this->input->post('id');
+        
+        $v_price = $this->input->post('vprice', TRUE);
+        $v_price = str_replace(".", "", $v_price);
+        $v_price = str_replace(",", "", $v_price);
+
+        $e_periode = $this->input->post('e_periode');
+        $e_periode = str_replace(" ", "", $e_periode);
 
         $table = [
+            'id_customer' => $this->input->post('id_customer'),
             'id_product' => $this->input->post('id_product', TRUE),
             'id_brand' => $this->input->post('id_brand', TRUE),
-            'v_price' => $this->input->post('vprice', TRUE),
+            'v_price' => $v_price,
             'e_remark' => $this->input->post('e_remark', TRUE),
+            'e_periode' => $e_periode
         ];
 
         $this->db->where('id', $id);
@@ -372,21 +396,53 @@ class Mproductcompetitor extends CI_Model {
 
         return $this->db->query($sql, FALSE);
     }
-
-    public function get_all_product_list($cari='')
+    
+    public function get_product($cari='', $id_customer, $id_brand=null)
     {
-        $limit = "LIMIT 5";
-        if ($cari != '') {
+        $id_user = $this->session->userdata('id_user');
+
+        $limit = 'LIMIT 5';
+        if (($cari != '')) {
             $limit = "";
         }
 
-        $sql = "SELECT a.id, a.e_product_name, a.id_brand, b.e_brand_name
-                FROM tr_product a
-                INNER JOIN tr_brand b ON b.id_brand = a.id_brand
-                WHERE (a.e_product_name ILIKE '%$cari%') AND a.f_status = 't' 
-                $limit";
+        $sql_brand_cover = "SELECT tub.id_brand
+                            FROM tm_user_brand tub						
+                            WHERE id_user_customer = (
+                                            SELECT id
+                                            FROM tm_user_customer
+                                            WHERE id_user = '$id_user' AND id_customer = '$id_customer'
+                                        )";
 
-        return $this->db->query($sql);
+        if ($id_brand != null) {
+            $sql_brand_cover = $id_brand;
+        }                                        
+
+        $sql = "SELECT a.id,
+                i_product,
+                e_product_name,
+                a.id_brand,
+                b.e_brand_name
+            FROM tr_product a
+            INNER JOIN tr_brand b ON b.id_brand = a.id_brand
+            WHERE (e_product_name ILIKE '%$cari%' OR i_product ILIKE '%$cari%')
+                AND a.f_status = 't'
+                AND a.id_brand IN ($sql_brand_cover)
+            ORDER BY 4,1
+            $limit";
+
+        // var_dump($sql); die();
+
+        return $this->db->query($sql, FALSE);
+    }
+
+    public function get_id_user_customer($id_customer) 
+    {
+        $id_user = $this->session->userdata('id_user');
+
+        $sql = "SELECT * FROM tm_user_customer WHERE id_user='$id_user' AND id_customer='$id_customer'";
+
+        return $this->db->query($sql)->row()->id;
     }
 }
 

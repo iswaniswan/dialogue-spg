@@ -18,12 +18,12 @@
         <div class="card-body">
             <form class="form-validation">
                 <div class="form-group">
-                    <label><?= $this->lang->line('Nama Barang'); ?> :</label>
+                    <label>Customer :</label>
                     <select class="form-control select-search" 
                             data-container-css-class="select-sm" 
                             data-container-css-class="text-<?= $this->color; ?>" 
-                            data-placeholder="<?= $this->lang->line('Product'); ?>" 
-                            data-fouc name="id_product" id="id_product" required>
+                            data-placeholder="customer" 
+                            data-fouc name="id_customer" id="id_customer" required>
                         <option value=""></option>
                     </select>                    
                 </div>
@@ -40,12 +40,29 @@
                 </div>
 
                 <div class="form-group">
-                    <label><?= $this->lang->line('Harga Barang'); ?> :</label>
-                    <div class="input-group mb-3">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text">Rp.</span>
+                    <label><?= $this->lang->line('Nama Barang'); ?> :</label>
+                    <select class="form-control select-search" 
+                            data-container-css-class="select-sm" 
+                            data-container-css-class="text-<?= $this->color; ?>" 
+                            data-placeholder="<?= $this->lang->line('Product'); ?>" 
+                            data-fouc name="id_product" id="id_product" required>
+                        <option value=""></option>
+                    </select>                    
+                </div>
+
+                <div class="form-group row">
+                    <div class="col-6">
+                        <label><?= $this->lang->line('Harga Barang'); ?> :</label>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Rp.</span>
+                            </div>
+                            <input type="text" class="form-control" placeholder="<?= $this->lang->line('Harga Barang'); ?>" name="vprice" id="vprice" autocomplete="off" required>
                         </div>
-                        <input type="text" class="form-control" placeholder="<?= $this->lang->line('Harga Barang'); ?>" name="vprice" id="vprice" autocomplete="off" required>
+                    </div>
+                    <div class="col-6">
+                        <label>Periode :</label>
+                        <input class="form-control datepicker month-picker" name="e_periode"></input>
                     </div>
                 </div>
 

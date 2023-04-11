@@ -285,10 +285,16 @@ class Mpenjualan extends CI_Model {
         return $this->db->query($sql, FALSE);
     }
 
-    public function get_product_price($id_product, $id_customer)
+    public function get_product_price($id_product, $id_customer, $e_periode=null)
     {
+        if ($e_periode == null) {
+            $e_periode = date('Ym');
+        }
+
         $sql = "SELECT * FROM tr_customer_price 
-                WHERE id_product = '$id_product' AND id_customer = '$id_customer'";
+                WHERE id_product = '$id_product' 
+                    AND id_customer = '$id_customer' 
+                    AND e_periode = '$e_periode'";
 
         return $this->db->query($sql);
     }

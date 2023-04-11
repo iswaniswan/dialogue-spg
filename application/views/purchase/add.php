@@ -114,13 +114,13 @@
                             <table class="table table-columned table-bordered table-xs" id="tablecover">
                                 <thead>
                                     <tr class="alpha-<?= $this->color; ?> text-<?= $this->color; ?>-600">
-                                        <th class="text-center" width="3%;">#</th>
-                                        <th width="40%;">Barang</th>
-                                        <th width="15%;">Qty</th>
+                                        <th class="text-center" width="55px">#</th>
+                                        <th width="auto;">Barang</th>
+                                        <th width="150px;">Qty</th>
                                         <!-- <th width="15%;">Disc (%)</th> -->
-                                        <th width="20%;">Harga</th>
-                                        <th width="20%;">Total</th>
-                                        <th width="3%;"><i id="addrow" title="Tambah Baris" class="icon-plus-circle2"></i></th>
+                                        <th width="160px;">Harga</th>
+                                        <th width="180px;">Total</th>
+                                        <th width="55px"><i id="addrow" title="Tambah Baris" class="icon-plus-circle2"></i></th>
                                     </tr>
                                 </thead>
                                 <tbody>

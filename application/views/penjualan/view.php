@@ -102,7 +102,7 @@
                                         <th style="width:300px;" rowspan="2">Nama Barang</th>
                                         <th style="width:100px;" rowspan="2">Qty</th>
                                         <th style="width:100px;" rowspan="2">Disc (%)</th>
-                                        <th style="width:auto;" class="text-center" colspan="4">Harga</th>
+                                        <th style="width:720px;  background:#f1f1f1;" class="text-center" colspan="4">Harga</th>
                                         <th style="width:100px;" rowspan="2">Keterangan</th>
                                     </tr>
                                     <tr>

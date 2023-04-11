@@ -55,17 +55,31 @@ class Productprice extends CI_Controller
 				'global_assets/js/plugins/tables/datatables/extensions/natural_sort.js',
 				'global_assets/js/plugins/notifications/sweet_alert.min.js',
 				'global_assets/js/plugins/forms/selects/select2.min.js',
-				'assets/js/' . $this->folder . '/index.js',
+				'global_assets/js/plugins/datepicker/js/bootstrap-datepicker.js',
+				'assets/js/' . $this->folder . '/index.js?v='. strtotime(date('Y-m-d H:i:s')),
 			)
 		);
+
+		$e_periode = date('Y m');
+		$e_periode_submit = $this->input->post('e_periode');
+
+		if ($e_periode_submit != null) {			
+			$e_periode = $e_periode_submit;
+		}
+
+		$data = [
+			'e_periode' => $e_periode
+		];
+
 		$this->logger->write('Membuka Menu ' . $this->title);
-		$this->template->load('main', $this->folder . '/index');
+		$this->template->load('main', $this->folder . '/index', $data);
 	}
 
 	/** List Data */
 	public function serverside()
 	{
-		echo $this->mymodel->serverside();
+		$e_periode = $this->uri->segment(3);
+		echo $this->mymodel->serverside($e_periode);
 	}
 
 	/** Data Company */
@@ -139,6 +153,7 @@ class Productprice extends CI_Controller
 				'global_assets/js/plugins/forms/selects/select2.min.js',
 				'global_assets/js/plugins/pickers/pickadate/picker.js',
 				'global_assets/js/plugins/pickers/pickadate/picker.date.js',
+				'global_assets/js/plugins/datepicker/js/bootstrap-datepicker.js',
 				'assets/js/' . $this->folder . '/add.js?v=' . strtotime(date('Y-m-d H:i:s')),
 			)
 		);
@@ -161,9 +176,12 @@ class Productprice extends CI_Controller
 
 		$id_product = $this->input->post('id_product');
 		$id_customer = $this->input->post('id_customer');
-		$e_periode_year = $this->input->post('e_periode_year');
-		$e_periode_month = $this->input->post('e_periode_month');
-		$e_periode = $e_periode_year . $e_periode_month;
+		// $e_periode_year = $this->input->post('e_periode_year');
+		// $e_periode_month = $this->input->post('e_periode_month');
+		// $e_periode = $e_periode_year . $e_periode_month;
+		
+		$e_periode = $this->input->post('e_periode');
+		$e_periode = str_replace(" ", "", $e_periode);
 
 		$is_customer_price_exist = $this->mymodel->is_customer_price_exist($id_product, $id_customer, $e_periode);
 		if ($is_customer_price_exist) {
@@ -212,7 +230,8 @@ class Productprice extends CI_Controller
 				'global_assets/js/plugins/forms/validation/validate.min.js',
 				'global_assets/js/plugins/forms/styling/uniform.min.js',
 				'global_assets/js/plugins/forms/selects/select2.min.js',
-				'assets/js/' . $this->folder . '/edit.js',
+				'global_assets/js/plugins/datepicker/js/bootstrap-datepicker.js',
+				'assets/js/' . $this->folder . '/edit.js?v=' . strtotime(date('Y-m-d H:i:s')),
 			)
 		);
 

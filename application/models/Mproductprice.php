@@ -6,7 +6,7 @@ use Ozdemir\Datatables\DB\CodeigniterAdapter;
 class Mproductprice extends CI_Model {
 
     /** List Datatable */
-    public function serverside(){
+    public function serverside($e_periode=null){
         $datatables = new Datatables(new CodeigniterAdapter);
         // if ($this->i_company=='1') {
         //     $where = " a.i_company is not null 
@@ -30,8 +30,11 @@ class Mproductprice extends CI_Model {
             $where = "WHERE a.id_customer IN (
                                     SELECT id_customer
                                     FROM tm_user_customer
-                                    WHERE id_user = '$this->id_user'
-                )";
+                                    WHERE id_user = '$this->id_user')";
+        }
+
+        if ($e_periode != null) {
+            $where .= " AND a.e_periode='$e_periode'";
         }
 
         $sql = "SELECT a.id, 
@@ -207,9 +210,11 @@ class Mproductprice extends CI_Model {
         $id_customer  = $this->input->post('id_customer', TRUE);
         $id_product   = $this->input->post('id_product', TRUE);
         $vprice     = $this->input->post('vprice', TRUE);
-        $e_periode_year = $this->input->post('e_periode_year', TRUE);
-        $e_periode_month = $this->input->post('e_periode_month', TRUE);
-        $e_periode = $e_periode_year . $e_periode_month;
+        // $e_periode_year = $this->input->post('e_periode_year', TRUE);
+        // $e_periode_month = $this->input->post('e_periode_month', TRUE);
+        // $e_periode = $e_periode_year . $e_periode_month;
+        $e_periode = $this->input->post('e_periode');
+		$e_periode = str_replace(" ", "", $e_periode);
 
         /** sterilize formatted number */
         $vprice = str_replace(".", "", $vprice);

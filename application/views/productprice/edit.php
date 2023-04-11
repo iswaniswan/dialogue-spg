@@ -44,17 +44,20 @@
                                     required>
                         </div>
                     </div>
-
-                    <?php $e_periode = $data->e_periode;
-                        $e_periode_year = substr($e_periode, 0, 4);
-                        $e_periode_month = substr($e_periode, 4, 2);
-                    ?>
-                    <div class="col-6">
+                    <div class="col-6">                        
+                        <label>Periode :</label>
+                        <?php $e_periode = $data->e_periode; 
+                            $year = substr($e_periode, 0, 4);
+                            $month = substr($e_periode, 4, 2);
+                            $e_periode_value = "$year $month";
+                        ?>
+                        <input class="form-control datepicker month-picker" name="e_periode" value="<?= $e_periode_value ?>"></input>
+                        <?php /*
                         <label>Periode:</label>
                         <div class="input-group row">
                             <div class="col-4">
                                 <select class="form-control" title="Select a year" name="e_periode_year">
-                                    <?php /** create last 3 years previous from current year */ 
+                                    <?php
                                     $current_year = intval(date('Y'));
                                     $last3 = $current_year - 3;
                                     for ($i=$current_year; $i>$last3; $i--) {
@@ -77,7 +80,8 @@
                                     ?>
                                 </select>
                             </div>
-                        </div>                        
+                        </div>  
+                        */?>                      
                     </div>
                 </div>
 

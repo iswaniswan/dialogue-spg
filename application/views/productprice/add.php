@@ -58,11 +58,14 @@
                     </div>
 
                     <div class="col-6">
+                        <label>Periode :</label>
+                        <input class="form-control datepicker month-picker" name="e_periode"></input>
+                        <?php /*
                         <label>Periode:</label>
                         <div class="input-group row">
                             <div class="col-4">
                                 <select class="form-control" title="Select a year" name="e_periode_year">
-                                    <?php /** create last 3 years previous from current year */ 
+                                    
                                     $current_year = intval(date('Y'));
                                     $last3 = $current_year - 3;
                                     for ($i=$current_year; $i>$last3; $i--) {
@@ -84,7 +87,8 @@
                                     ?>
                                 </select>
                             </div>
-                        </div>                        
+                        </div>     
+                        */?>                   
                     </div>
                 </div>
 

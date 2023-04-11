@@ -29,9 +29,11 @@
                     <thead>
                         <tr class="bg-<?= $this->color; ?> table-border-double">
                             <th>#</th>
+                            <th>Customer</th>
                             <th><?= $this->lang->line('Nama Barang'); ?></th>
                             <th><?= $this->lang->line('Nama Brand'); ?></th>
                             <th>Harga</th>
+                            <th>Status</th>
                             <th><?= $this->lang->line('Tanggal Update'); ?></th>
                             <th><?= $this->lang->line('Aksi'); ?></th>
                         </tr>

@@ -15,6 +15,25 @@
             </div>
         </div>
 
+        <form method="POST" action="<?= base_url($this->folder); ?>">
+            <div class="card-body d-md-flex align-items-md-center justify-content-md-between flex-md-wrap">
+                <div class="d-flex align-items-center mb-3 mb-md-0">
+                    <div class="ml-2">
+                        <div class="form-group">
+                            <label>Periode :</label>
+                            <div class="input-group">
+                                <input type="text" readonly class="form-control form-control-sm month-picker" name="e_periode"
+                                            id="e_periode" placeholder="Periode" value="<?= $e_periode ?>">                                
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ml-2 mr-2">
+                        <button type="submit" class="btn btn-sm bg-<?= $this->color; ?>"><i class="icon-search4"></i></button>
+                    </div>
+                </div>
+            </div>
+        </form>
+
         <div class="table-responsive">
             <div class="col-md-12">
                 <?php if (check_role($this->id_menu, 1)) { 

@@ -17,12 +17,14 @@ var Plugin = (function() {
 
         // Accessibility labels
         var today = new Date();
-        var date =
-            today.getFullYear() +
-            "," +
-            (today.getMonth() + 1) +
-            "," +
-            today.getDate();
+        var _year = today.getFullYear();
+        var _month = today.getMonth();
+        var _date = today.getDate();
+
+        var currentDate = [_year, _month, _date];
+
+        const minDate = [_year, _month, 01];
+
         $(".date").pickadate({
             labelMonthNext: "Go to the next month",
             labelMonthPrev: "Go to the previous month",
@@ -32,8 +34,8 @@ var Plugin = (function() {
             selectYears: true,
             formatSubmit: "yyyy-mm-dd",
             format: "yyyy-mm-dd",
-            min: [2021, 1, 1],
-            max: [date],
+            min: minDate,
+            max: currentDate,
         });
     };
 
@@ -170,6 +172,8 @@ var Detail = $(function() {
         });   
 
         buildElementGrandTotalHarga($('#tablecover'));
+
+        initInput(elementPrice);
     });
 
     /*----------  Hapus Baris Data Saudara  ----------*/
@@ -333,6 +337,22 @@ function clearTableDetailBarang() {
     });
 }
 
+function initInput(element) {
+    element.onblur = function () {
+        let value = 0;
+        if (element.value == "") {
+            element.value = value;
+        } 
+    }
+    
+    element.onfocus = function() {
+        let value = "";
+        if (element.value == "0") {
+            element.value = value
+        }
+    }        
+}
+
 document.addEventListener("DOMContentLoaded", function() {
     Plugin.init();
     Detail.init();
@@ -419,5 +439,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 swalInit("Maaf :(", "Harga harus lebih besar dari 0 :(", "error");
             }
         }
-    });
+    });    
+
 });

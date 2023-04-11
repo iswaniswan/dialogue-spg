@@ -12,7 +12,71 @@ document.addEventListener("DOMContentLoaded", function() {
         minimumResultsForSearch: Infinity
     });
     $(".select-search").select2();
-    $("#i_brand").select2({
+
+    $("#id_customer").select2({
+        placeholder: "Cari Customer",
+        width: "100%",
+        allowClear: true,
+        ajax: {
+            url: base_url + controller + "/get_customer",
+            dataType: "json",
+            delay: 250,
+            data: function(params) {
+                var query = {
+                    q: params.term
+                };
+                return query;
+            },
+            processResults: function(data) {
+                return {
+                    results: data,
+                };
+            },
+            cache: false,
+        },
+    }).change(function() {
+        $('#id_brand').val(null).trigger('change')
+        $('#id_product').val(null).trigger('change')
+    });
+
+    $("#id_product").select2({
+        placeholder: "Cari Produk",
+        width: "100%",
+        allowClear: true,
+        ajax: {
+            url: base_url + controller + "/get_all_product_list",
+            dataType: "json",
+            delay: 250,
+            data: function(params) {
+                var query = {
+                    q: params.term
+                };
+                return query;
+            },
+            processResults: function(data) {
+                return {
+                    results: data,
+                };
+            },
+            cache: false,
+        },
+    });
+
+    // $('#id_product').on('select2:select', function(e) {
+    //     const data = e.params.data;
+    //     const userdata = data.userdata;
+
+    //     if (userdata?.id_brand !== undefined) {
+    //         const idBrand = userdata.id_brand;
+    //         const eBrandName = userdata.e_brand_name;
+            
+    //         var $option = $("<option selected></option>").val(idBrand).text(eBrandName);
+    //         $('#id_brand').append($option).trigger('change');
+
+    //     }
+    // });
+
+    $("#id_brand").select2({
         placeholder: "Select Brand",
         width: "100%",
         allowClear: true,
@@ -33,66 +97,17 @@ document.addEventListener("DOMContentLoaded", function() {
             },
             cache: false,
         },
+    }).change(function () {
+        $('#id_product').val(null).trigger('change')
     });
+
     $("#submit").on("click", function() {
         var form = $('.form-validation').valid();
         if (form) {
             sweetedit(controller);
         }
     });
-
-    $("#id_category").select2({
-        placeholder: "Cari kategory",
-        width: "100%",
-        allowClear: true,
-        ajax: {
-            url: base_url + controller + "/get_category",
-            dataType: "json",
-            delay: 250,
-            data: function(params) {
-                var query = {
-                    q: params.term,
-                };
-                return query;
-            },
-            processResults: function(data) {
-                return {
-                    results: data,
-                };
-            },
-            cache: false,
-        },
-    })
-    .change(function() {
-        $("#id_sub_category").val(null).trigger('change');
-    });
-
-    $("#id_sub_category").select2({
-        placeholder: "Cari Sub kategori",
-        width: "100%",
-        allowClear: true,
-        ajax: {
-            url: base_url + controller + "/get_sub_category",
-            dataType: "json",
-            delay: 250,
-            data: function(params) {
-                var query = {
-                    q: params.term,
-                    id_category: $('#id_category').val()
-                };
-                return query;
-            },
-            processResults: function(data) {
-                return {
-                    results: data,
-                };
-            },
-            cache: false,
-        },
-    })
-    .change(function() {
-        
-    });
+    
 });
 
 
@@ -122,5 +137,33 @@ $(document).ready(function() {
         // tambahkan 'Rp.' pada saat form di ketik
         // gunakan fungsi formatRupiah() untuk mengubah angka yang di ketik menjadi format angka
         rupiah.value = formatRupiah(this.value, "");
-    });   
+    });  
+    
+    function initInput(element) {
+        element.onblur = function () {
+            let value = 0;
+            if (element.value == "") {
+                element.value = value;
+            } 
+        }
+        
+        element.onfocus = function() {
+            let value = "";
+            if (element.value == "0") {
+                element.value = value
+            }
+        }        
+    }
+
+    initInput(document.getElementById('vprice'));
+
+    $('.month-picker').datepicker({
+        format: "yyyy mm",
+        viewMode: "months", 
+        minViewMode: "months"
+    }).change(function() {
+        console.log($(this).val())
+    });
+
+
 });
