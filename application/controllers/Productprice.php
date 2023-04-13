@@ -733,4 +733,24 @@ class Productprice extends CI_Controller
 		$text_month = $months[$month];
 		return ucwords($text_month) . " $year";
 	}
+
+	// TODO: generate harga jual periode berjalan berdasarkan periode bulan lalu
+	public function generate_periode($e_periode=null)
+	{
+		$current_periode = date('Ym');
+		if ($e_periode != null) {
+			$current_periode = $e_periode;		
+		}
+
+		$previous_periode = date('Ym', strtotime(date($current_periode.'10')." -1 month"));
+
+		$this->mymodel->generate_periode($current_periode, $previous_periode);
+
+		$affected = $this->db->affected_rows();
+
+		$message = "$affected records updated successfully";
+
+		echo json_encode($message);
+	}
+
 }

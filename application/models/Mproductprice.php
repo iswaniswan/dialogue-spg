@@ -368,6 +368,24 @@ class Mproductprice extends CI_Model {
 
 		return $this->db->query($sql);
 	}
+
+    public function get_all_product()
+    {
+        $sql = "SELECT * FROM tr_product WHERE f_status = 't'";
+
+        return $this->db->query($sql);
+    }
+
+    public function generate_periode($current_periode, $previous_periode)
+    {
+		$sql = "INSERT INTO tr_customer_price (id_customer, id_product, v_price, e_periode)
+					(SELECT id_customer, id_product, v_price, '$current_periode'
+						FROM tr_customer_price tcp
+						WHERE e_periode = '$previous_periode')
+				ON CONFLICT DO NOTHING";
+        
+		return $this->db->query($sql);
+    }
 }
 
 /* End of file Mmaster.php */

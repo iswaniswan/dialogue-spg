@@ -35,6 +35,9 @@ class ProductCompetitor extends CI_Controller
 	/** Default Controllers */
 	public function index()
 	{
+	
+		return $this->index_v2();
+
 		add_js(
 			array(
 				'global_assets/js/plugins/tables/datatables/datatables.min.js',
@@ -49,10 +52,50 @@ class ProductCompetitor extends CI_Controller
 		$this->template->load('main', $this->folder . '/index');
 	}
 
+	public function index_v2()
+	{
+		add_js(
+			array(
+				'global_assets/js/plugins/tables/datatables/datatables.min.js',
+				'global_assets/js/plugins/tables/datatables/extensions/buttons.min.js',
+				'global_assets/js/plugins/tables/datatables/extensions/natural_sort.js',
+				'global_assets/js/plugins/notifications/sweet_alert.min.js',
+				'global_assets/js/plugins/forms/selects/select2.min.js',
+				'assets/js/' . $this->folder . '/index.js?v=' . strtotime(date('Y-m-d H:i:s')),
+			)
+		);
+
+		$id_customer = $this->input->post('id_customer');
+
+		$data = [];
+
+		if ($id_customer != null) {
+			$customer = $this->mymodel->get_customer('', $id_customer)->row();
+			$data['customer'] = $customer;
+		}
+
+		$this->logger->write('Membuka Menu ' . $this->title);
+		$this->template->load('main', $this->folder . '/index_v2', $data);
+	}
+
 	/** List Data */
 	public function serverside()
 	{
 		echo $this->mymodel->serverside();
+	}
+
+	/** List Data */
+	public function serverside2()
+	{
+		echo $this->mymodel->serverside2();
+	}
+
+	/** List Data */
+	public function serverside3()
+	{
+		$id_customer = $this->input->post('id_customer');
+
+		echo $this->mymodel->serverside3($id_customer);
 	}
 
 	/** Data Company */
@@ -108,7 +151,8 @@ class ProductCompetitor extends CI_Controller
 				'global_assets/js/plugins/forms/styling/uniform.min.js',
 				'global_assets/js/plugins/forms/selects/select2.min.js',
 				'global_assets/js/plugins/forms/selects/select2.min.js',
-				'global_assets/js/plugins/datepicker/js/bootstrap-datepicker.js',
+				'global_assets/js/plugins/pickers/pickadate/picker.js',
+				'global_assets/js/plugins/pickers/pickadate/picker.date.js',
 				'assets/js/' . $this->folder . '/add.js?v=' . strtotime(date('Y-m-d H:i:s')),
 			)
 		);
@@ -205,7 +249,7 @@ class ProductCompetitor extends CI_Controller
 	}
 
 	/** Update Data */
-	public function update()
+	public function __update()
 	{
 		/** Cek Hak Akses, Apakah User Bisa Edit */
 		$data = check_role($this->id_menu, 3);
@@ -234,6 +278,54 @@ class ProductCompetitor extends CI_Controller
 		echo json_encode($data);
 	}
 
+	public function update()
+	{
+		/** Cek Hak Akses, Apakah User Bisa Edit */
+		$data = check_role($this->id_menu, 3);
+		if (!$data) {
+			redirect(base_url(), 'refresh');
+		}				
+
+		$this->db->trans_begin();
+
+		$id_product = $this->input->post('id_product');
+		$id_customer = $this->input->post('id_customer');
+		$items = $this->input->post('items');
+
+		$this->mymodel->delete_product_competitor($id_product);
+
+		foreach ($items as $item) {
+			// $id_customer = $item['id_customer'];
+			$e_brand_text = $item['e_brand_text'];
+			
+			$v_price = $item['vprice'];
+			$v_price = str_replace(".", "", $v_price);
+			$v_price = str_replace(",", "", $v_price);
+
+			$d_berlaku = $item['d_berlaku'];
+			$e_remark = $item['e_remark'];
+
+			$this->mymodel->insert_update_product_competitor($id_customer, $id_product, $v_price, $e_remark, $e_brand_text, $d_berlaku);
+		}
+		
+		if ($this->db->trans_status() === FALSE) {
+			$this->db->trans_rollback();
+			$data = array(
+				'sukses' => false,
+				'ada'	 => false,
+			);
+		} else {
+			$this->db->trans_commit();
+			$this->logger->write('Update Data ' . $this->title);
+			$data = array(
+				'sukses' => true,
+				'ada'	 => false,
+			);
+		}
+		
+		echo json_encode($data);
+	}
+
 	/** Update Status */
 	public function changestatus()
 	{
@@ -244,7 +336,7 @@ class ProductCompetitor extends CI_Controller
 		}
 
 		$this->form_validation->set_rules('id', 'id', 'trim|required|min_length[0]');
-		$id 		= $this->input->post('id', TRUE);
+		$id = $this->input->post('id', TRUE);
 		if ($this->form_validation->run() == false) {
 			$data = array(
 				'sukses' => false,
@@ -383,7 +475,7 @@ class ProductCompetitor extends CI_Controller
 		foreach ($data->result() as $row) {
 			$filter[] = array(
 				'id'   => $row->id,
-				'text' => strtoupper($row->e_product_name),
+				'text' => $row->i_product . ' - ' . ucwords(strtolower($row->e_product_name)),
 				'userdata' => [
 					'id_brand' => $row->id_brand,
 					'e_brand_name' => $row->e_brand_name
@@ -393,4 +485,111 @@ class ProductCompetitor extends CI_Controller
 
 		echo json_encode($filter);
 	}
+
+	public function view_competitor()
+	{
+		$id_product = $this->input->get('id_product');
+		$id_customer = $this->input->get('id_customer');
+
+		if ($id_product == null or $id_customer == null) {
+			return $this->index_v2();
+		}
+
+		add_js(
+			array(
+				'global_assets/js/plugins/notifications/sweet_alert.min.js',
+				'global_assets/js/plugins/forms/validation/validate.min.js',
+				'global_assets/js/plugins/forms/styling/uniform.min.js',
+				'global_assets/js/plugins/forms/selects/select2.min.js',
+				'global_assets/js/bootstrap4-editable/bootstrap-editable.min.js',
+				'assets/js/' . $this->folder . '/edit.js?v=' . strtotime(date('Y-m-d H:i:s')),
+			)
+		);
+
+		$customer = $this->mymodel->get_customer(null, $id_customer)->row();
+		$product = $this->mymodel->get_product_customer_berjalan($id_product, $id_customer)->row();
+		$all_competitor = $this->mymodel->get_product_competitor($id_product, $id_customer);
+
+		$data = [
+			'customer' => $customer,
+			'product' => $product,
+			'all_competitor' => $all_competitor,
+		];
+
+		$this->logger->write('Membuka Form View ' . $this->title);
+		$this->template->load('main', $this->folder . '/view_competitor', $data);
+	}
+
+	public function edit_competitor()
+	{
+		$id_product = $this->input->get('id_product');
+		$id_customer = $this->input->get('id_customer');
+
+		if ($id_product == null or $id_customer == null) {
+			return $this->index_v2();
+		}
+
+		add_js(
+			array(
+				'global_assets/js/plugins/notifications/sweet_alert.min.js',
+				'global_assets/js/plugins/forms/validation/validate.min.js',
+				'global_assets/js/plugins/forms/styling/uniform.min.js',
+				'global_assets/js/plugins/forms/selects/select2.min.js',
+				'global_assets/js/bootstrap4-editable/bootstrap-editable.min.js',
+				'global_assets/js/plugins/pickers/pickadate/picker.js',
+				'global_assets/js/plugins/pickers/pickadate/picker.date.js',
+				'assets/js/' . $this->folder . '/edit.js?v=' . strtotime(date('Y-m-d H:i:s')),
+			)
+		);
+
+		
+		$customer = $this->mymodel->get_customer(null, $id_customer)->row();
+		$product = $this->mymodel->get_product_customer_berjalan($id_product, $id_customer)->row();
+		$all_competitor = $this->mymodel->get_product_competitor($id_product, $id_customer);
+
+		$data = [
+			'customer' => $customer,
+			'product' => $product,
+			'all_competitor' => $all_competitor,
+		];
+
+		$this->logger->write('Membuka Form Edit ' . $this->title);
+		$this->template->load('main', $this->folder . '/edit_competitor', $data);
+	}
+
+	public function report_competitor()
+	{
+		$id_product = $this->input->get('id_product');
+		$id_customer = $this->input->get('id_customer');
+
+		if ($id_product == null or $id_customer == null) {
+			return $this->index_v2();
+		}
+
+		add_js(
+			array(
+				'global_assets/js/plugins/notifications/sweet_alert.min.js',
+				'global_assets/js/plugins/forms/validation/validate.min.js',
+				'global_assets/js/plugins/forms/styling/uniform.min.js',
+				'global_assets/js/plugins/forms/selects/select2.min.js',
+				'global_assets/js/bootstrap4-editable/bootstrap-editable.min.js',
+				'assets/js/' . $this->folder . '/edit.js?v=' . strtotime(date('Y-m-d H:i:s')),
+			)
+		);
+
+		$customer = $this->mymodel->get_customer(null, $id_customer)->row();
+		$product = $this->mymodel->get_product_customer_berjalan($id_product, $id_customer)->row();
+		$all_competitor = $this->mymodel->get_product_competitor_rekap($id_product, $id_customer);
+
+		$data = [
+			'customer' => $customer,
+			'product' => $product,
+			'all_competitor' => $all_competitor,
+			'db' => $this->db
+		];
+
+		$this->logger->write('Membuka Form View ' . $this->title);
+		$this->template->load('main', $this->folder . '/report_competitor', $data);
+	}
+
 }

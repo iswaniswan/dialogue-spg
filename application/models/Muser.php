@@ -82,11 +82,15 @@ class Muser extends CI_Model {
     }
 
     /** Ambil Data Customer */
-    public function get_customer($cari="")
+    public function get_customer($cari="", $all=false)
     {
         $limit = " LIMIT 5";
 
         if ($cari != '') {
+            $limit = '';
+        }
+
+        if ($all) {
             $limit = '';
         }
 
@@ -491,7 +495,7 @@ class Muser extends CI_Model {
             $all_brand = $this->get_brand();
 
             /** insert table user all customer & user_brand */            
-            $all_customer = $this->get_customer();
+            $all_customer = $this->get_customer($cari="", $all=true);
             foreach ($all_customer->result() as $customer) {
                 $user_customer = [
                     'id_user' => $id_user,

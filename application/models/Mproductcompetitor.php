@@ -68,6 +68,106 @@ class Mproductcompetitor extends CI_Model {
         return $datatables->generate();
     }
 
+    /** List Datatable */
+    public function serverside2(){
+        $datatables = new Datatables(new CodeigniterAdapter);
+
+        $sql_count = "SELECT id_product , count(count_brand) FROM (
+                            SELECT tpc.id_product, count(*) AS count_brand  
+                            FROM tm_product_competitor tpc 
+                            GROUP BY tpc.id_product, e_brand_text
+                        ) AS x
+                        GROUP BY 1";
+
+        $sql = "SELECT a.id, a.i_product, a.e_product_name, b.e_brand_name, 
+                    CASE WHEN cc.count IS NULL THEN 0 ELSE cc.count END AS count
+                FROM tr_product a 
+                INNER JOIN tr_brand b ON b.id_brand = a.id_brand
+                LEFT JOIN ($sql_count) cc ON cc.id_product = a.id
+                WHERE a.f_status = 't'
+                ORDER BY count DESC NULLS LAST";
+
+        // var_dump($sql); die();
+
+        $datatables->query($sql, FALSE);        
+        
+        $datatables->add('action', function ($data) {
+            $id = trim($data['id']);       
+
+            $link =  base_url().$this->folder.'/view_competitor/'.encrypt_url($id);
+            $data = "<a href='$link' title='View Data'><i class='icon-database-check text-info-800 mr-1'></i></a>";
+
+            $link =  base_url().$this->folder.'/edit_competitor/'.encrypt_url($id);
+            $data .= "<a href='$link' title='Add or Edit Data'><i class='icon-database-edit2 text-warning-800 mr-1'></i></a>";
+
+            return $data;
+        });
+
+        // $datatables->hide('f_status');        
+
+        return $datatables->generate();
+    }
+
+    public function serverside3($id_customer=null)
+    {
+        $id_user = $this->session->userdata('id_user');
+
+        $where = " WHERE CTE.id_customer IN (
+                                        SELECT  id_customer
+                                        FROM tm_user_customer
+                                        WHERE id_user = '$id_user')";
+        if ($id_customer != null) {
+            $where = " WHERE CTE.id_customer='$id_customer'";
+        }
+
+        $sql = "WITH CTE AS (
+                    SELECT p.id AS id_product, c.id_customer FROM tr_product p 
+                    CROSS JOIN tr_customer c
+                ) SELECT 
+                    CTE.id_product, CTE.id_customer,
+                    c.e_customer_name, a.i_product, a.e_product_name, b.e_brand_name, cc.cnt  
+                FROM CTE
+                INNER JOIN tr_product a ON a.id = CTE.id_product 
+                INNER JOIN tr_brand b ON b.id_brand = a.id_brand 
+                INNER JOIN tr_customer c ON c.id_customer = CTE.id_customer
+                LEFT JOIN (
+                            SELECT id_customer, id_product, count(*) AS cnt 
+                            FROM (
+                                    SELECT id_customer, id_product
+                                    FROM tm_product_competitor tpc 
+                                    GROUP BY 1, 2, e_brand_text
+                                ) AS foo 
+                            GROUP BY 1, 2			
+                            ) AS cc ON cc.id_customer = CTE.id_customer AND cc.id_product = CTE.id_product
+                $where
+                ORDER BY cnt DESC NULLS LAST, e_customer_name ASC, e_brand_name ASC, e_product_name ASC";
+
+        $datatables = new Datatables(new CodeigniterAdapter);
+
+        $datatables->query($sql, FALSE);        
+        
+        $datatables->add('action', function ($data) {
+            $id_product = trim($data['id_product']);
+            $id_customer = trim($data['id_customer']);
+
+            $link =  base_url().$this->folder . "/view_competitor?id_product=$id_product&id_customer=$id_customer";
+            $data = "<a href='$link' title='View Data'><i class='icon-database-check text-info-800 mr-1'></i></a>";
+
+            $link =  base_url().$this->folder . "/edit_competitor?id_product=$id_product&id_customer=$id_customer";
+            $data .= "<a href='$link' title='Add or Edit Data'><i class='icon-database-edit2 text-warning-800 mr-1'></i></a>";
+
+            $link =  base_url().$this->folder . "/report_competitor?id_product=$id_product&id_customer=$id_customer";
+            $data .= "<a href='$link' title='Report'><i class='icon-database-time2 text-success-800 mr-1'></i></a>";
+
+            return $data;
+        });
+
+        $datatables->hide('id_product');
+        // $datatables->hide('id_customer');
+
+        return $datatables->generate();
+    }
+
     public function changestatus($id)
     {
         $this->db->select('f_status');
@@ -247,6 +347,18 @@ class Mproductcompetitor extends CI_Model {
         $this->db->update('tm_product_competitor', $table);
     }
 
+    public function insert_update_product_competitor($id_customer, $id_product, $v_price, $e_remark, $e_brand_text, $d_berlaku)
+    {
+        $sql = "INSERT INTO tm_product_competitor
+                (id_customer, id_product, v_price, e_remark, e_brand_text, d_berlaku)
+                VALUES($id_customer, $id_product, $v_price, '$e_remark', '$e_brand_text', '$d_berlaku') 
+                /* ON CONFLICT (id_customer, e_brand_text, d_berlaku) */
+                ON CONFLICT ON CONSTRAINT pk_unique_tm_product_competitor
+                DO UPDATE SET v_price = $v_price, d_update = current_timestamp" ;
+
+        return $this->db->query($sql);
+    }
+
     /** Transfer Data */
     public function transfer($i_company)
     {
@@ -330,11 +442,17 @@ class Mproductcompetitor extends CI_Model {
         ", FALSE);
     }
 
-    public function get_all_customer_price()
+    public function get_all_customer_price($id_product=null)
     {
+        $where = "";
+        if ($id_product != null) {
+            $where = " WHERE id_product='$id_product'";
+        }
+
         $sql = "SELECT tcp.*, tc.e_customer_name
                 FROM tr_customer_price tcp
-                INNER JOIN tr_customer tc ON tc.id_customer = tcp.id_customer";
+                INNER JOIN tr_customer tc ON tc.id_customer = tcp.id_customer
+                $where";
 
         return $this->db->query($sql);
     }
@@ -372,7 +490,7 @@ class Mproductcompetitor extends CI_Model {
 	}
 
     /** Ambil Data Customer */
-    public function get_customer($cari='')
+    public function get_customer($cari='', $id_customer=null)
     {
         $id_user = $this->session->userdata('id_user');
 
@@ -381,20 +499,59 @@ class Mproductcompetitor extends CI_Model {
             $limit = "";
         }
 
-        $sql = "SELECT id_customer AS id, e_customer_name AS e_name
-                FROM tr_customer 
-                WHERE (e_customer_name ILIKE '%$cari%') AND f_status = 't' 
+        $where = "WHERE (e_customer_name ILIKE '%$cari%') AND f_status = 't' 
                     AND id_customer IN (
                                         SELECT  id_customer
                                         FROM tm_user_customer
                                         WHERE id_user = '$id_user'                
-                                    )
+                                    )";
+
+        if ($id_customer != null) {
+            $where = "WHERE id_customer='$id_customer'";
+        }
+
+        $sql = "SELECT id_customer AS id, e_customer_name AS e_name
+                FROM tr_customer 
+                $where
                 ORDER BY 2
                 $limit";
 
         // var_dump($sql);
 
         return $this->db->query($sql, FALSE);
+    }
+
+    public function get_product_by_id($id_product) 
+    {
+        $sql = "SELECT a.*, b.e_brand_name
+                FROM tr_product a 
+                INNER JOIN tr_brand b ON b.id_brand = a.id_brand
+                WHERE id='$id_product'";
+
+        return $this->db->query($sql);
+    }
+
+    public function get_product_customer_berjalan($id_product, $id_customer, $e_periode=null) 
+    {
+        $periode = date('Ym');
+        if ($e_periode != null) {
+            $periode = $e_periode;
+        }
+
+        $sql = "SELECT a.*, b.e_brand_name, p.v_price 
+                FROM tr_product a 
+                INNER JOIN tr_brand b ON b.id_brand = a.id_brand
+                LEFT JOIN (
+                            SELECT * 
+                            FROM tr_customer_price tcp 
+                            WHERE id_customer='$id_customer' AND id_product='$id_product'
+                                AND e_periode  <= '$periode' 
+                            ORDER BY e_periode DESC
+                            LIMIT 1
+                ) p ON p.id_customer = '$id_customer' AND p.id_product = a.id
+                WHERE a.id='$id_product'";
+
+        return $this->db->query($sql);
     }
     
     public function get_product($cari='', $id_customer, $id_brand=null)
@@ -444,6 +601,70 @@ class Mproductcompetitor extends CI_Model {
 
         return $this->db->query($sql)->row()->id;
     }
+
+    public function get_all_product()
+    {
+        $sql = "SELECT * FROM tr_product WHERE f_status = 't'";
+
+        return $this->db->query($sql);
+    }
+
+    public function get_all_competitor_by_id_product($id_product)
+    {
+        $sql = "SELECT c.e_customer_name, a.*  FROM tm_product_competitor a 
+                INNER JOIN tr_customer c ON c.id_customer = a.id_customer 
+                WHERE a.id_product = '$id_product'
+                ORDER BY d_berlaku DESC, e_customer_name ASC";
+
+        return $this->db->query($sql);
+    }
+
+    public function get_product_competitor($id_product, $id_customer)
+    {
+        $sql = "SELECT * 
+                FROM tm_product_competitor tpc 
+                WHERE id_customer = '$id_customer' 
+                    AND id_product = '$id_product'";
+
+        // var_dump($sql); die();
+
+        return $this->db->query($sql);
+    }
+
+    public function get_product_competitor_rekap($id_product, $id_customer, $e_periode=null)
+    {
+        if ($e_periode == null) {
+            $e_periode = date('Ym');
+        }
+
+        $sql_p = "SELECT id_customer, id_product, v_price 
+                    FROM tr_customer_price tcp					
+                        WHERE id_customer='$id_customer' AND id_product='$id_product' AND e_periode <= '$e_periode' 
+                    ORDER BY e_periode DESC LIMIT 1";
+        
+        $sql_c = "SELECT c.*, p.v_price AS origin_price
+                    FROM tm_product_competitor c
+                    LEFT JOIN ($sql_p) p ON p.id_customer=c.id_customer AND p.id_product=c.id_product
+                    WHERE c.id_customer = '$id_customer' AND c.id_product = '$id_product'
+                    ORDER BY d_berlaku desc";
+
+        $sql = "SELECT * 
+                FROM (
+                        SELECT DISTINCT ON (c.e_brand_text) c.e_brand_text, v_price, d_berlaku, 
+                                                (origin_price - v_price ) AS selisih, e_remark
+                        FROM ($sql_c) AS c
+                ) foo ORDER BY selisih asc";
+
+        return $this->db->query($sql);
+    }
+
+    public function delete_product_competitor($id_product)
+    {
+        $sql = "DELETE FROM tm_product_competitor WHERE id_product='$id_product'";
+
+        return $this->db->query($sql);
+    }
+
 }
 
 /* End of file Mmaster.php */

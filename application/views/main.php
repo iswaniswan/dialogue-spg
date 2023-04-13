@@ -16,7 +16,7 @@
     <link href="<?= base_url(); ?>assets/css/components.min.css" rel="stylesheet" type="text/css">
     <link href="<?= base_url(); ?>assets/css/colors.min.css" rel="stylesheet" type="text/css">
     <link href="<?= base_url(); ?>assets/css/global.css" rel="stylesheet" type="text/css">
-    <?php /* <link href="<?= base_url(); ?>global_assets/css/bootstrap4-editable/bootstrap-editable.css" rel="stylesheet" type="text/css"> */ ?>
+    <!-- <?php /* <link href="<?= base_url(); ?>global_assets/css/bootstrap4-editable/bootstrap-editable.css" rel="stylesheet" type="text/css"> */ ?> -->
     <link href="<?= base_url(); ?>global_assets/js/plugins/datepicker/css/datepicker.css" rel="stylesheet" type="text/css">
     <!-- /global stylesheets -->
 
@@ -115,8 +115,13 @@
                     <a href="#" class="navbar-nav-link dropdown-toggle caret-0 notification" data-toggle="dropdown">
                         <i class="icon-bell2"></i>
                         <span class="d-md-none ml-2">Activity</span>
-                        <?php $badge = get_notification_saldo()->num_rows() 
-                            + get_notification_retur()->num_rows() 
+
+                        <?php /** count notification  */
+                            $saldo_awal_count = notification_saldo_awal($count=true);
+                        ?>
+
+                        <?php $badge = $saldo_awal_count
+                            /* + get_notification_retur()->num_rows() */
                             + get_notification_adjust()->num_rows()
                             + get_notification_pending_izin()->num_rows(); ?>
 
@@ -132,22 +137,24 @@
                         </div>
 
                         <div class="dropdown-content-body dropdown-scrollable">
-                            <ul class="media-list">
-                                <?php if(get_notification_saldo()->num_rows() > 0){ 
-                                        if($this->i_level == 4){
-                                            foreach(get_notification_saldo()->result() as $row){?>
-                                <li class="media">
-                                    <div class="mr-3">
-                                        <a href="<?=  base_url() . 'saldo/approvement/' . encrypt_url($row->id) .'/'.encrypt_url($row->i_periode).'/'.encrypt_url($row->id_customer) ?>" class="btn bg-warning-400 rounded-round btn-icon"><i class="icon-pencil"></i></a>
-                                    </div>
+                            <ul class="media-list">                                
+                                <?php foreach(notification_saldo_awal() as $row){?>
+                                    <li class="media">
+                                        <div class="mr-3">
+                                            <a href="" class="btn bg-warning-400 rounded-round btn-icon">
+                                                <i class="icon-pencil"></i> <?= $row->e_title ?>
+                                            </a>
+                                        </div>
 
-                                    <div class="media-body">
-                                        Mutasi Saldo Periode <a href="<?=  base_url() . 'saldo/approvement/' . encrypt_url($row->id) .'/'.encrypt_url($row->i_periode).'/'.encrypt_url($row->id_customer) ?>"><?= $row->i_periode ?></a> Meminta Approve
-                                        <div class="font-size-sm text-muted mt-1"><?= $row->d_entry ?></div>
-                                    </div>
-                                </li>
-                                <?php } } } ?>
+                                        <div class="media-body">
+                                            <?= $row->e_message ?>
+                                            <div class="font-size-sm text-muted mt-1"><?= $row->d_entry ?></div>
+                                        </div>
+                                    </li>
+                                <?php } ?>
 
+                                <!-- TODO: Pending check notif retur -->
+                                <?php /*
                                 <?php if(get_notification_retur()->num_rows() > 0){ 
                                         if($this->i_level == 4){
                                             foreach(get_notification_retur()->result() as $row){?>
@@ -162,6 +169,7 @@
                                     </div>
                                 </li>
                                 <?php } } } ?>
+                                */ ?>
 
                                 <?php if(get_notification_adjust()->num_rows() > 0){ 
                                         if($this->i_level == 4){

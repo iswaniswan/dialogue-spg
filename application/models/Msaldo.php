@@ -247,6 +247,10 @@ class Msaldo extends CI_Model
             ];
             $this->db->insert('tm_mutasi_saldoawal_item', $data_detail);            
         };
+
+
+        /** generate pesan untuk notification */
+        $this->generate_notification($id_reff=$id_header);
     }
 
     /** Get Data Untuk Edit */
@@ -456,6 +460,43 @@ class Msaldo extends CI_Model
         $this->db->select();
         $this->db->where('id_customer', $id_customer);
         return $this->db->get('tr_customer');        
+    }
+
+    public function get_id_user_atasan($id_user)
+    {
+        $this->load->model('Muser');
+        $user = $this->Muser->getdata($id_user);
+
+        return $user->row()->id_atasan;
+    }
+
+    public function generate_notification($id_reff)
+    {
+        $id_user = $this->session->userdata('id_user');
+        $id_atasan = $this->get_id_user_atasan($id_user);
+
+        /** message ke SPG */
+        $e_title = "Menunggu Approval";
+        $e_message = "Data entry saldo awal berhasil disimpan.";
+        $this->insert_notification($id_reff, $id_user, $e_title, $e_message);
+
+        /** message ke Team Leader */
+        $e_title = "Menunggu Approval";
+        $e_message = "Permintaan persetujuan data Saldo awal.";
+        $this->insert_notification($id_reff, $id_atasan, $e_title, $e_message);
+    }
+
+    public function insert_notification($id_reff, $id_user, $e_title, $e_message)
+    {
+        $data = [
+            'id_user' => $id_user,
+            'id_reff' => $id_reff,
+            'e_type' => 'SALDO_AWAL',
+            'e_title' => $e_title,
+            'e_message' => $e_message
+        ];
+
+        $this->db->insert('tm_notification', $data);
     }
 }
 

@@ -171,9 +171,7 @@ var Detail = $(function() {
                 success: function(data) {
                     elQty.val(1);
 
-                    // const harga = formatcemua(data["detail"][0]["v_price"]);
-                    const harga = formatRupiah(data["detail"][0]["v_price"]);
-                    console.log(harga); 
+                    const harga = formatcemua(data["detail"][0]["v_price"]);
                     elHarga.val(harga);
                     elTotal.val(harga);
                     elHargaDiscount.val(0);
@@ -229,7 +227,7 @@ function hetang() {
             } else {
                 var qty = 0;
             }
-            var jumlah = deFormatRupiah($("#harga" + i).val()) * qty;
+            var jumlah = formatulang($("#harga" + i).val()) * qty;
             if (!isNaN(parseFloat($("#diskon" + i).val()))) {
                 var diskon = $("#diskon" + i).val();
             } else {
@@ -271,9 +269,9 @@ function getTotal(e) {
 
     const qty = $(e).closest('tr').find('.input-qty').val();
     const price = $(e).closest('tr').find('.input-harga').val();
-    let val = deFormatRupiah(price);
+    let val = formatulang(price);
     let total = val * qty;
-    elTarget.val(formatRupiah(total.toString()));   
+    elTarget.val(formatcemua(total));   
     
     calcGrandTotal();
 }
@@ -284,12 +282,12 @@ function getAkhir(e) {
     
     const discount = $(e).closest('tr').find('.input-discount').val();
     const priceTotal = $(e).closest('tr').find('.input-total').val();
-    let val = deFormatRupiah(priceTotal);
+    let val = formatulang(priceTotal);
     let valDiscount = (val * discount) / 100;
     let priceFinal = val - valDiscount;
 
-    elHargaDiscount.val(formatRupiah(valDiscount.toString()));
-    elTarget.val(formatRupiah(priceFinal.toString()));
+    elHargaDiscount.val(formatcemua(valDiscount));
+    elTarget.val(formatcemua(priceFinal));
 
     calcGrandDiscount();
     calcGrandAkhir();
@@ -298,34 +296,34 @@ function getAkhir(e) {
 function calcGrandTotal() {
     let total = 0;
     $('.input-total').each(function() {
-        const val = deFormatRupiah($(this).val());
+        const val = formatulang($(this).val());
         total += parseFloat(val);
     })    
     console.log(total);
 
-    $('#grand_total').val(formatRupiah(total.toString()));
+    $('#grand_total').val(formatcemua(parseFloat(total)));
 }
 
 function calcGrandAkhir() {
     let total = 0;
     $('.input-akhir').each(function() {
-        const val = deFormatRupiah($(this).val());
+        const val = formatulang($(this).val());
         total += parseFloat(val);
     })    
     console.log(total);
 
-    $('#grand_akhir').val(formatRupiah(total.toString()));
+    $('#grand_akhir').val(formatcemua(parseFloat(total)));
 }
 
 function calcGrandDiscount() {
     let total = 0;
     $('.input-harga-discount').each(function() {
-        const val = deFormatRupiah($(this).val());
+        const val = formatulang($(this).val());
         total += parseFloat(val);
     })    
     console.log(total);
 
-    $('#grand_discount').val(formatRupiah(total.toString()));
+    $('#grand_discount').val(formatcemua(parseFloat(total)));
 }
 
 function number() {
@@ -348,24 +346,19 @@ function number() {
 /* Fungsi formatRupiah */
 function formatRupiah(angka, prefix) {
     var number_string = angka.replace(/[^,\d]/g, "").toString(),
-      split = number_string.split(","),
-      sisa = split[0].length % 3,
-      rupiah = split[0].substr(0, sisa),
-      ribuan = split[0].substr(sisa).match(/\d{3}/gi);
-  
+    split = number_string.split("."),
+    sisa = split[0].length % 3,
+    rupiah = split[0].substr(0, sisa),
+    ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
     // tambahkan titik jika yang di input sudah menjadi angka ribuan
     if (ribuan) {
-      separator = sisa ? "." : "";
-      rupiah += separator + ribuan.join(".");
+    separator = sisa ? "," : "";
+    rupiah += separator + ribuan.join(",");
     }
-  
-    rupiah = split[1] != undefined ? rupiah + "," + split[1] : rupiah;
-    return rupiah;
-}
 
-function deFormatRupiah(text) {
-    let _text = text.replaceAll(".", "").replaceAll(",", "");
-    return _text;
+    rupiah = split[1] != undefined ? rupiah + "." + split[1] : rupiah;
+    return rupiah;
 }
 
 document.addEventListener("DOMContentLoaded", function() {

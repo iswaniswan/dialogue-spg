@@ -514,3 +514,16 @@ function getMonthShort()
 	);
 	return $data;
 }
+
+function notification_saldo_awal($count=false)
+{
+	$ci = &get_instance();
+	$ci->load->model('Mnotification');
+	$query = $ci->Mnotification->get_saldo_awal();
+
+	if ($count) {
+		return $query['count'];
+	}
+
+	return $query['data'];
+}
