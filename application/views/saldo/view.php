@@ -17,7 +17,7 @@
     <form class="form-validation">
         <div class="card">
             <div class="card-header border-<?= $this->color; ?> bg-transparent header-elements-inline">
-                <h6 class="card-title"><i class="icon-pencil mr-2"></i> <?= 'Ubah'; ?> <?= $this->lang->line($this->title); ?></h6>
+                <h6 class="card-title"><i class="icon-pencil mr-2"></i> <?= 'View'; ?> <?= $this->lang->line($this->title); ?></h6>
                 <input type="hidden" id="path" value="<?= $this->folder; ?>">
                 <input type="hidden" id="color" value="<?= $this->color; ?>">
                 <div class="header-elements">

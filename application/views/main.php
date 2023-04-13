@@ -141,14 +141,17 @@
                                 <?php foreach(notification_saldo_awal() as $row){?>
                                     <li class="media">
                                         <div class="mr-3">
-                                            <a href="" class="btn bg-warning-400 rounded-round btn-icon">
-                                                <i class="icon-pencil"></i> <?= $row->e_title ?>
+                                            <a href="<?= $row->link ?>" class="btn bg-warning-400 rounded-round btn-icon">
+                                                <i class="icon-pencil"></i>
                                             </a>
                                         </div>
 
                                         <div class="media-body">
+                                            <h6><?= $row->e_title ?></h6>
                                             <?= $row->e_message ?>
-                                            <div class="font-size-sm text-muted mt-1"><?= $row->d_entry ?></div>
+                                            <div class="font-size-sm text-muted mt-1">
+                                                <?= date('Y-m-d H:i:s', strtotime($row->d_entry)) ?>
+                                            </div>
                                         </div>
                                     </li>
                                 <?php } ?>
