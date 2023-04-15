@@ -131,31 +131,24 @@
                             <a href="#" class="text-default"><i class="icon-search4 font-size-base"></i></a>
                         </div>
                         <div class="dropdown-content-body dropdown-scrollable">
-                            <ul class="media-list">
-                                <?php 
-                                $action = 'view'; 
-                                if ($this->i_level == 1 or $this->i_level == 3) {
-                                    $action = 'approvement';
-                                } 
-                                ?>
-                                <?php if(get_notification_saldo_awal()->num_rows() > 0){ 
-                                        foreach(get_notification_saldo_awal()->result() as $row){ 
-                                            $link = base_url() . "saldo/$action/" . encrypt_url($row->id);
-                                            ?>
+                            <ul class="media-list">                                
+                                <?php foreach(notification_saldo_awal() as $row){?>
+                                    <li class="media">
+                                        <div class="mr-3">
+                                            <a href="<?= $row->link ?>" class="btn bg-warning-400 rounded-round btn-icon">
+                                                <i class="icon-pencil"></i>
+                                            </a>
+                                        </div>
 
-                                        <li class="media">
-                                            <div class="mr-3">
-                                                <a href="<?= $link ?>" class="btn bg-warning-400 rounded-round btn-icon"><i class="icon-pencil"></i></a>
+                                        <div class="media-body">
+                                            <h6><?= $row->e_title ?></h6>
+                                            <?= $row->e_message ?>
+                                            <div class="font-size-sm text-muted mt-1">
+                                                <?= date('Y-m-d H:i:s', strtotime($row->d_entry)) ?>
                                             </div>
-
-                                            <div class="media-body">
-                                                Mutasi Saldo Periode <a href="<?=  base_url() . 'saldo/approvement/' . encrypt_url($row->id) .'/'.encrypt_url($row->i_periode).'/'.encrypt_url($row->id_customer) ?>"><?= $row->i_periode ?></a> Meminta Approve
-                                                <div class="font-size-sm text-muted mt-1">
-                                                    <?= date('Y-m-d H:i:s', strtotime($row->d_entry)) ?>
-                                                </div>
-                                            </div>
-                                        </li>
-                                <?php } } ?>
+                                        </div>
+                                    </li>
+                                <?php } ?>
 
                                 <!-- TODO: Pending check notif retur -->
                                 
