@@ -69,6 +69,10 @@ class ProductCompetitor extends CI_Controller
 
 		$data = [];
 
+		if ($id_customer == 'null') {
+			$id_customer = null;
+		}
+
 		if ($id_customer != null) {
 			$customer = $this->mymodel->get_customer('', $id_customer)->row();
 			$data['customer'] = $customer;
@@ -94,6 +98,10 @@ class ProductCompetitor extends CI_Controller
 	public function serverside3()
 	{
 		$id_customer = $this->input->post('id_customer');
+
+		if($id_customer === 'null') {
+			$id_customer = null;
+		}
 
 		echo $this->mymodel->serverside3($id_customer);
 	}
@@ -415,6 +423,12 @@ class ProductCompetitor extends CI_Controller
 	public function get_customer()
 	{
 		$filter = [];
+
+		$filter[] = [
+			'id' => 'null',
+			'text' => 'SEMUA'
+		];
+
 		$cari   = str_replace("'", "", $this->input->get('q'));
 		$data = $this->mymodel->get_customer($cari);
 			foreach ($data->result() as $row) {

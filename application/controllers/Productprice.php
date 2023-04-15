@@ -358,7 +358,8 @@ class Productprice extends CI_Controller
 				'global_assets/js/plugins/forms/selects/select2.min.js',
 				'global_assets/js/plugins/forms/styling/uniform.min.js',
 				'global_assets/js/plugins/uploaders/fileinput/fileinput.min.js',
-				'assets/js/' . $this->folder . '/upload.js',
+				'global_assets/js/plugins/datepicker/js/bootstrap-datepicker.js',
+				'assets/js/' . $this->folder . '/upload.js?v=' . strtotime(date('Y-m-d H:i:s')),
 			)
 		);
 
@@ -651,7 +652,8 @@ class Productprice extends CI_Controller
 				'global_assets/js/plugins/tables/datatables/extensions/col_reorder.min.js', */
 				'global_assets/js/plugins/forms/styling/uniform.min.js',
 				'global_assets/js/plugins/forms/selects/select2.min.js',
-				'assets/js/' . $this->folder . '/uploaddetail.js',
+				'global_assets/js/plugins/datepicker/js/bootstrap-datepicker.js',
+				'assets/js/' . $this->folder . '/uploaddetail.js?v=' . strtotime(date('Y-m-d H:i:s')),
 			)
 		);
 
@@ -668,9 +670,9 @@ class Productprice extends CI_Controller
 		$array 		   = [];
 
 		$_id_customer = $spreadsheet->getActiveSheet()->getCell('B1')->getValue();
-		$_e_periode = $spreadsheet->getActiveSheet()->getCell('B2')->getValue();
-		$e_periode_year = substr($_e_periode, 0, 4);
-		$e_periode_month = substr($_e_periode, 4, 2);
+		$e_periode = $spreadsheet->getActiveSheet()->getCell('B2')->getValue();
+		// $e_periode_year = substr($_e_periode, 0, 4);
+		// $e_periode_month = substr($_e_periode, 4, 2);
 
 		$customer = $this->mymodel->get_customer_by_id($id_customer)->row();
 
@@ -688,6 +690,10 @@ class Productprice extends CI_Controller
 			$brand = $spreadsheet->getActiveSheet()->getCell('E' . $n)->getValue();
 			$v_price = $spreadsheet->getActiveSheet()->getCell('F' . $n)->getValue();
 
+			if ($v_price <= 0) {
+				continue;
+			}
+
 			$array[] = array(
 				'id_product' => $id_product,
 				'i_product' => $i_product,
@@ -699,8 +705,7 @@ class Productprice extends CI_Controller
 
 		$data = array(
 			'id_customer' => $customer->id_customer,
-			'e_periode_year' => $e_periode_year,
-			'e_periode_month' => $e_periode_month,
+			'e_periode' => $e_periode,
 			'e_customer_name' => $customer->e_customer_name,
 			'datadetail' => $array,
 		);

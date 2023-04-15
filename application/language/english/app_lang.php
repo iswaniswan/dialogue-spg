@@ -91,3 +91,5 @@ $lang['Approval Izin']      = 'Permit Approval';
 $lang['Informasi Kehadiran']= 'Attendance Information';
 $lang['Jenis Izin']         = 'Permit Type';
 $lang['Produk Kompetitor'] = 'Product Competitor';
+$lang['Category'] = 'Category';
+$lang['Sub Category'] = 'Sub Category';

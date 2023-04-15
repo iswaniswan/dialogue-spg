@@ -197,11 +197,21 @@ document.addEventListener("DOMContentLoaded", function() {
 
         const idCustomer = $('#id_customer').val();
 
-        const periodeYear = $('#e_periode_year').val();
-        const periodeMonth = $('#e_periode_month').val();
-        const ePeriode = `${periodeYear}${periodeMonth}`;
+        // const periodeYear = $('#e_periode_year').val();
+        // const periodeMonth = $('#e_periode_month').val();
+        // const ePeriode = `${periodeYear}${periodeMonth}`;
+        
+        const ePeriode = $('#e_periode').val().toString().replaceAll(" ", "");
 
         $('#href').attr('href', base_url + '/productprice/export/'+idCustomer + '/' + ePeriode);
         return;
+    });
+
+    $('.month-picker').datepicker({
+        format: "yyyy mm",
+        viewMode: "months", 
+        minViewMode: "months"
+    }).change(function() {
+        console.log($(this).val())
     });
 });

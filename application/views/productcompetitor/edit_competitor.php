@@ -29,12 +29,6 @@
                 <input type="hidden" name="id_product" value="<?= $product->id ?>">
                 <input type="hidden" name="id_customer" value="<?= $customer->id ?>">
                 <div class="form-group row">
-                    <div class="col-12">
-                        <label><?= $this->lang->line('Nama Toko'); ?> :</label>
-                        <input class="form-control" value="<?= $customer->e_name ?>" readonly />
-                    </div> 
-                </div>
-                <div class="form-group row">
                     <div class="col-6">
                         <label>Kode :</label>
                         <input class="form-control" value="<?= $product->i_product ?>" readonly />
@@ -51,9 +45,9 @@
                         <input class="form-control" value="<?= $product->e_product_name ?>" readonly />
                     </div>
                     <div class="col-6">
-                        <label><?= $this->lang->line('Harga'); ?> :</label>
-                        <input class="form-control" value="<?= 'Rp. ' . number_format($product->v_price, 0, ",", ".") ?>" readonly />
-                    </div>                   
+                        <label><?= $this->lang->line('Nama Toko'); ?> :</label>
+                        <input class="form-control" value="<?= $customer->e_name ?>" readonly />
+                    </div>                    
                 </div>    
                 <div class="form-group row">
                     <div class="col-6" style="display: flex;">

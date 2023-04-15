@@ -55,7 +55,7 @@ function reIndexRowNumber() {
 }
 
 var getCountItems = function() {
-    let rows = document.querySelectorAll('.form-input-customer');
+    let rows = document.querySelectorAll('.form-input-brand');
     console.log(rows.length);
     return rows.length ?? 0 ;
 }
@@ -103,13 +103,13 @@ var Detail = $(function() {
 
         let cols = "";
         cols += `<td><spanx id="snum${i}">${i}</spanx></td>`;
-        cols += `<td>
-                    <select data-urut="${i}" class="form-control form-control-sm form-control-select2 form-input-customer" 
-                        data-container-css-class="select-sm" 
-                        name="items[${i}][id_customer]" 
-                        id="id_customer${i}" required data-fouc>
-                    </select>
-                </td>`;
+        // cols += `<td>
+        //             <select data-urut="${i}" class="form-control form-control-sm form-control-select2 form-input-customer" 
+        //                 data-container-css-class="select-sm" 
+        //                 name="items[${i}][id_customer]" 
+        //                 id="id_customer${i}" required data-fouc>
+        //             </select>
+        //         </td>`;
         cols += `<td>
                     <input type="text" required class="form-control form-control-sm form-input-brand" 
                         placeholder="Nama Brand" id="e_brand_text${i}" name="items[${i}][e_brand_text]">

@@ -3,7 +3,7 @@
 
     <div class="card">
         <div class="card-header border-<?= $this->color; ?> bg-transparent header-elements-inline">
-            <h6 class="card-title font-weight-semibold"><i class="icon-list2 mr-3 icon-1x"></i> <?= $this->lang->line('Daftar'); ?> <?= $this->lang->line($this->title); ?>
+            <h6 class="card-title font-weight-semibold"><i class="icon-list2 mr-3 icon-1x"></i> <?= $this->lang->line('Daftar'); ?> Kategori <?php // $this->lang->line($this->title); ?>
             </h6>
             <input type="hidden" id="color" value="<?= $this->color; ?>">
             <div class="header-elements">

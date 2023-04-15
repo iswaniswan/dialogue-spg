@@ -5,7 +5,7 @@
         <!-- Left and right buttons -->
         <div class="card">
             <div class="card-header border-<?= $this->color; ?> bg-transparent header-elements-inline">
-                <h6 class="card-title"><i class="icon-pencil6 mr-2"></i> <?= $this->lang->line('Ubah'); ?> <?= $this->lang->line($this->title); ?></h6>
+                <h6 class="card-title"><i class="icon-pencil6 mr-2"></i> <?= $this->lang->line('View'); ?> <?= $this->lang->line($this->title); ?></h6>
                 <input type="hidden" id="path" value="<?= $this->folder; ?>">
                 <div class="header-elements">
                     <div class="list-icons">

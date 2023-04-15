@@ -115,13 +115,8 @@
                     <a href="#" class="navbar-nav-link dropdown-toggle caret-0 notification" data-toggle="dropdown">
                         <i class="icon-bell2"></i>
                         <span class="d-md-none ml-2">Activity</span>
-
-                        <?php /** count notification  */
-                            $saldo_awal_count = notification_saldo_awal($count=true);
-                        ?>
-
-                        <?php $badge = $saldo_awal_count
-                            /* + get_notification_retur()->num_rows() */
+                        <?php $badge = get_notification_saldo_awal()->num_rows() 
+                            + get_notification_retur()->num_rows()
                             + get_notification_adjust()->num_rows()
                             + get_notification_pending_izin()->num_rows(); ?>
 
@@ -135,56 +130,72 @@
                             <span class="font-weight-semibold">Latest activity</span>
                             <a href="#" class="text-default"><i class="icon-search4 font-size-base"></i></a>
                         </div>
-
                         <div class="dropdown-content-body dropdown-scrollable">
-                            <ul class="media-list">                                
-                                <?php foreach(notification_saldo_awal() as $row){?>
-                                    <li class="media">
-                                        <div class="mr-3">
-                                            <a href="" class="btn bg-warning-400 rounded-round btn-icon">
-                                                <i class="icon-pencil"></i> <?= $row->e_title ?>
-                                            </a>
-                                        </div>
+                            <ul class="media-list">
+                                <?php 
+                                $action = 'view'; 
+                                if ($this->i_level == 1 or $this->i_level == 3) {
+                                    $action = 'approvement';
+                                } 
+                                ?>
+                                <?php if(get_notification_saldo_awal()->num_rows() > 0){ 
+                                        foreach(get_notification_saldo_awal()->result() as $row){ 
+                                            $link = base_url() . "saldo/$action/" . encrypt_url($row->id);
+                                            ?>
 
-                                        <div class="media-body">
-                                            <?= $row->e_message ?>
-                                            <div class="font-size-sm text-muted mt-1"><?= $row->d_entry ?></div>
-                                        </div>
-                                    </li>
-                                <?php } ?>
+                                        <li class="media">
+                                            <div class="mr-3">
+                                                <a href="<?= $link ?>" class="btn bg-warning-400 rounded-round btn-icon"><i class="icon-pencil"></i></a>
+                                            </div>
+
+                                            <div class="media-body">
+                                                Mutasi Saldo Periode <a href="<?=  base_url() . 'saldo/approvement/' . encrypt_url($row->id) .'/'.encrypt_url($row->i_periode).'/'.encrypt_url($row->id_customer) ?>"><?= $row->i_periode ?></a> Meminta Approve
+                                                <div class="font-size-sm text-muted mt-1">
+                                                    <?= date('Y-m-d H:i:s', strtotime($row->d_entry)) ?>
+                                                </div>
+                                            </div>
+                                        </li>
+                                <?php } } ?>
 
                                 <!-- TODO: Pending check notif retur -->
-                                <?php /*
-                                <?php if(get_notification_retur()->num_rows() > 0){ 
-                                        if($this->i_level == 4){
-                                            foreach(get_notification_retur()->result() as $row){?>
-                                <li class="media">
-                                    <div class="mr-3">
-                                        <a href="<?= base_url() . 'retur/approvement/' . encrypt_url($row->id) ?>" class="btn bg-warning-400 rounded-round btn-icon"><i class="icon-pencil"></i></a>
-                                    </div>
+                                
+                                <?php if(get_notification_retur()->num_rows() > 0){                                        
+                                        foreach(get_notification_retur()->result() as $row){
+                                            $link = base_url() . "retur/$action/" . encrypt_url($row->id);
+                                            ?>
+                                            <li class="media">
+                                                <div class="mr-3">
+                                                    <a href="<?= $link ?>" class="btn bg-warning-400 rounded-round btn-icon"><i class="icon-pencil"></i></a>
+                                                </div>
 
-                                    <div class="media-body">
-                                        Retur Pembelian <a href="<?= base_url() . 'retur/approvement/' . encrypt_url($row->id) ?>"><?= $row->i_document ?></a> Meminta Approve
-                                        <div class="font-size-sm text-muted mt-1"><?= $row->d_entry ?></div>
-                                    </div>
-                                </li>
-                                <?php } } } ?>
-                                */ ?>
+                                                <div class="media-body">
+                                                    Retur Pembelian <a href="<?= $link ?>"><?= $row->i_document ?></a> Meminta Approve
+                                                    <div class="font-size-sm text-muted mt-1">
+                                                        <?= date('Y-m-d H:i:s', strtotime($row->d_entry)) ?>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                <?php } } ?>
 
-                                <?php if(get_notification_adjust()->num_rows() > 0){ 
-                                        if($this->i_level == 4){
-                                            foreach(get_notification_adjust()->result() as $row){?>
-                                <li class="media">
-                                    <div class="mr-3">
-                                        <a href="<?= base_url() . 'adjustment/approvement/' . encrypt_url(@$row->id) ?>" class="btn bg-warning-400 rounded-round btn-icon"><i class="icon-pencil"></i></a>
-                                    </div>
+                                <!-- TODO: check notification adjustment -->
 
-                                    <div class="media-body">
-                                        Adjustment <a href="<?= base_url() . 'adjustment/approvement/' . encrypt_url(@$row->id) ?>"><?= $row->i_document ?></a> Meminta Approve
-                                        <div class="font-size-sm text-muted mt-1"><?= $row->d_entry ?></div>
-                                    </div>
-                                </li>
-                                <?php } } } ?>
+                                <?php if(get_notification_adjust()->num_rows() > 0){                                         
+                                        foreach(get_notification_adjust()->result() as $row){
+                                            $link = base_url() . "adjustment/$action/" . encrypt_url(@$row->id);
+                                            ?>
+                                            <li class="media">
+                                                <div class="mr-3">
+                                                    <a href="<?= $link ?>" class="btn bg-warning-400 rounded-round btn-icon"><i class="icon-pencil"></i></a>
+                                                </div>
+
+                                                <div class="media-body">
+                                                    Adjustment <a href="<?= $link ?>"><?= $row->i_document ?></a> Meminta Approve
+                                                    <div class="font-size-sm text-muted mt-1">
+                                                        <?= date('Y-m-d H:i:s', strtotime($row->d_entry)) ?>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                <?php } } ?>
 
                                 <?php foreach(get_notification_pending_izin()->result() as $row){ ?>
                                     <li class="media">

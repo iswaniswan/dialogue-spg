@@ -125,9 +125,11 @@ class Mproductcompetitor extends CI_Model {
                     CROSS JOIN tr_customer c
                 ) SELECT 
                     CTE.id_product, CTE.id_customer,
-                    c.e_customer_name, a.i_product, a.e_product_name, b.e_brand_name, cc.cnt  
+                    c.e_customer_name, a.i_product, g.e_category_name, gg.e_sub_category_name, a.e_product_name, b.e_brand_name, cc.cnt  
                 FROM CTE
                 INNER JOIN tr_product a ON a.id = CTE.id_product 
+                LEFT JOIN tm_category g ON g.id = a.id_category 
+                LEFT JOIN tm_sub_category gg ON gg.id = a.id_sub_category 
                 INNER JOIN tr_brand b ON b.id_brand = a.id_brand 
                 INNER JOIN tr_customer c ON c.id_customer = CTE.id_customer
                 LEFT JOIN (
@@ -143,6 +145,8 @@ class Mproductcompetitor extends CI_Model {
                 ORDER BY cnt DESC NULLS LAST, e_customer_name ASC, e_brand_name ASC, e_product_name ASC";
 
         $datatables = new Datatables(new CodeigniterAdapter);
+
+        // var_dump($sql); die();
 
         $datatables->query($sql, FALSE);        
         

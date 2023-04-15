@@ -57,7 +57,9 @@ class Mretur extends CI_Model {
         });
 
         /** Cek Hak Akses, Apakah User Bisa Edit */
-        $datatables->add('action', function ($data) {
+        $i_level = $this->session->userdata('i_level');
+
+        $datatables->add('action', function ($data) use ($i_level) {
             $id         = trim($data['id']);
             $ddocument  = $data['d_retur'];
             $month      = date('m', strtotime($ddocument));
@@ -82,17 +84,19 @@ class Mretur extends CI_Model {
                 $can_edit = true;
             } 
 
-            $data       = '';
+            $data = '';
+            
+            $can_approve = false;
+            if ($i_level == 1 or $i_level == 3) {
+                $can_approve = true;
+            }
 
-            $level = $this->mymodel->cek_level($this->id_user)->row();
-            $ilevel = $level->level;
-
-            if (check_role($this->id_menu, 5) && $ilevel == '4' && $approve == '' && $status == 't') {
-                $data      .= "<a href='".base_url().$this->folder.'/approvement/'.encrypt_url($id)."' title='Approve'><i class='icon-database-check text-light-800'></i></a> &nbsp;";
+            if ($can_approve && $approve == '' && $status == 't') {
+                $data .= "<a href='".base_url().$this->folder.'/approvement/'.encrypt_url($id)."' title='Approve'><i class='icon-database-check text-light-800'></i></a> &nbsp;";
             }
 
             if (check_role($this->id_menu, 2)) {
-                $data      .= "<a href='" . base_url() . $this->folder . '/view/' . encrypt_url($id) . "' title='Lihat Data'><i class='icon-database-check text-success-800'></i></a>";
+                $data .= "<a href='" . base_url() . $this->folder . '/view/' . encrypt_url($id) . "' title='Lihat Data'><i class='icon-database-check text-success-800'></i></a>";
             }
 
             // if (check_role($this->id_menu, 3) && $status=='t' && $approve =='') {

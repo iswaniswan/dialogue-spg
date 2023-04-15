@@ -71,7 +71,8 @@ class Msaldo extends CI_Model
 
         /** Cek Hak Akses, Apakah User Bisa Edit */
         // if (check_role($this->id_menu, 3)) {
-            $datatables->add('action', function ($data) {
+            $i_level = $this->session->userdata('i_level');
+            $datatables->add('action', function ($data) use ($i_level) {
                 $id        = trim($data['id']);
                 $d_approve = trim($data['d_approve']);
                 $i_periode = trim($data['i_periode']);
@@ -79,17 +80,27 @@ class Msaldo extends CI_Model
                 $status    = $data['f_status'];
                 /* $i_company  = $data['i_company'];
                 $id_customer= $data['id_customer']; */
-                $data       = '';
+
+                $can_approve = false;
+                if ($i_level == 1 or $i_level == 3) {
+                    $can_approve = true;
+                }
+
+                $data = '';
+                if ($can_approve && $d_approve == '' && $status == 't') {
+                    $data .= "<a href='" . base_url() . $this->folder . '/approvement/'. encrypt_url($id) .'/'.encrypt_url($i_periode).'/'.encrypt_url($id_customer) . "'  title='Approve Data'><i class='icon-database-check text-primary-800 mr-1'></i></a>";
+                }
+
+                $data .= "<a href='" . base_url() . $this->folder . '/view/' . encrypt_url($id) .'/'.encrypt_url($i_periode).'/'.encrypt_url($id_customer) . "' title='View Data'><i class='icon-database-check text-success-800 mr-1'></i></a>";
+                
                 if (check_role($this->id_menu, 3) && ($d_approve == '' || $d_approve == null) && $status == 't') {
-                    $data      .= "<a href='" . base_url() . $this->folder . '/edit/' . encrypt_url($id) .'/'.encrypt_url($i_periode).'/'.encrypt_url($id_customer) . "' title='Edit Data'><i class='icon-database-edit2 mr-1 text-" . $this->color . "-800'></i></a>";
+                    $data .= "<a href='" . base_url() . $this->folder . '/edit/' . encrypt_url($id) .'/'.encrypt_url($i_periode).'/'.encrypt_url($id_customer) . "' title='Edit Data'><i class='icon-database-edit2 mr-1 text-" . $this->color . "-800'></i></a>";
                 }
-                if (check_role($this->id_menu, 5) && ($d_approve == '' || $d_approve == null) && $status == 't') {
-                    $data      .= "<a href='" . base_url() . $this->folder . '/approvement/'. encrypt_url($id) .'/'.encrypt_url($i_periode).'/'.encrypt_url($id_customer) . "'  title='Approve Data'><i class='icon-database-check text-teal-800 mr-1'></i></a>";
-                }
+                
                 if (check_role($this->id_menu, 4) && ($d_approve == '' || $d_approve == null) && $status == 't') {
-                    $data      .= "<a href='#' onclick='sweetcancel(\"" . $this->folder . "\",\"" . $id . "\");' title='Cancel Data'><i class='icon-database-remove text-danger-800 mr-1'></i></a>";
+                    $data .= "<a href='#' onclick='sweetcancel(\"" . $this->folder . "\",\"" . $id . "\");' title='Cancel Data'><i class='icon-database-remove text-danger-800 mr-1'></i></a>";
                 }
-                $data      .= "<a href='" . base_url() . $this->folder . '/view/' . encrypt_url($id) .'/'.encrypt_url($i_periode).'/'.encrypt_url($id_customer) . "' title='View Data'><i class='icon-eye text-light-800 mr-1'></i></a>";
+                
                 return $data;
             });
         // }
@@ -224,6 +235,8 @@ class Msaldo extends CI_Model
     /** Simpan Data */
     public function save()
     {
+        $id_user = $this->session->userdata('id_user');
+
         $year = $this->input->post('year');
 		$month = $this->input->post('month');
 		$i_periode = "$year$month";
@@ -232,6 +245,7 @@ class Msaldo extends CI_Model
             'id_customer' => $this->input->post('icustomer', TRUE),
             'i_periode' => $i_periode,
             'e_remark' => $this->input->post('eremark', TRUE),
+            'id_user' => $id_user
         ];
 
         $this->db->insert('tm_mutasi_saldoawal', $data_header);
@@ -247,10 +261,6 @@ class Msaldo extends CI_Model
             ];
             $this->db->insert('tm_mutasi_saldoawal_item', $data_detail);            
         };
-
-
-        /** generate pesan untuk notification */
-        $this->generate_notification($id_reff=$id_header);
     }
 
     /** Get Data Untuk Edit */
@@ -460,43 +470,6 @@ class Msaldo extends CI_Model
         $this->db->select();
         $this->db->where('id_customer', $id_customer);
         return $this->db->get('tr_customer');        
-    }
-
-    public function get_id_user_atasan($id_user)
-    {
-        $this->load->model('Muser');
-        $user = $this->Muser->getdata($id_user);
-
-        return $user->row()->id_atasan;
-    }
-
-    public function generate_notification($id_reff)
-    {
-        $id_user = $this->session->userdata('id_user');
-        $id_atasan = $this->get_id_user_atasan($id_user);
-
-        /** message ke SPG */
-        $e_title = "Menunggu Approval";
-        $e_message = "Data entry saldo awal berhasil disimpan.";
-        $this->insert_notification($id_reff, $id_user, $e_title, $e_message);
-
-        /** message ke Team Leader */
-        $e_title = "Menunggu Approval";
-        $e_message = "Permintaan persetujuan data Saldo awal.";
-        $this->insert_notification($id_reff, $id_atasan, $e_title, $e_message);
-    }
-
-    public function insert_notification($id_reff, $id_user, $e_title, $e_message)
-    {
-        $data = [
-            'id_user' => $id_user,
-            'id_reff' => $id_reff,
-            'e_type' => 'SALDO_AWAL',
-            'e_title' => $e_title,
-            'e_message' => $e_message
-        ];
-
-        $this->db->insert('tm_notification', $data);
     }
 }
 

@@ -25,6 +25,8 @@
                                     name="id_customer" id="id_customer">
                                     <?php if (@$customer != null) { ?>
                                         <option value="<?= $customer->id ?>" selected><?= $customer->e_name ?></option>
+                                    <?php } else { ?>
+                                        <option value='null' selected>SEMUA</option> 
                                     <?php } ?>
                             </select>
                         </div>
@@ -52,6 +54,8 @@
                             <th>#</th>
                             <th>Customer</th>
                             <th><?= $this->lang->line('Kode Barang'); ?></th>
+                            <th>Kategori</th>
+                            <th>Sub Kategori</th>
                             <th><?= $this->lang->line('Nama Barang'); ?></th>
                             <th><?= $this->lang->line('Nama Brand'); ?></th>
                             <th>Kompetitor</th>

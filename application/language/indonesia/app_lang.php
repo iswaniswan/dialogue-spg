@@ -112,3 +112,5 @@ $lang['Approval Izin']      = 'Approval Izin';
 $lang['Informasi Kehadiran']= 'Informasi Kehadiran';
 $lang['Jenis Izin']         = 'Jenis Izin';
 $lang['Produk Kompetitor'] = 'Produk Kompetitor';
+$lang['Category'] = 'Kategori';
+$lang['Sub Category'] = 'Sub Kategori';

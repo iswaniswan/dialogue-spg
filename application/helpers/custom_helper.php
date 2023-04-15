@@ -432,12 +432,21 @@ if (!function_exists('check_db')) {
 	}
 }
 
-function get_notification_saldo()
+// function get_notification_saldo()
+// {
+
+// 	$ci = &get_instance();
+// 		$ci->load->model('Mcustom');
+// 		$query = $ci->Mcustom->get_notif_saldo();
+// 	return $query;
+// }
+
+function get_notification_saldo_awal()
 {
 
 	$ci = &get_instance();
 		$ci->load->model('Mcustom');
-		$query = $ci->Mcustom->get_notif_saldo();
+		$query = $ci->Mcustom->get_notification_saldo_awal();
 	return $query;
 }
 
@@ -446,7 +455,7 @@ function get_notification_retur()
 
 	$ci = &get_instance();
 		$ci->load->model('Mcustom');
-		$query = $ci->Mcustom->get_notif_retur();
+		$query = $ci->Mcustom->get_notification_retur();
 	return $query;
 }
 
@@ -455,7 +464,7 @@ function get_notification_adjust()
 
 	$ci = &get_instance();
 		$ci->load->model('Mcustom');
-		$query = $ci->Mcustom->get_notif_adjust();
+		$query = $ci->Mcustom->get_notification_adjustment();
 	return $query;
 }
 
@@ -513,17 +522,4 @@ function getMonthShort()
 		"12" => "Dec",
 	);
 	return $data;
-}
-
-function notification_saldo_awal($count=false)
-{
-	$ci = &get_instance();
-	$ci->load->model('Mnotification');
-	$query = $ci->Mnotification->get_saldo_awal();
-
-	if ($count) {
-		return $query['count'];
-	}
-
-	return $query['data'];
 }

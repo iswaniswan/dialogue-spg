@@ -78,4 +78,17 @@ class Auth extends CI_Controller
 
         redirect(base_url(), 'refresh');
     }
+
+    public function cron()
+    {
+        /** trigger cronjob via URL endpoint */
+        $data = [
+            'id_user' => 1,
+            'ip_address' => 'localhost',
+            'activity' => 'cronjob test'
+        ];
+        $this->db->insert('dg_log', $data);
+
+        echo 'success';
+    }
 }

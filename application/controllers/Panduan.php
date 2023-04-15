@@ -38,10 +38,12 @@ class Panduan extends CI_Controller
 				'global_assets/js/plugins/notifications/sweet_alert.min.js',
 				'assets/js/' . $this->folder . '/index.js',
 			)
-		);
+		);		
+
 		$data = array(
-			'datafile' => $this->mymodel->getdata(), 
+			'datafile' => $this->mymodel->get_cover_panduan(), 
 		);
+		
 		$this->logger->write('Membuka Menu '.$this->title);
 		$this->template->load('main', $this->folder . '/index', $data);
 	}

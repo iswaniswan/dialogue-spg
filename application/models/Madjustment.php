@@ -63,7 +63,9 @@ class Madjustment extends CI_Model
         });
 
         /** Cek Hak Akses, Apakah User Bisa Edit */
-        $datatables->add('action', function ($data) {
+        $i_level = $this->session->userdata('i_level');
+
+        $datatables->add('action', function ($data) use ($i_level) {
             $id         = trim($data['id']);
             $ddocument  = $data['d_document'];
             $month      = date('m', strtotime($ddocument));
@@ -71,7 +73,7 @@ class Madjustment extends CI_Model
             $batas      = date('Y-m-06');
             $tgl        = date('Y-m-d');
             $cek        = $bulan-$month;
-            $approve         = trim($data['d_approve']);
+            $approve = trim($data['d_approve']);
             $status     = $data['f_status'];
             $e_periode_valid_edit = $data['e_periode_valid_edit'];
 
@@ -90,15 +92,17 @@ class Madjustment extends CI_Model
 
             $data       = '';
 
-            $level = $this->mymodel->cek_level($this->id_user)->row();
-            $ilevel = $level->level;
+            $can_approve = false;
+            if ($i_level == 1 or $i_level == 3) {
+                $can_approve = true;
+            }
 
-            if ($ilevel == '4' AND $approve == '') {
-                $data      .= "<a href='".base_url().$this->folder.'/approvement/'.encrypt_url($id)."' title='Approve'><i class='icon-database-check text-light-800'></i></a> &nbsp;";
+            if ($can_approve AND $approve == '' AND $status == 't') {
+                $data .= "<a href='".base_url().$this->folder.'/approvement/'.encrypt_url($id)."' title='Approve'><i class='icon-database-check text-light-800'></i></a> &nbsp;";
             }
 
             if (check_role($this->id_menu, 2)) {
-                $data      .= "<a href='" . base_url() . $this->folder . '/view/' . encrypt_url($id) . "' title='Lihat Data'><i class='icon-database-check text-success-800'></i></a>";
+                $data .= "<a href='" . base_url() . $this->folder . '/view/' . encrypt_url($id) . "' title='Lihat Data'><i class='icon-database-check text-success-800'></i></a>";
             }
 
             if (check_role($this->id_menu, 3) && $status == 't' && $approve== '' && $can_edit) {

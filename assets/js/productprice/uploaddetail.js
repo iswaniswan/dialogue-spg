@@ -23,6 +23,14 @@ document.addEventListener("DOMContentLoaded", function() {
     });
     $('#id_customer').select2();
 
+    $('.month-picker').datepicker({
+        format: "yyyy mm",
+        viewMode: "months", 
+        minViewMode: "months"
+    }).change(function() {
+        console.log($(this).val())
+    });
+
     // $("#icustomer").select2({
     //     placeholder: "Select Customer",
     //     width: "100%",

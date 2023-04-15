@@ -340,15 +340,16 @@ class Mproductprice extends CI_Model {
     public function transfer()
     {
         $id_customer = $this->input->post('id_customer', TRUE);
+        $e_periode = $this->input->post('e_periode', TRUE);
         $jml = $this->input->post('jml', TRUE);
 
         for ($i=1; $i <= $jml; $i++) { 
             $id_product   = $this->input->post('id_product'.$i, TRUE);
             $vprice     = $this->input->post('v_price'.$i, TRUE);
 
-            $sql = "INSERT INTO tr_customer_price (id_customer, id_product, v_price, d_entry) 
-                    VALUES ($id_customer, $id_product, $vprice, now())
-                    ON CONFLICT (id_customer, id_product) DO UPDATE 
+            $sql = "INSERT INTO tr_customer_price (id_customer, id_product, v_price, e_periode) 
+                    VALUES ($id_customer, $id_product, $vprice, $e_periode)
+                    ON CONFLICT (id_customer, id_product, e_periode) DO UPDATE 
                     SET v_price = $vprice, 
                         d_update = now()";
 

@@ -263,12 +263,19 @@ code {
                                     
                                     <td>
                                         <?php 
-                                        $_status = getStatusFluktuasi($db, $customer->id, $product->id, $competitor->e_brand_text);                                         
+                                        $_status = 0;
+                                        if ($competitor->v_price > $product_origin_price) {
+                                          $_status = 1;
+                                        }
+
+                                        if ($competitor->v_price < $product_origin_price) {
+                                          $_status = -1;
+                                        }                                        
                                         ?>
-                                        <?= getBadgeStatusFluktuasi($_status) ?>
+                                        <?= getBadgeProductStats($_status) ?>
                                     </td>
 
-                                    <td><?= getBadgeSelisih($product_origin_price, $competitor->v_price) ?></td>
+                                    <td><?= getBadgeSelisih($competitor->v_price, $product_origin_price) ?></td>
                                     <td style="max-width: 300px;"><?= $competitor->e_remark ?></td>                                    
                                 </tr>
                             <?php } ?>                        

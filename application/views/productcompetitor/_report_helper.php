@@ -5,18 +5,19 @@ function getSelisih($price1, $price2) {
     return $price1 - $price2;
 } 
 
-function getStyle($v) {
+function getStyle($v) {    
     if ($v < 0) {
-        return 'danger';
+        return 'success';
     }
 
-    return 'success';
+    return 'danger';
 }
 
 function getBadgeSelisih($price1, $price2) {
     $value = getSelisih($price1, $price2);
     $style = getStyle($value);
-    $badge = "<span class='text-$style'>Rp. ". number_format($value, 0, ",", ".") . "</span>";
+    // $badge = "<span class='text-$style'>Rp. ". number_format($value, 0, ",", ".") . "</span>";
+    $badge = "<span class='text-$style'>Rp. ". number_format(abs($value), 0, ",", ".") . "</span>";
     return $badge;
 }        
 
@@ -64,6 +65,27 @@ function getBadgeStatusFluktuasi($status) {
     if ($status < 0) {
         $_text = 'turun';
         $_style = 'danger'; 
+        $_icon = "<i class='icon-stats-decline2 text-$_style'></i>";
+    }
+
+    $badge = "<span class='text-$_style'>$_icon $_text</span>";
+    
+    return $badge;
+}
+
+function getBadgeProductStats($status)
+{
+    $_text = 'sama';
+    $_style = 'info'; 
+    $_icon = "<i class='icon-minus3 text-$_style'></i>";
+    if ($status == 1) {
+        $_text = 'mahal';
+        $_style = 'danger';
+        $_icon = "<i class='icon-stats-growth2 text-$_style'></i>";
+    }
+    if ($status < 0) {
+        $_text = 'murah';
+        $_style = 'success'; 
         $_icon = "<i class='icon-stats-decline2 text-$_style'></i>";
     }
 
